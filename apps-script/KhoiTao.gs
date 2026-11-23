@@ -120,7 +120,7 @@ const VH = {
   ChamDiem: ['Ngày', 'Mã vị trí', 'Tiêu chí', 'Điểm (1–5)', 'Ảnh', 'Ghi chú', 'Người chấm'],
   BatThuong: ['Ngày', 'Mã vị trí', 'Tên cây', 'Tình trạng', 'Ảnh', 'Ghi chú', 'Người báo', 'Xử lý'],
   VuonRau: ['Ngày', 'Mã vườn', 'Trường', 'Giá trị', 'Ngoài ngưỡng', 'Người ghi'],
-  ThuHoach: ['Ngày', 'Mã cây', 'Tên cây', 'kg', 'Ảnh cân', 'Bếp nhận', 'Người ghi'],
+  ThuHoach: ['Ngày', 'Mã vườn', 'Vườn', 'Mã cây', 'Tên cây', 'kg', 'Ảnh cân', 'Bếp nhận', 'Người ghi'],
   DongHoNuoc: ['Ngày', 'Mã đồng hồ', 'Chỉ số', 'Ảnh', 'Người đọc'],
   RacHuuCo: ['Ngày', 'kg rác thu gom', 'Ảnh', 'Người ghi'],
   PhanCompost: ['Ngày', 'Phân compost tuần hoàn (kg)', 'Ảnh', 'Ghi chú', 'Người ghi'],
