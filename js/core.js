@@ -185,6 +185,15 @@
     const csv = '﻿' + hang.map((r) => r.map((c) => { const s = String(c == null ? '' : c); return /[",\n;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(',')).join('\r\n');
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = ten + '.csv'; a.click();
   };
+  /* Gửi Zalo: mở bảng chia sẻ của điện thoại (chọn Zalo → nhóm/người). Máy không hỗ trợ thì chép sẵn để dán. */
+  G.linkApp = (duong) => location.origin + location.pathname + '#/' + duong;
+  G.guiZalo = async function (text, duong) {
+    const url = G.linkApp(duong); const noiDung = text + '\n👉 Mở: ' + url;
+    if (navigator.share) { try { await navigator.share({ title: 'GreenLog', text: noiDung }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+    try { await navigator.clipboard.writeText(noiDung); G.bao('Đã chép nội dung. Mở Zalo, dán vào nhóm hoặc người nhận.'); }
+    catch (e) { G.hop('Gửi Zalo', `<p class="mo">Chép đoạn dưới rồi dán vào Zalo:</p><textarea style="min-height:160px">${G.esc(noiDung)}</textarea>`); }
+  };
+  G.nutZalo = (id) => `<button type="button" class="nut rong nut-zalo" id="${id || 'zalo'}">📤 Gửi Zalo</button>`;
   G.trong = (msg) => `<div class="the mo" style="text-align:center">${esc(msg)}</div>`;
 })();
 

@@ -61,6 +61,8 @@
       ${r['Ảnh xong'] ? `<div class="mo">Ảnh báo xong</div><div>${G.xemAnh(r['Ảnh xong'])}</div>` : ''}
       <div id="hd" style="margin-top:12px"></div>`, (o, dong) => {
       const hd = o.querySelector('#hd');
+      const guiZ = () => G.guiZalo(`🐛 Dịch hại ${r['Mã DH']} · ${r['Mức độ']}\n${r['Loại dịch hại']} trên ${r['Tên cây']}\n📍 ${G.tenVT(r['Mã vị trí'], r['Vị trí chi tiết'] || r['Cụm'])} · ${r['Phạm vi (Vài cây/Một mảng/Cả khu vực)']}\nTrạng thái: ${tt}`, 'dichhai');
+      setTimeout(() => { const z = G.h(G.nutZalo('zaloDH')); z.onclick = guiZ; hd.appendChild(z); });
       if (ghi && tt !== 'Báo xong' && tt !== 'Đã duyệt') {
         hd.innerHTML = '<div class="nhom-nut"><button class="nut" id="cn">＋ Cập nhật xử lý</button><button class="nut chinh" id="xong">Báo xong</button></div><a class="nut rong" style="margin-top:8px" href="#/phunbon/moi/' + encodeURIComponent(r['Mã DH']) + '">🧪 Ghi nhật ký phun cho hồ sơ này</a>';
         hd.querySelector('#cn').onclick = () => { dong(); capNhat(r); };

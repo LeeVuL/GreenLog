@@ -487,7 +487,7 @@
 
   /* ================= PHIẾU GIAO VIỆC ================= */
   const MAU_TT = { 'Mới': 'cam', 'Đang xử lý': '', 'Báo xong': 'xanh', 'Bị trả lại': 'do', 'Đã duyệt': 'xanh' };
-  async function manPhieu() {
+  async function manPhieu(moMa) {
     const st = manPhieu.st || (manPhieu.st = { tab: 'mo', cuaToi: S.u.nhom === 'Tổ trưởng' });
     const m = G.khung('Phiếu giao việc', 'Lỗi cảnh quan, sự cố cần xử lý');
     const ds = (await API.goi('docNhieu', { ds: [{ bang: 'Phieu', gioiHan: 400 }] })).Phieu.reverse();
@@ -506,7 +506,8 @@
     m.querySelectorAll('[data-t]').forEach((b) => { b.onclick = () => { st.tab = b.dataset.t; manPhieu(); }; });
     const ct = m.querySelector('#cuaToi'); if (ct) ct.onchange = () => { st.cuaToi = ct.checked; manPhieu(); };
     m.querySelectorAll('[data-ma]').forEach((r) => { r.onclick = () => chiTietPhieu(ds.find((p) => p['Mã phiếu'] === r.dataset.ma)); });
-    const t = m.querySelector('#tao'); if (t) t.onclick = () => G.taoPhieu({ sau: manPhieu });
+    const t = m.querySelector('#tao'); if (t) t.onclick = () => G.taoPhieu({ sau: (r) => { manPhieu(); hoiGuiZalo(r.ma); } });
+    if (moMa) { const p = ds.find((x) => x['Mã phiếu'] === moMa); if (p) chiTietPhieu(p); else bao('Không thấy phiếu ' + moMa + ' (đã xóa hoặc chưa đồng bộ)', true); history.replaceState(null, '', '#/phieu'); }
     const dh = m.querySelector('#duyetHet'); if (dh) dh.onclick = () => chay(async () => { if (!(await G.xacNhan(`Duyệt ${loc.length} phiếu?`, 'Duyệt hết'))) return; for (const p of loc) await API.goi('phieu.chuyen', { ma: p['Mã phiếu'], hd: 'duyet' }); bao('Đã duyệt ' + loc.length + ' phiếu'); manPhieu(); }, dh);
   }
 
@@ -540,6 +541,14 @@
     });
   };
 
+  G.textPhieu = (p) => `🎫 Phiếu ${p['Mã phiếu']} · ${p['Mức độ']}\n${p['Loại lỗi']}\n📍 ${G.tenVT(p['Mã vị trí'], p['Vị trí khác'])}${p['Giao cho'] ? '\nGiao: ' + p['Giao cho'] : ''} · hạn ${G.gioVN(p['Hạn'])}\nTrạng thái: ${p['Trạng thái']}${p['Mô tả'] ? '\n' + p['Mô tả'] : ''}`;
+  async function hoiGuiZalo(ma) {
+    const ds = (await API.goi('docNhieu', { ds: [{ bang: 'Phieu', gioiHan: 400 }] })).Phieu; const p = ds.find((x) => x['Mã phiếu'] === ma); if (!p) return;
+    hop('Đã tạo phiếu ' + ma, `<p class="mo" style="margin-top:0">Gửi phiếu qua Zalo cho ${G.esc(p['Giao cho'] || 'người nhận')}? Bấm 📤 rồi chọn Zalo → nhóm hoặc người.</p><pre style="white-space:pre-wrap;font:inherit;background:var(--nen);padding:10px;border-radius:10px">${G.esc(G.textPhieu(p))}</pre>${G.nutZalo()}<button class="nut rong" id="boQua" style="margin-top:8px">Để sau</button>`, (o, dong) => {
+      o.querySelector('#zalo').onclick = () => G.guiZalo(G.textPhieu(p), 'phieu/' + ma);
+      o.querySelector('#boQua').onclick = dong;
+    });
+  }
   function chiTietPhieu(p) {
     const duyet = q('phieu') >= 3; const ghi = q('phieu') >= 2; const tt = p['Trạng thái'];
     hop(p['Loại lỗi'], `<div class="hang" style="margin-bottom:6px;flex-wrap:wrap"><span class="chip ${MAU_MUC[p['Mức độ']]}">${esc(p['Mức độ'])}</span><span class="chip ${MAU_TT[tt]}">${esc(tt)}</span><span class="mo">${esc(p['Mã phiếu'])}</span></div>
@@ -563,6 +572,7 @@
         hd.querySelector('[data-x=duyet]').onclick = lam({ hd: 'duyet' }, 'Đã duyệt');
         hd.querySelector('[data-x=tra]').onclick = async (e) => { const g = await G.hoi('Lý do trả lại'); if (g !== null) lam({ hd: 'traLai', ghiChu: g }, 'Đã trả lại')(e); };
       }
+      { const z = h(G.nutZalo('zaloP')); z.onclick = () => G.guiZalo(G.textPhieu(p), 'phieu/' + p['Mã phiếu']); hd.appendChild(z); }
       if (duyet && G.lapLaiTu) { const b = h('<button class="nut rong" style="margin-top:8px">🔁 Lặp lại việc này</button>'); b.onclick = () => { dong(); G.lapLaiTu(p); }; hd.appendChild(b); }
     }, true);
   }

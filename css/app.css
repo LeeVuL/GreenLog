@@ -175,3 +175,5 @@ table.bang th { background: var(--nen); position: sticky; top: 0; }
 input[type=number], input[type=date], input[type=datetime-local] { width: 100%; border: 1px solid var(--vien); border-radius: 10px; background: var(--the); padding: 12px; min-height: 48px; }
 .canh-bao { background: var(--cam-nhat); color: var(--cam); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 12px; }
 .canh-bao.do { background: var(--do-nhat); color: var(--do); }
+
+.nut-zalo { background: #0068FF; border-color: #0068FF; color: #fff; margin-top: 8px; }
