@@ -1,6 +1,6 @@
 /* GreenLog service worker: giữ vỏ app để mở nhanh, dữ liệu luôn lấy mới */
-const BAN = 'greenlog-v0.1.0';
-const VO = ['./', 'index.html', 'css/app.css', 'js/config.js', 'js/api.js', 'js/app.js', 'js/demo-data.json',
+const BAN = 'greenlog-v0.2.0';
+const VO = ['./', 'index.html', 'css/app.css', 'js/config.js', 'js/api.js', 'js/core.js', 'js/app.js', 'js/m-noibo.js', 'js/m-nghiepvu.js', 'js/m-kehoach.js', 'js/m-quanly.js', 'js/menu.js', 'js/demo-data.json',
   'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/GreenLog_Logo_Ngang.svg'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(BAN).then((c) => c.addAll(VO))); self.skipWaiting(); });
 self.addEventListener('activate', (e) => {

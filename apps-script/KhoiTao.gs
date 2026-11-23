@@ -35,6 +35,8 @@ const DM_BOSUNG = {
   NhomCayDinhKy: [['Nhóm cây', 'Việc định kỳ được tính luôn'], ['Cây bụi / hoa', 'DV08, DV05'],
     ['Cây bóng mát (gồm dừa, cọ, chà là, Sứ Đại)', 'DV07, DV06'], ['Cỏ', 'DV04']],
   LoaiPhunBon: [['Loại'], ['Phun thuốc'], ['Phun phân bón lá'], ['Bón gốc']],
+  DanhMucDichHai: [['Loại dịch hại'], ['Rệp sáp'], ['Rệp muội'], ['Nhện đỏ'], ['Bọ trĩ'], ['Sâu ăn lá'], ['Sâu đục thân'], ['Bọ cánh cứng hại dừa'], ['Đuông dừa'], ['Kiến'], ['Ốc sên'], ['Mối'], ['Bệnh thối rễ'], ['Bệnh đốm lá'], ['Thán thư'], ['Nấm phấn trắng'], ['Cháy lá'], ['Vàng lá'], ['Chưa rõ']],
+  BaoHo: [['Bảo hộ'], ['Khẩu trang'], ['Găng tay'], ['Kính'], ['Áo dài tay'], ['Ủng']],
   LyDoLamThem: [['Lý do làm thêm'], ['Làm lại vì chưa đạt'], ['Theo yêu cầu'], ['Khác']],
   CaLamViec: [['Ca', 'Áp dụng', 'Giờ', 'Ghi chú'], ['Ca thẳng', 'Cắt cỏ', '09:00–17:30', 'Nghỉ 12:00–12:30'],
     ['Ca gãy', 'Các chức danh còn lại', '06:00–10:00 và 13:30–17:30', ''], ['Ca sớm', 'Phun thuốc', 'Bắt đầu 04:00 hoặc 05:00', 'Chỉ để tham khảo']],
@@ -80,14 +82,16 @@ const LOI_TUOI = [
 const VH = {
   DiemDanh: ['Ngày', 'Buổi', 'Mã CN', 'Họ tên', 'Đội', 'Trạng thái (Có mặt/Vắng/Về sớm)', 'Giờ về', 'Lý do', 'Công',
     'Ảnh tập thể', 'Người ghi', 'Giờ ghi', 'Trạng thái duyệt'],
-  DuyetCong: ['Ngày', 'Buổi', 'Đội', 'Người gửi', 'Giờ gửi', 'Người duyệt', 'Giờ duyệt', 'Khóa'],
+  DuyetCong: ['Ngày', 'Buổi', 'Đội', 'Người gửi', 'Giờ gửi', 'Người duyệt', 'Giờ duyệt', 'Khóa', 'Ảnh tập thể', 'Ghi chú'],
   PhieuSuaCong: ['Mã phiếu', 'Ngày', 'Buổi', 'Mã CN', 'Giá trị cũ', 'Giá trị mới', 'Lý do', 'Người đề nghị', 'Giờ', 'Người duyệt', 'Kết quả'],
   CongNhanDangKy: ['Mã ĐK', 'Loại (Mới/Thay đổi/Nghỉ việc)', 'Mã CN', 'Họ và tên', 'Đội', 'Chức danh', 'Khu vực phụ trách',
     'Số điện thoại', 'Từ ngày', 'Ghi chú', 'Người đăng ký', 'Giờ đăng ký', 'Trạng thái duyệt', 'Người duyệt', 'Giờ duyệt'],
   KeHoachDinhKy: ['Mã KH', 'Kỳ', 'Mã việc', 'Cụm', 'Khu vực', 'Từ ngày', 'Đến ngày', 'Đội', 'Trạng thái duyệt', 'Người lập'],
   TickDinhKy: ['Ngày', 'Kỳ', 'Mã việc', 'Mã vị trí', 'Mã KH', 'Lần', 'Lý do làm thêm', 'Mã dịch hại', 'Người tick', 'Giờ tick', 'Ghi chú'],
   AnhNgay: ['Ngày', 'Mã việc', 'Khu vực', 'Link ảnh', 'Nguồn ảnh', 'Mã băm', 'Người chụp', 'Giờ', 'GPS'],
-  Tuoi: ['Ngày', 'Mã vị trí', 'Trạng thái', 'Người ghi', 'Giờ', 'Hôm nay mưa'],
+  Tuoi: ['Ngày', 'Mã vị trí', 'Trạng thái', 'Lý do', 'Người ghi', 'Giờ', 'Hôm nay mưa'],
+  ViecHangNgay: ['Ngày', 'Mã việc', 'Cụm', 'Trạng thái', 'Ảnh', 'Ghi chú', 'Người ghi', 'Giờ'],
+  KiemTraBien: ['Ngày', 'Buổi', 'Đoạn bãi', 'Tình trạng', 'Ảnh', 'Ghi chú', 'Người ghi'],
   Phieu: ['Mã phiếu', 'Loại', 'Nguồn', 'Nhóm lỗi', 'Loại lỗi', 'Mức độ', 'Mã vị trí', 'Vị trí khác', 'Mô tả', 'Giao cho',
     'Người tạo', 'Giờ tạo', 'Hạn', 'Người nhận', 'Giờ nhận', 'Ảnh trước', 'Ảnh sau', 'Trạng thái', 'Số lần trả lại',
     'Giờ xong', 'Giờ duyệt', 'Đã khóa van', 'Mã tuần tra', 'Mã sự kiện', 'Mã dự án', 'Mã lặp lại'],
@@ -107,7 +111,7 @@ const VH = {
   NhatKyPhunBonChiTiet: ['Mã NK', 'STT', 'Sản phẩm', 'Liều / bình', 'ĐVT', 'Tổng lượng', 'Cách ly (ngày)'],
   CongThucPha: ['Mã CT', 'Tên công thức', 'Loại', 'Sản phẩm', 'Liều / bình', 'ĐVT', 'Ghi chú', 'Đang dùng'],
   DeXuatThuoc: ['Mã ĐX', 'Tên thuốc/phân', 'Loại', 'Hoạt chất', 'Ảnh nhãn', 'Cách ly đề xuất (ngày)', 'Người đề xuất', 'Giờ',
-    'Trạng thái (Chờ duyệt/Đã duyệt/Từ chối)', 'Đã kiểm tra danh mục được phép', 'Người duyệt', 'Giờ duyệt'],
+    'Trạng thái (Chờ duyệt/Đã duyệt/Từ chối)', 'Đã kiểm tra danh mục được phép', 'Không pha chung với', 'Người duyệt', 'Giờ duyệt'],
   DichHai: ['Mã DH', 'Ngày phát hiện', 'Cụm', 'Mã vị trí', 'Vị trí chi tiết', 'Phạm vi (Vài cây/Một mảng/Cả khu vực)', 'Nhóm cây',
     'Tên cây', 'Loại dịch hại', 'Mức độ', 'Mô tả', 'Ảnh', 'Người phát hiện', 'Trạng thái (Phát hiện/Đang xử lý/Báo xong/Đã duyệt)',
     'Ngày báo xong', 'Ảnh xong', 'Người duyệt', 'Số lần trả lại', 'Cập nhật gần nhất'],
@@ -122,9 +126,9 @@ const VH = {
   PhanCompost: ['Ngày', 'Phân compost tuần hoàn (kg)', 'Ảnh', 'Ghi chú', 'Người ghi'],
   VuonUom: ['Ngày', 'Vườn ươm', 'Việc', 'Tên cây', 'Số lượng', 'ĐVT', 'Chất cải tạo đất hữu cơ (bao)', 'Mô tả', 'Ảnh', 'Người ghi'],
   VeSinhBien: ['Ngày', 'Buổi', 'kg rác', 'Ảnh', 'Người ghi'],
-  MaySangCat: ['Ngày', 'Máy', 'Giờ bắt đầu', 'Giờ kết thúc', 'Đoạn bãi', 'Nhiên liệu (lít)', 'Bảo trì', 'Người ghi'],
+  MaySangCat: ['Ngày', 'Máy', 'Giờ bắt đầu', 'Giờ kết thúc', 'Đoạn bãi', 'Nhiên liệu (lít)', 'Bảo trì', 'Ảnh', 'Ghi chú', 'Người ghi'],
   CayNoiThat: ['Ngày', 'Mã điểm', 'Số chậu tưới', 'Người ghi'],
-  KeHoachTuan: ['Tuần', 'Nội dung', 'Mã vị trí', 'Đội/Người', 'Từ ngày', 'Hạn', 'Mức độ', 'Nguồn', 'Trạng thái', 'Lý do trễ'],
+  KeHoachTuan: ['Mã KHT', 'Tuần', 'Nội dung', 'Mã vị trí', 'Đội/Người', 'Từ ngày', 'Hạn', 'Mức độ', 'Nguồn', 'Trạng thái', 'Lý do trễ'],
   CanhBaoBao: ['Mã đợt', 'Kích hoạt lúc', 'Người kích hoạt', 'Ghi chú', 'Kết thúc'],
   KyCham: ['Kỳ', 'Từ ngày', 'Đến ngày', 'Trạng thái', 'Người yêu cầu nghiệm thu', 'Giờ yêu cầu', 'Kết luận', 'Nhận xét', 'Giờ đóng'],
   SoDuCong: ['Kỳ', 'Chênh lệch tháng', 'Lũy kế đến kỳ trước', 'Lũy kế đến nay'],
@@ -172,24 +176,23 @@ function khoiTao() {
   // 5. Chuẩn hóa tên người dùng
   const nd = nen.getSheetByName('NguoiDung');
   if (nd) {
-    const v = nd.getDataRange().getValues();
-    for (let i = 0; i < v.length; i++) {
+    const v = nd.getDataRange().getValues(); const h = v[0].map(String);
+    const cGmail = h.indexOf('Gmail');
+    for (let i = 1; i < v.length; i++) {
       if (v[i][0] === 'Phạm Nhựt Trường') nd.getRange(i + 1, 1).setValue('Phạm Nhật Trường');
       if (v[i][0] === 'Anh Pháp') nd.getRange(i + 1, 1).setValue('Mai Hòa Pháp');
-      if (v[i][4]) nd.getRange(i + 1, 5).setValue(String(v[i][4]).trim().toLowerCase());
+      if (cGmail >= 0 && v[i][cGmail]) nd.getRange(i + 1, cGmail + 1).setValue(String(v[i][cGmail]).trim().toLowerCase());
     }
-    if (String(v[0][5] || '') !== 'Nhóm quyền') {
-      const nhom = v.map(function (r, i) {
-        if (i === 0) return ['Nhóm quyền'];
-        const vt = String(r[2]);
-        if (vt.indexOf('Chủ sở hữu') >= 0) return ['Trưởng bộ phận'];
-        if (vt.indexOf('Quản lý nhà thầu') >= 0) return ['Quản lý nhà thầu'];
-        if (vt.indexOf('Tổ trưởng') >= 0) return ['Tổ trưởng'];
-        return [r[1] === 'Nhân viên nội bộ' ? 'Nhân viên nội bộ' : ''];
-      });
-      nd.getRange(1, 6, nhom.length, 1).setValues(nhom);
+    if (h.indexOf('Nhóm quyền') < 0) {
+      const cot = nd.getLastColumn() + 1; nd.getRange(1, cot).setValue('Nhóm quyền');
+      for (let i = 1; i < v.length; i++) {
+        const vt = String(v[i][2]);
+        const nhom = /Chủ sở hữu/.test(vt) ? 'Trưởng bộ phận' : /Quản lý nhà thầu/.test(vt) ? 'Quản lý nhà thầu' : /Tổ trưởng/i.test(vt) ? 'Tổ trưởng' : v[i][1] === 'Nhân viên nội bộ' ? 'Nhân viên nội bộ' : '';
+        nd.getRange(i + 1, cot).setValue(nhom);
+      }
       log.push('NguoiDung + cột Nhóm quyền');
     }
+    ['Zalo chat_id', 'Telegram chat_id'].forEach(function (c) { const hh = nd.getRange(1, 1, 1, nd.getLastColumn()).getValues()[0]; if (hh.indexOf(c) < 0) nd.getRange(1, nd.getLastColumn() + 1).setValue(c); });
     log.push('Chuẩn hóa tên và Gmail');
   }
 
@@ -219,7 +222,11 @@ function khoiTao() {
   // 7. File dữ liệu vận hành
   const vhFile = timHoacTaoFile_(CFG.TEN_FILE_VANHANH, CFG.FOLDER_DULIEU);
   const vhs = SpreadsheetApp.openById(vhFile.getId());
-  Object.keys(VH).forEach(function (ten) { taoTrangNeuThieu_(vhs, ten, [VH[ten]]); });
+  Object.keys(VH).forEach(function (ten) {
+    if (taoTrangNeuThieu_(vhs, ten, [VH[ten]])) return;
+    const sh = vhs.getSheetByName(ten); const h = sh.getRange(1, 1, 1, Math.max(1, sh.getLastColumn())).getValues()[0];
+    VH[ten].forEach(function (c) { if (h.indexOf(c) < 0) { sh.getRange(1, sh.getLastColumn() + 1).setValue(c).setFontWeight('bold'); log.push(ten + ' + cột ' + c); } });
+  });
   const macDinh = vhs.getSheetByName('Sheet1') || vhs.getSheetByName('Trang tính1');
   if (macDinh && vhs.getSheets().length > 1) vhs.deleteSheet(macDinh);
   const sd = vhs.getSheetByName('SoDuCong');
