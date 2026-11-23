@@ -87,27 +87,27 @@ const VH = {
   CongNhanDangKy: ['Mã ĐK', 'Loại (Mới/Thay đổi/Nghỉ việc)', 'Mã CN', 'Họ và tên', 'Đội', 'Chức danh', 'Khu vực phụ trách',
     'Số điện thoại', 'Từ ngày', 'Ghi chú', 'Người đăng ký', 'Giờ đăng ký', 'Trạng thái duyệt', 'Người duyệt', 'Giờ duyệt'],
   KeHoachDinhKy: ['Mã KH', 'Kỳ', 'Mã việc', 'Cụm', 'Khu vực', 'Từ ngày', 'Đến ngày', 'Đội', 'Trạng thái duyệt', 'Người lập'],
-  TickDinhKy: ['Ngày', 'Kỳ', 'Mã việc', 'Mã vị trí', 'Mã KH', 'Lần', 'Lý do làm thêm', 'Mã dịch hại', 'Người tick', 'Giờ tick', 'Ghi chú'],
+  TickDinhKy: ['Ngày', 'Kỳ', 'Mã việc', 'Mã vị trí', 'Mã KH', 'Lần', 'Lý do làm thêm', 'Mã dịch hại', 'Người tick', 'Giờ tick', 'Ghi chú', 'Trạng thái', 'Bắt đầu', 'Ngày xong', 'Số ngày', 'Mã NK'],
   AnhNgay: ['Ngày', 'Mã việc', 'Khu vực', 'Link ảnh', 'Nguồn ảnh', 'Mã băm', 'Người chụp', 'Giờ', 'GPS'],
   Tuoi: ['Ngày', 'Mã vị trí', 'Trạng thái', 'Lý do', 'Người ghi', 'Giờ', 'Hôm nay mưa'],
-  ViecHangNgay: ['Ngày', 'Mã việc', 'Cụm', 'Trạng thái', 'Ảnh', 'Ghi chú', 'Người ghi', 'Giờ'],
+  ViecHangNgay: ['Ngày', 'Mã việc', 'Cụm', 'Trạng thái', 'Ảnh', 'Ghi chú', 'Người ghi', 'Giờ', 'Mã vị trí'],
   KiemTraBien: ['Ngày', 'Buổi', 'Đoạn bãi', 'Tình trạng', 'Ảnh', 'Ghi chú', 'Người ghi'],
   Phieu: ['Mã phiếu', 'Loại', 'Nguồn', 'Nhóm lỗi', 'Loại lỗi', 'Mức độ', 'Mã vị trí', 'Vị trí khác', 'Mô tả', 'Giao cho',
     'Người tạo', 'Giờ tạo', 'Hạn', 'Người nhận', 'Giờ nhận', 'Ảnh trước', 'Ảnh sau', 'Trạng thái', 'Số lần trả lại',
-    'Giờ xong', 'Giờ duyệt', 'Đã khóa van', 'Mã tuần tra', 'Mã sự kiện', 'Mã dự án', 'Mã lặp lại'],
+    'Giờ xong', 'Giờ duyệt', 'Đã khóa van', 'Mã tuần tra', 'Mã sự kiện', 'Mã dự án', 'Mã lặp lại', 'Chi tiết trồng', 'Ảnh trong'],
   PhieuLichSu: ['Mã phiếu', 'Thời điểm', 'Hành động', 'Người', 'Ghi chú'],
   TuanTra: ['Mã tuần tra', 'Bắt đầu', 'Kết thúc', 'Người tuần tra', 'Tổ trưởng đi cùng', 'Số lỗi', 'Đã nhận hết'],
   SuKien: ['Mã SK', 'Tên', 'Loại', 'Bắt đầu', 'Kết thúc', 'Mã vị trí', 'Vị trí khác', 'Số khách', 'Yêu cầu', 'Nguồn tin',
     'File đính kèm', 'Đội phụ trách', 'Ảnh trước tiệc', 'Ảnh sau tiệc', 'Trạng thái'],
   ViecLapLai: ['Mã LL', 'Nội dung', 'Mã vị trí', 'Chu kỳ', 'Tham số', 'Từ ngày', 'Đến ngày', 'Người phụ trách', 'Mức độ', 'Đang chạy', 'Lần tạo gần nhất'],
   DuAn: ['Mã DA', 'Tên', 'Loại', 'Mã vị trí', 'Bắt đầu', 'Kết thúc', 'Trạng thái', 'Ghi chú'],
-  DuAnGiaiDoan: ['Mã DA', 'STT', 'Nội dung', 'Khối lượng', 'ĐVT', 'Bắt đầu', 'Hoàn thành', 'Ghi chú'],
+  DuAnGiaiDoan: ['Mã DA', 'STT', 'Nội dung', 'Khối lượng', 'ĐVT', 'Bắt đầu', 'Hoàn thành', 'Ghi chú', 'Mã vị trí'],
   DuAnVatTu: ['Mã DA', 'STT giai đoạn', 'Vật tư', 'ĐVT', 'Kế hoạch', 'Thực tế'],
   DuAnTienDo: ['Mã DA', 'STT giai đoạn', 'Ngày', 'Khối lượng hôm nay', 'Vật tư dùng', 'Ảnh', 'Người ghi'],
   SoTrongCay: ['STT', 'Thời gian', 'Khu vực', 'Mã vị trí', 'Vị trí khác', 'Hình thức', 'Nguồn cây', 'Mã cây', 'Tên cây', 'ĐVT',
-    'Số lượng', 'Chất cải tạo đất hữu cơ (bao)', 'Cây trước khi cải tạo', 'Ghi chú', 'Ảnh', 'Mã DA', 'Mã phiếu', 'Người ghi'],
+    'Số lượng', 'Chất cải tạo đất hữu cơ (bao)', 'Cây trước khi cải tạo', 'Ghi chú', 'Ảnh', 'Mã DA', 'Mã phiếu', 'Người ghi', 'Ảnh trước', 'Ảnh trong', 'Ảnh sau'],
   NhatKyPhunBon: ['Mã NK', 'Ngày giờ', 'Loại (Phun thuốc/Phun phân bón lá/Bón gốc)', 'Công thức pha', 'Cụm', 'Mã vị trí', 'Vị trí chi tiết',
-    'Số bình', 'Bảo hộ', 'Cách ly dài nhất (ngày)', 'Hết cách ly', 'Ảnh', 'Mã dịch hại', 'Người ghi'],
+    'Số bình', 'Bảo hộ', 'Cách ly dài nhất (ngày)', 'Hết cách ly', 'Ảnh', 'Mã dịch hại', 'Người ghi', 'Mục đích', 'Nhóm cây', 'Tên cây', 'Đối tượng', 'Cảnh báo pha', 'Ghi chú'],
   NhatKyPhunBonChiTiet: ['Mã NK', 'STT', 'Sản phẩm', 'Liều / bình', 'ĐVT', 'Tổng lượng', 'Cách ly (ngày)'],
   CongThucPha: ['Mã CT', 'Tên công thức', 'Loại', 'Sản phẩm', 'Liều / bình', 'ĐVT', 'Ghi chú', 'Đang dùng'],
   DeXuatThuoc: ['Mã ĐX', 'Tên thuốc/phân', 'Loại', 'Hoạt chất', 'Ảnh nhãn', 'Cách ly đề xuất (ngày)', 'Người đề xuất', 'Giờ',
@@ -118,20 +118,25 @@ const VH = {
   DichHaiCapNhat: ['Mã DH', 'Thời điểm', 'Việc đã làm', 'Mã NK phun bón', 'Tính luôn định kỳ', 'Mức độ hiện tại', 'Ảnh', 'Ghi chú', 'Người ghi'],
   ThoiTiet: ['Thời điểm lấy', 'Nguồn', 'Mốc dự báo', '% mưa', 'Lượng mưa (mm)', 'Nhiệt độ (°C)', 'Gió giật (m/s)', 'Gợi ý'],
   ChamDiem: ['Ngày', 'Mã vị trí', 'Tiêu chí', 'Điểm (1–5)', 'Ảnh', 'Ghi chú', 'Người chấm'],
-  BatThuong: ['Ngày', 'Mã vị trí', 'Tên cây', 'Tình trạng', 'Ảnh', 'Ghi chú', 'Người báo', 'Xử lý'],
+  BatThuong: ['Ngày', 'Mã vị trí', 'Tên cây', 'Tình trạng', 'Ảnh', 'Ghi chú', 'Người báo', 'Xử lý', 'Mã điểm', 'Trả lời của anh Vũ', 'Giờ trả lời'],
   VuonRau: ['Ngày', 'Mã vườn', 'Trường', 'Giá trị', 'Ngoài ngưỡng', 'Người ghi'],
   ThuHoach: ['Ngày', 'Mã vườn', 'Vườn', 'Mã cây', 'Tên cây', 'kg', 'Ảnh cân', 'Bếp nhận', 'Người ghi'],
   DongHoNuoc: ['Ngày', 'Mã đồng hồ', 'Chỉ số', 'Ảnh', 'Người đọc'],
   RacHuuCo: ['Ngày', 'kg rác thu gom', 'Ảnh', 'Người ghi'],
   PhanCompost: ['Ngày', 'Phân compost tuần hoàn (kg)', 'Ảnh', 'Ghi chú', 'Người ghi'],
-  VuonUom: ['Ngày', 'Vườn ươm', 'Việc', 'Tên cây', 'Số lượng', 'ĐVT', 'Chất cải tạo đất hữu cơ (bao)', 'Mô tả', 'Ảnh', 'Người ghi'],
+  VuonUom: ['Ngày', 'Vườn ươm', 'Việc', 'Tên cây', 'Số lượng', 'ĐVT', 'Chất cải tạo đất hữu cơ (bao)', 'Mô tả', 'Ảnh', 'Người ghi', 'Loại ghi', 'Xuất đi'],
   VeSinhBien: ['Ngày', 'Buổi', 'kg rác', 'Ảnh', 'Người ghi'],
-  MaySangCat: ['Ngày', 'Máy', 'Giờ bắt đầu', 'Giờ kết thúc', 'Đoạn bãi', 'Nhiên liệu (lít)', 'Bảo trì', 'Ảnh', 'Ghi chú', 'Người ghi'],
-  CayNoiThat: ['Ngày', 'Mã điểm', 'Số chậu tưới', 'Người ghi'],
-  KeHoachTuan: ['Mã KHT', 'Tuần', 'Nội dung', 'Mã vị trí', 'Đội/Người', 'Từ ngày', 'Hạn', 'Mức độ', 'Nguồn', 'Trạng thái', 'Lý do trễ'],
+  MaySangCat: ['Ngày', 'Máy', 'Giờ bắt đầu', 'Giờ kết thúc', 'Đoạn bãi', 'Nhiên liệu (lít)', 'Bảo trì', 'Ảnh', 'Ghi chú', 'Người ghi', 'Số giờ'],
+  CayNoiThat: ['Ngày', 'Mã điểm', 'Số chậu tưới', 'Người ghi', 'Việc', 'Tên phân', 'Bất thường'],
+  KeHoachTuan: ['Mã KHT', 'Tuần', 'Nội dung', 'Mã vị trí', 'Đội/Người', 'Từ ngày', 'Hạn', 'Mức độ', 'Nguồn', 'Trạng thái', 'Lý do trễ', 'Động từ', 'Đối tượng'],
   CanhBaoBao: ['Mã đợt', 'Kích hoạt lúc', 'Người kích hoạt', 'Ghi chú', 'Kết thúc'],
   KyCham: ['Kỳ', 'Từ ngày', 'Đến ngày', 'Trạng thái', 'Người yêu cầu nghiệm thu', 'Giờ yêu cầu', 'Kết luận', 'Nhận xét', 'Giờ đóng'],
   SoDuCong: ['Kỳ', 'Chênh lệch tháng', 'Lũy kế đến kỳ trước', 'Lũy kế đến nay'],
+  VanChuyen: ['Ngày', 'Đội', 'Loại hàng', 'Nhóm', 'Số chuyến', 'Ghi chú', 'Ảnh', 'Người ghi', 'Giờ ghi'],
+  ViecPhatSinh: ['Mã PS', 'Ngày', 'Loại việc', 'Mô tả', 'Mã vị trí', 'Vị trí khác', 'Số người', 'Hỗ trợ', 'Bắt đầu', 'Kết thúc', 'Số giờ', 'Ảnh trước', 'Ảnh sau', 'Trạng thái', 'Người ghi'],
+  Hop: ['Mã họp', 'Loại', 'Tiêu đề', 'Bắt đầu', 'Địa điểm', 'Người dự', 'Chương trình', 'Trao đổi', 'Quyết định', 'Việc giao', 'Báo cáo kèm', 'Số liệu', 'Trạng thái', 'Người lập'],
+  DaoTao: ['Mã ĐT', 'STT', 'Thứ', 'Ngày', 'Bắt đầu', 'Kết thúc', 'Tổng thời lượng', 'Nội dung', 'Địa điểm', 'Giảng viên', 'Học viên', 'Số học viên', 'Ghi chú', 'Tài liệu', 'Người lập'],
+  ThuVienSOP: ['Mã SOP', 'Chủ đề', 'Tên tài liệu', 'Link', 'Ghi chú', 'Người thêm', 'Giờ thêm'],
   ThongBaoLog: ['Thời điểm', 'Kênh', 'Người nhận', 'Loại tin', 'Nội dung', 'Kết quả'],
   NhatKyThayDoi: ['Thời điểm', 'Người', 'Trang', 'Mã bản ghi', 'Trường', 'Giá trị cũ', 'Giá trị mới', 'Lý do'],
   PhanQuyen: ['Áp cho (nhóm hoặc Gmail)', 'Phân hệ', 'Cấp (Không thấy/Xem/Ghi/Duyệt)', 'Phạm vi', 'Người đặt', 'Giờ đặt'],
@@ -216,8 +221,12 @@ function khoiTao() {
 
   // 6. Chép danh mục cây, công nhân, định mức công vào dữ liệu nền
   chepTrang_(CFG.DANHMUC_CAY, 'DanhMucCay', nen, 'DanhMucCay', 4); log.push('Chép DanhMucCay');
-  chepTrang_(CFG.CONG_NHAN, 'CongNhan', nen, 'CongNhan', 4); log.push('Chép CongNhan');
+  // CongNhan chỉ chép lần đầu: sau đó anh sửa đội, chức danh ngay trong app (Thêm → Công nhân), chép lại sẽ mất
+  if (!nen.getSheetByName('CongNhan') || nen.getSheetByName('CongNhan').getLastRow() < 2) { chepTrang_(CFG.CONG_NHAN, 'CongNhan', nen, 'CongNhan', 4); log.push('Chép CongNhan'); }
   chepTrang_(CFG.CONG_NHAN, 'DinhMucCong', nen, 'DinhMucCong', 1); log.push('Chép DinhMucCong');
+
+  // 6b. GreenLog 0.3: thuốc 16L, dịch hại, hàng rào, hồ thủy sinh, DV37/DV38…
+  khoiTao03_(nen, log);
 
   // 7. File dữ liệu vận hành
   const vhFile = timHoacTaoFile_(CFG.TEN_FILE_VANHANH, CFG.FOLDER_DULIEU);

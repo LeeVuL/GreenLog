@@ -63,11 +63,12 @@
   G.taiDanhMuc = async () => { S.dm = await API.goi('khoiDong'); S.u = S.dm.user; };
   function dieuHuong() {
     const t = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
-    const man = { '': manHomNay, viec: manViec, dinhky: manDinhKy, tuoi: manTuoi, cum: manTheoCum, diemdanh: manDiemDanh, phieu: manPhieu, them: manThem }[t[0]]
+    const thay = G.man[t[0]] && G.man[t[0]].thay && G.man[t[0]].fn;
+    const man = thay || { '': manHomNay, viec: manViec, dinhky: manDinhKy, tuoi: manTuoi, cum: manTheoCum, diemdanh: manDiemDanh, phieu: manPhieu, them: manThem }[t[0]]
       || (G.man[t[0]] && G.man[t[0]].fn) || manHomNay;
     document.querySelectorAll('.lop-phu').forEach((x) => x.remove());
-    window.scrollTo(0, 0);
-    Promise.resolve().then(() => man(t[1], t[2])).catch((e) => {
+    if (!G._quayLai) window.scrollTo(0, 0);
+    Promise.resolve().then(() => man(t[1], t[2])).then(() => G.sauVe && G.sauVe()).catch((e) => {
       console.error(e);
       const nd = document.getElementById('noiDung');
       if (nd && /Đang tải/.test(nd.textContent)) nd.innerHTML = G.trong(/quyền/.test(e.message) ? 'Mục này không nằm trong quyền của anh/chị.' : e.message);
@@ -110,12 +111,15 @@
     them('dichhai', 'DichHai', null, 300);
     them('biens', 'VeSinhBien', { 'Ngày': hn }); them('ktb', 'KiemTraBien', { 'Ngày': hn }); them('vr', 'VuonRau', { 'Ngày': hn });
     them('nt', 'CayNoiThat', { 'Ngày': { tu: API.ngay(new Date(Date.now() - 864e5)) } }); them('rac', 'RacHuuCo', { 'Ngày': hn }); them('rac30', 'RacHuuCo', { 'Ngày': { tu: k.tu } });
+    if (q('homnay') >= 3) { them('vc', 'VanChuyen', { 'Ngày': hn }); them('ddr', 'DiemDanh', { 'Ngày': hn }); them('bt', 'BatThuong', null, 300); them('ps', 'ViecPhatSinh', { 'Ngày': hn }); }
     them('cn', 'CongNhanDangKy', { 'Trạng thái duyệt': 'Chờ duyệt' }); them('dx', 'DeXuatThuoc', { 'Trạng thái (Chờ duyệt/Đã duyệt/Từ chối)': 'Chờ duyệt' });
     const d = await API.goi('docNhieu', { ds: yeuCau });
     const tt = (on, ten, phu, link) => `<a class="the-viec" href="#/${link}"><span class="bt">${on === true ? '✅' : on === false ? '⬜' : on}</span><span class="gian"><b>${esc(ten)}</b><span class="mo">${esc(phu || '')}</span></span><span>›</span></a>`;
     let html = '';
 
     if (S.dm.coThoiTiet) html += '<div id="thoiTiet"></div>';
+    if (q('homnay') >= 3 && G.theAnh) html += G.theAnh(d);
+    if (S.u.nhom === 'Tổ trưởng' && G.theToTruong) html += G.theToTruong(d);
 
     // sự kiện hôm nay, ngày mai
     const mai = API.ngay(new Date(Date.now() + 864e5));
@@ -130,6 +134,7 @@
       const dhCho = (d.dichhai || []).filter((x) => /Báo xong/.test(x['Trạng thái (Phát hiện/Đang xử lý/Báo xong/Đã duyệt)'])).length; if (dhCho) cho.push([dhCho + ' hồ sơ dịch hại', 'dichhai']);
       if ((d.cn || []).length) cho.push([d.cn.length + ' đăng ký công nhân', 'congnhan']);
       if ((d.dx || []).length) cho.push([d.dx.length + ' đề xuất thuốc mới', 'thuoc']);
+      const btCho = (d.bt || []).filter((x) => x['Mã điểm'] && !x['Trả lời của anh Vũ']).length; if (btCho) cho.push([btCho + ' cây nội thất bất thường cần anh trả lời', 'nb/noithat']);
       html += `<div class="the"><h2>Chờ anh duyệt</h2>${cho.length ? cho.map((c) => `<a href="#/${c[1]}" class="chip cam" style="margin:0 6px 6px 0;text-decoration:none">${esc(c[0])} ›</a>`).join('') : '<p class="mo" style="margin:0">Không có việc chờ duyệt.</p>'}</div>`;
     }
 
@@ -372,15 +377,17 @@
     }
     const m = G.khung('Điểm danh', S.u.doi || (q('diemdanh') >= 3 ? 'Duyệt công từng buổi' : ''));
     const st = manDiemDanh.st || (manDiemDanh.st = { ngay: API.ngay(), buoi: new Date().getHours() < 12 ? 'Sáng' : 'Chiều' });
+    if (q('diemdanh') < 3) st.ngay = API.ngay();
     const d = await API.goi('docNhieu', { ds: [{ bang: 'DiemDanh', loc: { 'Ngày': st.ngay, 'Buổi': st.buoi } }, { bang: 'DuyetCong', loc: { 'Ngày': st.ngay, 'Buổi': st.buoi } }] });
     const rows = d.DiemDanh; const duyet = d.DuyetCong;
     const cn = (S.dm.congnhan || []).filter((x) => x.tt !== 'Đã nghỉ' && x.doi !== 'Quản lý nhà thầu' && !/Quản lý nhà thầu/.test(x.cd));
     const tenCN = (ma) => ((S.dm.congnhan || []).find((x) => x.ma === ma) || {}).ten || ma;
-    const dau = `<div class="hang" style="margin-bottom:10px"><input type="date" id="ngay" value="${st.ngay}" style="max-width:170px">
+    const xemCu = st.ngay !== API.ngay();
+    const dau = `<div class="hang" style="margin-bottom:10px">${q('diemdanh') >= 3 ? `<input type="date" id="ngay" value="${st.ngay}" max="${API.ngay()}" style="max-width:170px">` : `<b style="white-space:nowrap">Hôm nay ${G.ngayVN(st.ngay).slice(0, 5)}</b>`}
       <div class="chon gian" style="margin:0">${['Sáng', 'Chiều'].map((b) => `<button data-b="${b}" class="${st.buoi === b ? 'dang' : ''}">${b}</button>`).join('')}</div></div>`;
     const ganDau = () => {
       m.querySelectorAll('[data-b]').forEach((b) => { b.onclick = () => { st.buoi = b.dataset.b; manDiemDanh(); }; });
-      m.querySelector('#ngay').onchange = (e) => { if (e.target.value) { st.ngay = e.target.value; manDiemDanh(); } };
+      const ng = m.querySelector('#ngay'); if (ng) ng.onchange = (e) => { if (e.target.value) { st.ngay = e.target.value > API.ngay() ? API.ngay() : e.target.value; manDiemDanh(); } };
     };
     const TT = 'Trạng thái (Có mặt/Vắng/Về sớm)';
     if (q('diemdanh') >= 3) {
@@ -391,25 +398,25 @@
         const co = rs.filter((r) => r[TT] === 'Có mặt').length; const khac = rs.filter((r) => r[TT] !== 'Có mặt');
         return `<div class="the"><div class="hang"><h3 class="gian">${esc(doi)}</h3>${du['Khóa'] === 'Có' ? '<span class="chip xanh">Đã duyệt · khóa</span>' : '<span class="chip cam">Chờ duyệt</span>'}</div>
           <p class="mo">Gửi bởi ${esc(du['Người gửi'] || '')} lúc ${esc(String(du['Giờ gửi'] || '').slice(11, 16))} · Có mặt <b>${co}</b>/${rs.length} · <b>${G.so(co * 0.5)}</b> công${du['Ghi chú'] ? `<br><b style="color:var(--cam)">${esc(du['Ghi chú'])}</b>` : ''}</p>
-          ${du['Ảnh tập thể'] ? `<div>${G.xemAnh(du['Ảnh tập thể'])}</div>` : (st.buoi === 'Sáng' && doi !== 'Quản lý nhà thầu' ? '<p class="mo" style="color:var(--do)">Chưa có ảnh tập thể</p>' : '')}
+          ${du['Ảnh tập thể'] ? `<div>${G.xemAnh(du['Ảnh tập thể'])}</div>` : (doi !== 'Quản lý nhà thầu' ? '<p class="mo" style="color:var(--do)">Chưa có ảnh tập thể</p>' : '')}
           ${khac.length ? `<div class="ds">${khac.map((r) => `<div class="muc"><div class="gian">${esc(r['Họ tên'] || tenCN(r['Mã CN']))}${r[TT] === 'Về sớm' ? `<div class="mo">Về lúc ${esc(r['Giờ về'])} · ${esc(r['Lý do'])} · tính 0 công</div>` : ''}</div><span class="chip ${r[TT] === 'Vắng' ? 'do' : 'cam'}">${esc(r[TT])}</span></div>`).join('')}</div>` : '<p class="mo">Đủ người.</p>'}
-          ${du['Khóa'] === 'Có' ? '' : `<button class="nut chinh rong" data-duyet="${esc(doi)}">Duyệt và khóa buổi ${st.buoi.toLowerCase()}</button>`}</div>`;
+          ${du['Khóa'] === 'Có' || xemCu ? '' : `<button class="nut chinh rong" data-duyet="${esc(doi)}">Duyệt và khóa buổi ${st.buoi.toLowerCase()}</button>`}</div>`;
       }).join('') : G.trong(`Chưa đội nào gửi điểm danh buổi ${st.buoi.toLowerCase()} ngày ${G.ngayVN(st.ngay)}.`))
-        + (rows.some((r) => r['Trạng thái duyệt'] !== 'Đã duyệt') ? `<button class="nut chinh rong" id="khoaHet" style="margin-top:8px">Duyệt và khóa cả buổi ${st.buoi.toLowerCase()} (mọi đội)</button>` : '')
-        + `<button class="nut rong" id="suaTT" style="margin-top:8px">✏️ Anh điểm danh / sửa trực tiếp</button>`
+        + (!xemCu && rows.some((r) => r['Trạng thái duyệt'] !== 'Đã duyệt') ? `<button class="nut chinh rong" id="khoaHet" style="margin-top:8px">Duyệt và khóa cả buổi ${st.buoi.toLowerCase()} (mọi đội)</button>` : '')
+        + (xemCu ? '<p class="mo">Ngày cũ chỉ để xem. Sửa công ngày cũ dùng Phiếu sửa công trong Báo cáo → Bảng công.</p>' : `<button class="nut rong" id="suaTT" style="margin-top:8px">✏️ Anh điểm danh / sửa trực tiếp</button>`)
         + `<p class="mo">Buổi đã khóa thì tổ trưởng không sửa được nữa. Chỉ anh sửa, mọi lần sửa đều ghi nhật ký (người, giờ, giá trị cũ → mới, lý do).</p>`;
       m.querySelectorAll('[data-duyet]').forEach((b) => { b.onclick = () => chay(async () => { await API.goi('diemDanh.duyet', { ngay: st.ngay, buoi: st.buoi, doi: b.dataset.duyet }); bao('Đã duyệt, công buổi này đã khóa'); manDiemDanh(); }, b); });
       const kh = m.querySelector('#khoaHet'); if (kh) kh.onclick = () => chay(async () => { await API.goi('diemDanh.duyet', { ngay: st.ngay, buoi: st.buoi }); bao('Đã khóa cả buổi'); manDiemDanh(); }, kh);
-      m.querySelector('#suaTT').onclick = () => suaTrucTiep(st, rows, cn);
+      const sTT = m.querySelector('#suaTT'); if (sTT) sTT.onclick = () => suaTrucTiep(st, rows, cn);
       return ganDau();
     }
-    const doiKhac = S.u.doi === 'Đội cơ động' ? 'Đội khu vực' : 'Đội cơ động';
+    const doiKhac = /cơ động/i.test(S.u.doi) ? 'Đội khu vực' : 'Đội cơ động';
     st.doiDD = st.doiDD || S.u.doi; const thay = st.doiDD !== S.u.doi;
-    const cuaDoi = cn.filter((x) => (thay ? x.doi === doiKhac : x.doi === S.u.doi || !x.doi));
+    const cuaDoi = cn.filter((x) => (thay ? String(x.doi).toLowerCase() === doiKhac.toLowerCase() : String(x.doi).toLowerCase() === String(S.u.doi).toLowerCase()));
     const daGui = duyet.find((x) => x['Đội'] === st.doiDD); const khoa = daGui && daGui['Khóa'] === 'Có';
     const guiKhac = thay && daGui && daGui['Người gửi'] !== S.u.ten;
     const tt = {}; const chan = {}; // chan[ma] = lý do không sửa được
-    cuaDoi.forEach((x) => { tt[x.ma] = { tt: 'Có mặt' }; });
+    cuaDoi.forEach((x) => { tt[x.ma] = { tt: thay && /tổ trưởng/i.test(x.cd || '') ? 'Vắng' : 'Có mặt' }; });
     rows.forEach((r) => {
       const ma = r['Mã CN']; if (!tt[ma]) return;
       tt[ma] = { tt: r[TT], gioVe: r['Giờ về'], lyDo: r['Lý do'] };
@@ -427,8 +434,9 @@
           <div class="tt3">${[['co', 'Có mặt', 'Có'], ['vang', 'Vắng', 'Vắng'], ['som', 'Về sớm', 'Về sớm']].map((b) => `<button class="${b[0]} ${t.tt === b[1] ? 'dang' : ''}" data-ma="${x.ma}" data-tt="${b[1]}" ${chan[x.ma] ? 'disabled' : ''}>${b[2]}</button>`).join('')}</div></div>`;
       });
       const co = sua.filter((x) => tt[x.ma].tt === 'Có mặt').length;
-      m.innerHTML = dau + `<div class="chon"><button data-dd="${esc(S.u.doi)}" class="${!thay ? 'dang' : ''}">${esc(S.u.doi)} (đội tôi)</button><button data-dd="${esc(doiKhac)}" class="${thay ? 'dang' : ''}">Điểm danh thay ${esc(doiKhac)}</button></div>`
-        + (thay ? `<div class="canh-bao">Chỉ dùng khi tổ trưởng ${esc(doiKhac)} nghỉ. Anh Vũ sẽ thấy ghi chú "điểm danh thay".${cuaDoi.length ? '' : '<br><b>Chưa có công nhân nào được xếp vào ' + esc(doiKhac) + '.</b> Anh Pháp cần điền cột Đội trong danh sách công nhân.'}</div>` : '')
+      m.innerHTML = dau + `<div class="chon"><button data-dd="${esc(S.u.doi)}" class="${!thay ? 'dang' : ''}">${esc(S.u.doi)} (đội tôi)</button><button data-dd="${esc(doiKhac)}" class="${thay ? 'dang' : ''}">Điểm danh giúp ${esc(doiKhac)}</button></div>`
+        + (thay ? `<div class="canh-bao">Dùng khi tổ trưởng ${esc(doiKhac)} nghỉ. Danh sách là nhân viên ${esc(doiKhac)}; tổ trưởng của đội đó đã để sẵn Vắng. Anh Vũ sẽ thấy ghi chú "điểm danh giúp".${cuaDoi.length ? '' : '<br><b>Chưa có công nhân nào được xếp vào ' + esc(doiKhac) + '.</b> Anh Vũ xếp đội trong mục Công nhân.'}</div>` : '')
+        + (cuaDoi.length || thay ? '' : `<div class="canh-bao">Chưa có công nhân nào được xếp vào ${esc(S.u.doi)}. Anh Vũ xếp đội trong mục Công nhân.</div>`)
         + (khoa ? '<div class="canh-bao" style="background:var(--xanh-nhat);color:var(--xanh)">Anh Vũ đã duyệt và khóa buổi này. Cần sửa thì báo anh Vũ.</div>' : daGui && !guiKhac ? '<div class="canh-bao">Đã gửi · chờ anh Vũ duyệt. Sửa rồi gửi lại được.</div>' : '')
         + (daGui && daGui['Ảnh tập thể'] ? `<div class="mo">Ảnh tập thể đã gửi:</div><div>${G.xemAnh(daGui['Ảnh tập thể'])}</div>` : '')
         + `<p class="mo">Mặc định mọi người <b>Có mặt</b>. Chỉ cần bấm người Vắng hoặc Về sớm.</p><div class="ds" style="margin-bottom:90px">${html || '<div class="muc mo">Không có công nhân</div>'}</div>`
@@ -450,9 +458,9 @@
       if (g) g.onclick = () => {
         const sang = st.buoi === 'Sáng'; const daCoAnh = daGui && daGui['Ảnh tập thể'];
         hop(`Gửi điểm danh ${st.buoi.toLowerCase()} · ${st.doiDD}`, `<p style="margin-top:0"><b>${co}</b>/${sua.length} có mặt${sua.length - co ? ` · ${sua.length - co} vắng / về sớm` : ''}</p>
-          <div class="o" style="margin-bottom:12px"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Ảnh tập thể đầu ca ${sang && !daCoAnh ? '(bắt buộc buổi sáng)' : '(không bắt buộc)'}</span><div id="anhTT"></div></div>
+          <div class="o" style="margin-bottom:12px"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Ảnh tập thể đầu ca ${st.buoi.toLowerCase()} ${!daCoAnh ? '(bắt buộc)' : '(đã có, chụp lại nếu cần)'}</span><div id="anhTT"></div></div>
           <button class="nut chinh rong" id="ok">Gửi anh Vũ duyệt</button>`, (o, dong) => {
-          const anh = G.oAnh(o.querySelector('#anhTT'), { batBuoc: sang && !daCoAnh, toiDa: 3 });
+          const anh = G.oAnh(o.querySelector('#anhTT'), { batBuoc: !daCoAnh, toiDa: 3 }); void sang;
           o.querySelector('#ok').onclick = (e) => chay(async () => {
             const a = anh.kiemTra();
             await API.goi('diemDanh.gui', { ngay: st.ngay, buoi: st.buoi, doi: st.doiDD, anh: a.length ? a : API.dsAnh(daGui && daGui['Ảnh tập thể']), ds: sua.map((x) => Object.assign({ ma: x.ma }, tt[x.ma])) });
@@ -495,7 +503,7 @@
     const cua = (p) => !st.cuaToi || !p['Giao cho'] || p['Giao cho'] === S.u.doi || p['Giao cho'] === S.u.ten || p['Người nhận'] === S.u.ten;
     const loc = ds.filter((p) => TAB[st.tab].includes(p['Trạng thái']) && cua(p));
     const tre = (p) => p['Hạn'] && p['Hạn'] < API.bayGio() && p['Trạng thái'] !== 'Đã duyệt' && p['Trạng thái'] !== 'Báo xong';
-    m.innerHTML = `${q('phieu') >= 2 ? '<button class="nut chinh rong" id="tao" style="margin-bottom:12px">＋ Tạo phiếu giao việc</button>' : ''}
+    m.innerHTML = `${q('phieu') >= 2 ? `<div class="nhom-nut" style="margin-bottom:12px"><button class="nut chinh" id="tao">＋ Phiếu giao việc</button>${G.taoPhieuTrong ? '<button class="nut" id="taoTrong">🌱 Phiếu trồng dặm, cải tạo</button>' : ''}</div>` : ''}
       <div class="chon">${[['mo', 'Đang mở'], ['cho', 'Chờ duyệt'], ['xong', 'Đã xong']].map((t) => `<button data-t="${t[0]}" class="${st.tab === t[0] ? 'dang' : ''}">${t[1]} (${ds.filter((p) => TAB[t[0]].includes(p['Trạng thái']) && cua(p)).length})</button>`).join('')}</div>
       ${S.u.nhom === 'Tổ trưởng' ? `<label class="mo" style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="cuaToi" ${st.cuaToi ? 'checked' : ''}> Chỉ phiếu giao cho ${esc(S.u.doi)} / tôi</label>` : ''}
       ${q('phieu') >= 3 && st.tab === 'cho' && loc.length > 1 ? `<button class="nut rong" id="duyetHet" style="margin-bottom:10px">Duyệt hết ${loc.length} phiếu đã xem ảnh</button>` : ''}
@@ -507,6 +515,7 @@
     const ct = m.querySelector('#cuaToi'); if (ct) ct.onchange = () => { st.cuaToi = ct.checked; manPhieu(); };
     m.querySelectorAll('[data-ma]').forEach((r) => { r.onclick = () => chiTietPhieu(ds.find((p) => p['Mã phiếu'] === r.dataset.ma)); });
     const t = m.querySelector('#tao'); if (t) t.onclick = () => G.taoPhieu({ sau: (r) => { manPhieu(); hoiGuiZalo(r.ma); } });
+    const tt_ = m.querySelector('#taoTrong'); if (tt_) tt_.onclick = () => G.taoPhieuTrong({ sau: (r) => { manPhieu(); hoiGuiZalo(r.ma); } });
     if (moMa) { const p = ds.find((x) => x['Mã phiếu'] === moMa); if (p) chiTietPhieu(p); else bao('Không thấy phiếu ' + moMa + ' (đã xóa hoặc chưa đồng bộ)', true); history.replaceState(null, '', '#/phieu'); }
     const dh = m.querySelector('#duyetHet'); if (dh) dh.onclick = () => chay(async () => { if (!(await G.xacNhan(`Duyệt ${loc.length} phiếu?`, 'Duyệt hết'))) return; for (const p of loc) await API.goi('phieu.chuyen', { ma: p['Mã phiếu'], hd: 'duyet' }); bao('Đã duyệt ' + loc.length + ' phiếu'); manPhieu(); }, dh);
   }
@@ -556,6 +565,8 @@
       ${p['Giao cho'] ? `<br>Giao cho: <b>${esc(p['Giao cho'])}</b>` : ''}${p['Người nhận'] ? `<br>Người nhận: ${esc(p['Người nhận'])} lúc ${esc(G.gioVN(p['Giờ nhận']))}` : ''}${+p['Số lần trả lại'] ? `<br><b style="color:var(--do)">Đã bị trả lại ${p['Số lần trả lại']} lần</b>` : ''}</p>
       ${p['Mô tả'] ? `<p>${esc(p['Mô tả'])}</p>` : ''}
       ${p['Ảnh trước'] ? `<div class="mo">Ảnh trước</div><div>${G.xemAnh(p['Ảnh trước'])}</div>` : ''}
+      ${p['Chi tiết trồng'] && G.moTaTrong ? G.moTaTrong(p) : ''}
+      ${p['Ảnh trong'] ? `<div class="mo">Ảnh trong khi trồng</div><div>${G.xemAnh(p['Ảnh trong'])}</div>` : ''}
       ${p['Ảnh sau'] ? `<div class="mo">Ảnh sau khi xử lý</div><div>${G.xemAnh(p['Ảnh sau'])}</div>` : ''}
       <div id="hanhDong" style="margin-top:14px"></div>`, (o, dong) => {
       const hd = o.querySelector('#hanhDong');
@@ -563,9 +574,10 @@
       if (ghi && (tt === 'Mới' || (tt === 'Bị trả lại' && !p['Người nhận']))) {
         hd.innerHTML = '<button class="nut chinh rong">Nhận việc</button>'; hd.firstChild.onclick = lam({ hd: 'nhan' }, 'Đã nhận việc');
       } else if (ghi && (tt === 'Đang xử lý' || tt === 'Bị trả lại')) {
-        hd.innerHTML = '<b>Báo xong</b><p class="mo" style="margin:4px 0 8px">Ảnh sau khi xử lý (bắt buộc): chụp trực tiếp, chọn ảnh có sẵn trong máy, hoặc dán ảnh đã sao chép.</p><div id="anhSau"></div><button class="nut chinh rong" style="margin-top:10px" id="xong">Báo xong</button>';
-        const anh = G.oAnh(hd.querySelector('#anhSau'), { batBuoc: true, toiDa: 4 });
-        hd.querySelector('#xong').onclick = (e) => chay(async () => { const a = anh.kiemTra(); await API.goi('phieu.chuyen', { ma: p['Mã phiếu'], hd: 'xong', anh: a }); dong(); bao('Đã báo xong, chờ anh Vũ duyệt'); G.taiLai(); }, e.target);
+        const trong = !!p['Chi tiết trồng'];
+        hd.innerHTML = '<b>Báo xong</b>' + (trong ? '<p class="mo" style="margin:4px 0 8px">Ảnh trong khi trồng (bắt buộc)</p><div id="anhTrong"></div>' : '') + '<p class="mo" style="margin:4px 0 8px">Ảnh sau khi xử lý (bắt buộc): chụp trực tiếp, chọn ảnh có sẵn trong máy, hoặc dán ảnh đã sao chép.</p><div id="anhSau"></div><button class="nut chinh rong" style="margin-top:10px" id="xong">Báo xong</button>';
+        const anh = G.oAnh(hd.querySelector('#anhSau'), { batBuoc: true, toiDa: 4 }); const anhT = trong ? G.oAnh(hd.querySelector('#anhTrong'), { batBuoc: true, toiDa: 4 }) : null;
+        hd.querySelector('#xong').onclick = (e) => chay(async () => { const at = anhT ? anhT.kiemTra() : []; const a = anh.kiemTra(); await API.goi('phieu.chuyen', { ma: p['Mã phiếu'], hd: 'xong', anh: a, anhTrong: at }); dong(); bao('Đã báo xong, chờ anh Vũ duyệt'); G.taiLai(); }, e.target);
       }
       if (duyet && tt === 'Báo xong') {
         hd.innerHTML = '<div class="nhom-nut"><button class="nut" data-x="tra">Trả lại</button><button class="nut chinh" data-x="duyet">Duyệt</button></div>';
@@ -587,11 +599,13 @@
     m.innerHTML = Object.keys(nhom).map((n) => `<h2 style="font-size:14px;margin:4px 0 8px;color:var(--mo)">${esc(n)}</h2><div class="luoi-o">${nhom[n].map((x) => `<a href="#/${x.k}"><span class="bt">${x.bt}</span>${esc(x.ten)}</a>`).join('')}</div>`).join('')
       + `<div class="the"><h2>${esc(S.u.ten)}</h2><p class="mo" style="margin:0 0 8px">${esc(S.u.nhom)}${S.u.doi ? ' · ' + esc(S.u.doi) : ''}</p>
         <details><summary class="mo">Quyền của tôi</summary><p class="mo">${Object.keys(S.u.quyen).filter((k) => S.u.quyen[k]).map((k) => `${k}: ${ten[S.u.quyen[k]]}`).join(' · ')}</p></details></div>
+      ${G.theCaiDat ? G.theCaiDat() : ''}
       ${API.thu() ? '<button class="nut rong" id="xoa" style="margin-bottom:10px">Xóa dữ liệu chạy thử</button>' : ''}
       <button class="nut rong" id="ra">${API.thu() ? 'Đổi vai / thoát chạy thử' : 'Đăng xuất'}</button>
       <p class="mo" style="text-align:center;margin-top:16px">GreenLog ${esc(window.GL_CONFIG.PHIEN_BAN)}</p>`;
     const x = m.querySelector('#xoa'); if (x) x.onclick = async () => { if (await G.xacNhan('Xóa hết dữ liệu đã thử trên máy này?', 'Xóa')) { API.xoaDuLieuThu(); bao('Đã xóa'); } };
-    m.querySelector('#ra').onclick = G.dangXuat;
+    m.querySelector('#ra').onclick = G.dangXuat; if (G.ganCaiDat) G.ganCaiDat(m);
+    m.querySelectorAll('.luoi-o a').forEach((a) => { const x = G.man[a.getAttribute('href').replace('#/', '')]; if (x && x.ic && G.ic) a.querySelector('.bt').innerHTML = G.ic(x.ic, 40); });
   }
 
   G.batDau = batDau;

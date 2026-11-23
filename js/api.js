@@ -31,28 +31,42 @@
     DuAn: ['duan', 3], DuAnGiaiDoan: ['duan', 3], DuAnVatTu: ['duan', 3], DuAnTienDo: ['duan', 2],
     SuKien: ['sukien', 3], KeHoachTuan: ['kehoach', 2], TuanTra: ['tuantra', 3],
     ChamDiem: ['homnay', 3], KyCham: ['homnay', 3], CanhBaoBao: ['homnay', 3], ViecLapLai: ['homnay', 3],
+    VanChuyen: ['dinhky', 3], ViecPhatSinh: ['homnay', 2], Hop: ['homnay', 3], DaoTao: ['homnay', 3], ThuVienSOP: ['homnay', 3],
     CongNhanDangKy: ['congnhan', 2], PhanQuyen: ['danhmuc', 3], UyQuyen: ['danhmuc', 3], ThoiTiet: ['homnay', 1], NhatKyThayDoi: ['homnay', 3],
   };
   /* cột tự điền: người, giờ */
-  const COT_NGUOI = ['Người ghi', 'Người tạo', 'Người tick', 'Người phun', 'Người báo', 'Người chấm', 'Người đọc', 'Người đăng ký', 'Người đề xuất', 'Người lập', 'Người phát hiện', 'Người tuần tra', 'Người kích hoạt', 'Người'];
-  const COT_GIO = ['Giờ ghi', 'Giờ tạo', 'Giờ tick', 'Giờ đăng ký', 'Thời điểm', 'Ngày giờ', 'Kích hoạt lúc', 'Cập nhật gần nhất'];
+  const COT_NGUOI = ['Người thêm', 'Người ghi', 'Người tạo', 'Người tick', 'Người phun', 'Người báo', 'Người chấm', 'Người đọc', 'Người đăng ký', 'Người đề xuất', 'Người lập', 'Người phát hiện', 'Người tuần tra', 'Người kích hoạt', 'Người'];
+  const COT_GIO = ['Giờ thêm', 'Giờ ghi', 'Giờ tạo', 'Giờ tick', 'Giờ đăng ký', 'Thời điểm', 'Ngày giờ', 'Kích hoạt lúc', 'Cập nhật gần nhất'];
   const laDuyet = (doi) => Object.keys(doi).some((k) => ['Khóa', 'Người duyệt', 'Giờ duyệt'].includes(k) || String(doi[k]) === 'Đã duyệt');
-  const MA_SO = { Phieu: ['Mã phiếu', 'P'], DichHai: ['Mã DH', 'DH'], NhatKyPhunBon: ['Mã NK', 'NK'], SuKien: ['Mã SK', 'SK'], DuAn: ['Mã DA', 'DA'],
+  const MA_SO = { ViecPhatSinh: ['Mã PS', 'PS'], Hop: ['Mã họp', 'H'], DaoTao: ['Mã ĐT', 'ĐT'], ThuVienSOP: ['Mã SOP', 'SOP'], Phieu: ['Mã phiếu', 'P'], DichHai: ['Mã DH', 'DH'], NhatKyPhunBon: ['Mã NK', 'NK'], SuKien: ['Mã SK', 'SK'], DuAn: ['Mã DA', 'DA'],
     TuanTra: ['Mã tuần tra', 'TT'], ViecLapLai: ['Mã LL', 'LL'], CongNhanDangKy: ['Mã ĐK', 'ĐK'], DeXuatThuoc: ['Mã ĐX', 'ĐX'], KeHoachTuan: ['Mã KHT', 'KT'],
     KeHoachDinhKy: ['Mã KH', 'KH'], CongThucPha: ['Mã CT', 'CT'], PhieuSuaCong: ['Mã phiếu', 'SC'], CanhBaoBao: ['Mã đợt', 'BAO'] };
 
   /* ---------- Chế độ thật ---------- */
+  /* Mất sóng vẫn lưu: lệnh ghi được xếp hàng trên máy (mỗi lệnh một mã), tự gửi lại khi có mạng; máy chủ bỏ qua mã đã nhận */
+  const GHI = ['ghi', 'ghiNhieu', 'sua', 'dinhKy.luu', 'phieu.tao', 'phieu.chuyen', 'diemDanh.gui', 'diemDanh.tuDiem', 'vanChuyen.gui'];
+  const hang = () => LS.get('hang', []);
+  async function guiMot(action, body, cid) {
+    const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ action, token: LS.get('token'), cid }, body || {})) });
+    return res.json();
+  }
   async function goiThat(action, body) {
-    let res;
-    try {
-      res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(Object.assign({ action, token: LS.get('token') }, body || {})) });
-    } catch (e) { throw new Error('Không có mạng hoặc máy chủ chưa phản hồi. Thử lại sau.'); }
-    const j = await res.json();
+    const cid = GHI.includes(action) ? 'C' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) : '';
+    if (cid && hang().length) { await API.guiHang(); }
+    let j;
+    try { j = await guiMot(action, body, cid); }
+    catch (e) {
+      if (!cid) throw new Error('Không có mạng hoặc máy chủ chưa phản hồi. Thử lại sau.');
+      LS.set('hang', hang().concat([{ cid, action, body, luc: bayGio() }])); API.baoHang();
+      window.dispatchEvent(new CustomEvent('gl-hang'));
+      return action === 'ghiNhieu' ? (body.dong || []) : Object.assign({ xepHang: true }, body.dong || {});
+    }
     if (!j.ok) {
       if (j.loi === 'HET_PHIEN') { LS.del('token'); location.reload(); }
       throw new Error(j.loi || 'Lỗi không rõ');
     }
+    if (j.hoan) window.dispatchEvent(new CustomEvent('gl-hoan', { detail: j.hoan }));
     return j.data;
   }
 
@@ -133,14 +147,46 @@
     return r[k] === v;
   });
 
+  /* hoàn tác 10 giây: lưu cách khôi phục, trả mã */
+  let HOAN = null;
+  function nhoHoan(u, info) { const t = 'H' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); const all = LS.get('hoan', {}); Object.keys(all).forEach((k) => { if (Date.now() - all[k].luc > 6e5) delete all[k]; }); all[t] = Object.assign({ ai: u.ten, luc: Date.now() }, info); LS.set('hoan', all); HOAN = t; return t; }
+  const DOI_TT = (r) => r['Trạng thái'] || 'Xong';
   const THU = {
+    async hoanTac(u, r) {
+      const all = LS.get('hoan', {}); const h = all[r.ma];
+      if (!h || h.ai !== u.ten) throw new Error('Không hoàn tác được nữa (quá thời gian).');
+      if (Date.now() - h.luc > 120000) throw new Error('Đã quá thời gian hoàn tác.');
+      (h.xoa || []).forEach((x) => { luuTb(x.bang, tb(x.bang).filter((y) => !khop(y, x.khoa))); });
+      if (h.them) luuTb(h.them.bang, tb(h.them.bang).concat(h.them.dong));
+      (h.khoi || []).forEach((x) => { const ds = tb(x.bang); ds.forEach((y) => { if (khop(y, x.khoa)) Object.assign(y, x.cu); }); luuTb(x.bang, ds); });
+      delete all[r.ma]; LS.set('hoan', all); return { ok: true };
+    },
+    async 'vanChuyen.gui'(u, r) {
+      can(u, 'dinhky', 2); const hn = ngay(); const doi = r.doi || u.doi || 'Chung';
+      const cu = tb('VanChuyen').filter((x) => x['Ngày'] === hn && x['Đội'] === doi);
+      if (cu.length && (u.quyen.homnay || 0) < 3) throw new Error('Hôm nay ' + doi + ' đã gửi lúc ' + cu[0]['Giờ ghi'].slice(11, 16) + '. Cần sửa thì báo anh Vũ.');
+      if ((r.anh || []).length < 2 && (u.quyen.homnay || 0) < 3) throw new Error('Cần ít nhất 2 ảnh của vài chuyến trong ngày');
+      const gio = bayGio(); const ds = tb('VanChuyen').filter((x) => !(x['Ngày'] === hn && x['Đội'] === doi));
+      const moi = r.ds.filter((x) => +x.n > 0).map((x, i) => ({ 'Ngày': hn, 'Đội': doi, 'Loại hàng': x.loai, 'Nhóm': /rác cắt tỉa/i.test(x.loai) ? 'Rác cắt tỉa' : 'Khác', 'Số chuyến': String(x.n), 'Ghi chú': r.ghiChu || '', 'Ảnh': i === 0 ? (r.anh || []).join(' | ') : '', 'Người ghi': u.ten, 'Giờ ghi': gio }));
+      luuTb('VanChuyen', ds.concat(moi)); return { n: moi.length };
+    },
+    async 'congNhan.sua'(u, r) {
+      can(u, 'congnhan', 3); const d = await dm(); const sua = tb('CongNhanSua');
+      const goc = d.congnhan.find((x) => x.ma === r.ma) || {}; const cu = Object.assign({}, goc, sua.find((x) => x.ma === r.ma) || {});
+      let ma = r.ma;
+      if (!ma) { const tat = d.congnhan.concat(sua); ma = 'CN' + String(Math.max(...tat.map((y) => +String(y.ma).slice(2) || 0)) + 1).padStart(2, '0'); }
+      const moi = Object.assign({ tt: 'Đang làm' }, cu, r.doi, { ma });
+      luuTb('CongNhanSua', sua.filter((x) => x.ma !== ma).concat([moi]));
+      const nk = tb('NhatKyThayDoi'); Object.keys(r.doi).forEach((k) => { if (String(cu[k] || '') !== String(r.doi[k])) nk.push({ 'Thời điểm': bayGio(), 'Người': u.ten, 'Trang': 'CongNhan', 'Mã bản ghi': ma, 'Trường': k, 'Giá trị cũ': cu[k] || '', 'Giá trị mới': r.doi[k], 'Lý do': r.lyDo || (r.ma ? 'Anh Vũ sửa' : 'Thêm mới') }); });
+      luuTb('NhatKyThayDoi', nk); return { ma };
+    },
     async khoiDong(u) {
       const d = await dm();
       const sua = tb('CongNhanSua'); const cn = d.congnhan.map((x) => Object.assign({}, x, (sua.find((y) => y.ma === x.ma) || {}))).concat(sua.filter((y) => !d.congnhan.some((x) => x.ma === y.ma)));
       const dx = tb('DeXuatThuoc').filter((x) => x['Trạng thái (Chờ duyệt/Đã duyệt/Từ chối)'] !== 'Từ chối').map((x) => ({ ma: x['Mã ĐX'], ten: x['Tên thuốc/phân'], nhom: x['Loại'], dvt: '', cachLy: +x['Cách ly đề xuất (ngày)'] || 14,
         tt: x['Trạng thái (Chờ duyệt/Đã duyệt/Từ chối)'] === 'Đã duyệt' ? 'Đang dùng' : 'Chờ duyệt', khongPha: x['Không pha chung với'] || '' }));
       return Object.assign({}, d, { user: u, ky: ky(ngay()), congnhan: (u.quyen.diemdanh || u.quyen.congnhan || u.quyen.baocao || u.quyen.homnay >= 3) ? cn : [],
-        thuoc: d.thuoc.concat(dx), congThuc: tb('CongThucPha'), nguoi: NGUOI_THU.map((n) => ({ ten: n.ten, nhom: n.nhom, doi: n.doi, gmail: n.gmail })), coThoiTiet: false, coAI: false });
+        thuoc: d.thuoc.concat(dx), hangrao: d.hangrao.concat(tb('HangRaoThem')), congThuc: tb('CongThucPha'), nguoi: NGUOI_THU.map((n) => ({ ten: n.ten, nhom: n.nhom, doi: n.doi, gmail: n.gmail })), coThoiTiet: false, coAI: false });
     },
     async 'congNhan.duyet'(u, r) {
       can(u, 'congnhan', 3);
@@ -165,13 +211,15 @@
     },
     async ghi(u, r, noiBo) {
       if (!noiBo) quyenBang(u, r.bang, 2);
-      const ds = tb(r.bang); const dong = dien(u, r.bang, r.dong); ds.push(dong); luuTb(r.bang, ds); return dong;
+      const ds = tb(r.bang); const dong = dien(u, r.bang, r.dong); ds.push(dong); luuTb(r.bang, ds);
+      if (!noiBo) nhoHoan(u, { xoa: [{ bang: r.bang, khoa: dong }] }); return dong;
     },
     async ghiNhieu(u, r) { // ghi nhiều dòng; r.thay = các cột khóa → xóa dòng cũ trùng khóa trước khi ghi
       quyenBang(u, r.bang, 2);
       let ds = tb(r.bang); const moi = r.dong.map((x) => dien(u, r.bang, x));
-      if (r.thay) ds = ds.filter((o) => !moi.some((n) => r.thay.every((k) => o[k] === n[k])));
-      luuTb(r.bang, ds.concat(moi)); return moi;
+      const bo = r.thay ? ds.filter((o) => moi.some((n) => r.thay.every((k) => o[k] === n[k]))) : [];
+      if (r.thay) ds = ds.filter((o) => !bo.includes(o));
+      luuTb(r.bang, ds.concat(moi)); nhoHoan(u, { xoa: moi.map((x) => ({ bang: r.bang, khoa: x })), them: bo.length ? { bang: r.bang, dong: bo } : null }); return moi;
     },
     async sua(u, r) {
       quyenBang(u, r.bang, laDuyet(r.doi) ? 3 : 2, 'sua');
@@ -213,16 +261,28 @@
     async 'dinhKy.luu'(u, r) {
       can(u, 'dinhky', 2);
       if (!r.anh || !r.anh.length) throw new Error('Cần ít nhất 1 ảnh hiện trường');
-      const t = tb('TickDinhKy'); const k = ky(ngay()).ten; const gio = bayGio();
+      const tt = r.trangThai === 'Đang làm' ? 'Đang làm' : 'Xong';
+      const t = tb('TickDinhKy'); const hn = ngay(); const k = ky(hn).ten; const gio = bayGio(); const hoan = { xoa: [], khoi: [] };
       r.ds.forEach((x) => {
-        const truoc = t.filter((y) => y['Kỳ'] === k && y['Mã việc'] === r.viec && y['Mã vị trí'] === x.vt).length;
+        const mo = t.find((y) => y['Mã việc'] === r.viec && y['Mã vị trí'] === x.vt && y['Trạng thái'] === 'Đang làm');
+        if (mo) {
+          if (tt === 'Đang làm') return;
+          const khoa = { 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Bắt đầu': mo['Bắt đầu'], 'Trạng thái': 'Đang làm' };
+          hoan.khoi.push({ bang: 'TickDinhKy', khoa: { 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Bắt đầu': mo['Bắt đầu'], 'Ngày xong': hn }, cu: { 'Trạng thái': 'Đang làm', 'Ngày xong': '', 'Số ngày': '', 'Kỳ': mo['Kỳ'] } });
+          Object.assign(mo, { 'Trạng thái': 'Xong', 'Ngày xong': hn, 'Kỳ': k, 'Số ngày': String(Math.round((new Date(hn) - new Date(mo['Bắt đầu'])) / 864e5) + 1), 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': [mo['Ghi chú'], r.ghiChu].filter(Boolean).join(' · ') });
+          return void khoa;
+        }
+        const truoc = t.filter((y) => y['Kỳ'] === k && y['Mã việc'] === r.viec && y['Mã vị trí'] === x.vt && DOI_TT(y) === 'Xong').length;
         if (truoc && !x.lyDo) throw new Error('Vị trí ' + x.vt + ' đã làm trong kỳ. Chọn lý do làm thêm.');
-        t.push({ 'Ngày': ngay(), 'Kỳ': k, 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Mã KH': '', 'Lần': String(truoc + 1), 'Lý do làm thêm': x.lyDo || '', 'Mã dịch hại': r.maDH || '', 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': r.ghiChu || '' });
+        t.push({ 'Ngày': hn, 'Kỳ': k, 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Mã KH': '', 'Lần': String(truoc + 1), 'Lý do làm thêm': x.lyDo || '', 'Mã dịch hại': r.maDH || '', 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': r.ghiChu || '',
+          'Trạng thái': tt, 'Bắt đầu': hn, 'Ngày xong': tt === 'Xong' ? hn : '', 'Số ngày': tt === 'Xong' ? '1' : '', 'Mã NK': r.maNK || '' });
+        hoan.xoa.push({ bang: 'TickDinhKy', khoa: { 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Giờ tick': gio } });
       });
       luuTb('TickDinhKy', t);
       const a = tb('AnhNgay');
-      r.anh.forEach((x) => a.push({ 'Ngày': ngay(), 'Mã việc': r.viec, 'Khu vực': [...new Set(r.ds.map((d) => d.kv))].join(', '), 'Link ảnh': x, 'Nguồn ảnh': 'Chụp', 'Mã băm': '', 'Người chụp': u.ten, 'Giờ': gio, 'GPS': '' }));
-      luuTb('AnhNgay', a);
+      r.anh.forEach((x) => a.push({ 'Ngày': hn, 'Mã việc': r.viec, 'Khu vực': [...new Set(r.ds.map((d) => d.kv))].join(', '), 'Link ảnh': x, 'Nguồn ảnh': 'Chụp', 'Mã băm': r.bam || '', 'Người chụp': u.ten, 'Giờ': gio, 'GPS': '' }));
+      luuTb('AnhNgay', a); hoan.xoa.push({ bang: 'AnhNgay', khoa: { 'Mã việc': r.viec, 'Giờ': gio, 'Người chụp': u.ten } });
+      nhoHoan(u, hoan);
       return { n: r.ds.length };
     },
     /* ---- phiếu ---- */
@@ -231,7 +291,7 @@
       const han = new Date(Date.now() + (HAN_GIO[r.muc] || 72) * 36e5);
       const p = await THU.ghi(u, { bang: 'Phieu', dong: { 'Mã phiếu': '', 'Loại': r.loaiPhieu || 'Lỗi', 'Nguồn': r.nguon || 'Nhân viên tự phát hiện', 'Nhóm lỗi': r.nhom || '', 'Loại lỗi': r.loai,
         'Mức độ': r.muc, 'Mã vị trí': r.vt || '', 'Vị trí khác': r.vtKhac || '', 'Mô tả': r.moTa || '', 'Giao cho': r.giao || '', 'Người tạo': '', 'Giờ tạo': '',
-        'Hạn': ngay(han) + ' ' + z(han.getHours()) + ':' + z(han.getMinutes()), 'Ảnh trước': (r.anh || []).join(' | '), 'Trạng thái': 'Mới', 'Số lần trả lại': '0', 'Mã tuần tra': r.maTT || '', 'Mã sự kiện': r.maSK || '', 'Mã dự án': r.maDA || '', 'Mã lặp lại': r.maLL || '' } }, true);
+        'Hạn': ngay(han) + ' ' + z(han.getHours()) + ':' + z(han.getMinutes()), 'Ảnh trước': (r.anh || []).join(' | '), 'Chi tiết trồng': r.trong ? JSON.stringify(r.trong) : '', 'Trạng thái': 'Mới', 'Số lần trả lại': '0', 'Mã tuần tra': r.maTT || '', 'Mã sự kiện': r.maSK || '', 'Mã dự án': r.maDA || '', 'Mã lặp lại': r.maLL || '' } }, true);
       await THU.ghi(u, { bang: 'PhieuLichSu', dong: { 'Mã phiếu': p['Mã phiếu'], 'Thời điểm': '', 'Hành động': 'Tạo', 'Người': '' } }, true);
       return { ma: p['Mã phiếu'] };
     },
@@ -241,8 +301,8 @@
       if (!p) throw new Error('Không tìm thấy phiếu');
       const now = bayGio();
       if (r.hd === 'nhan') Object.assign(p, { 'Người nhận': u.ten, 'Giờ nhận': now, 'Trạng thái': 'Đang xử lý' });
-      if (r.hd === 'xong') { if (!(r.anh && r.anh.length)) throw new Error('Cần ảnh sau khi xử lý'); Object.assign(p, { 'Ảnh sau': r.anh.join(' | '), 'Giờ xong': now, 'Trạng thái': 'Báo xong' }); }
-      if (r.hd === 'duyet') Object.assign(p, { 'Giờ duyệt': now, 'Trạng thái': 'Đã duyệt' });
+      if (r.hd === 'xong') { if (!(r.anh && r.anh.length)) throw new Error('Cần ảnh sau khi xử lý'); if (p['Chi tiết trồng'] && !(r.anhTrong && r.anhTrong.length)) throw new Error('Phiếu trồng cây cần ảnh trong khi trồng'); Object.assign(p, { 'Ảnh sau': r.anh.join(' | '), 'Ảnh trong': (r.anhTrong || []).join(' | '), 'Giờ xong': now, 'Trạng thái': 'Báo xong' }); }
+      if (r.hd === 'duyet') { Object.assign(p, { 'Giờ duyệt': now, 'Trạng thái': 'Đã duyệt' }); if (p['Chi tiết trồng']) ghiTrong(u, p); }
       if (r.hd === 'traLai') Object.assign(p, { 'Trạng thái': 'Bị trả lại', 'Số lần trả lại': String(+p['Số lần trả lại'] + 1) });
       luuTb('Phieu', ds);
       await THU.ghi(u, { bang: 'PhieuLichSu', dong: { 'Mã phiếu': r.ma, 'Thời điểm': '', 'Hành động': r.hd, 'Người': '', 'Ghi chú': r.ghiChu || '' } }, true);
@@ -253,6 +313,12 @@
     async 'ai.cay'() { throw new Error('AI nhận diện cây chỉ chạy khi đã nối dữ liệu thật và có mã Pl@ntNet.'); },
     async 'ai.trieuChung'() { throw new Error('AI phân tích triệu chứng chỉ chạy khi đã nối dữ liệu thật và có mã Gemini.'); },
   };
+  function ghiTrong(u, p) { // phiếu trồng dặm được duyệt → Sổ trồng cây + tiến độ dự án
+    const c = JSON.parse(p['Chi tiết trồng']); const so = tb('SoTrongCay'); let n = so.length;
+    c.cay.forEach((x, i) => so.push({ 'STT': String(++n), 'Thời gian': ngay(), 'Khu vực': c.kv || '', 'Mã vị trí': p['Mã vị trí'], 'Vị trí khác': p['Vị trí khác'], 'Hình thức': c.ht, 'Nguồn cây': c.nc, 'Mã cây': x.ma || '', 'Tên cây': x.ten, 'ĐVT': x.dvt, 'Số lượng': String(x.sl),
+      'Chất cải tạo đất hữu cơ (bao)': i === 0 ? String(c.bao || '') : '', 'Cây trước khi cải tạo': c.truoc || '', 'Ghi chú': 'Từ phiếu ' + p['Mã phiếu'], 'Ảnh': [p['Ảnh trước'], p['Ảnh trong'], p['Ảnh sau']].filter(Boolean).join(' | '), 'Mã DA': c.da || '', 'Mã phiếu': p['Mã phiếu'], 'Người ghi': p['Người nhận'] || u.ten }));
+    luuTb('SoTrongCay', so);
+  }
   async function ghiDD(u, r) {
     can(u, 'diemdanh', 2);
     const anh = (u.quyen.diemdanh || 0) >= 3;
@@ -260,12 +326,13 @@
     const d = await dm(); const cnMap = {}; d.congnhan.concat(tb('CongNhanSua')).forEach((x) => { cnMap[x.ma] = x; });
     const cu = tb('DiemDanh').filter((x) => x['Ngày'] === r.ngay && x['Buổi'] === r.buoi);
     const khoaDoi = tb('DuyetCong').some((x) => x['Ngày'] === r.ngay && x['Buổi'] === r.buoi && x['Đội'] === doi && x['Khóa'] === 'Có');
-    const thay = !anh && u.doi && doi !== u.doi && doi !== 'Quản lý nhà thầu';
+    const thay = !anh && u.doi && doi.toLowerCase() !== u.doi.toLowerCase() && doi !== 'Quản lý nhà thầu';
     if (thay) {
       const khac = tb('DuyetCong').find((x) => x['Ngày'] === r.ngay && x['Buổi'] === r.buoi && x['Đội'] === doi && x['Người gửi'] !== u.ten);
       if (khac) throw new Error(doi + ' đã được ' + khac['Người gửi'] + ' điểm danh buổi này.');
     }
-    if (!anh && r.buoi === 'Sáng' && doi !== 'Quản lý nhà thầu' && !(r.anh || []).length) throw new Error('Buổi sáng cần 1 ảnh tập thể đầu ca.');
+    if (!anh && r.ngay !== ngay()) throw new Error('Chỉ điểm danh cho hôm nay.');
+    if (!anh && doi !== 'Quản lý nhà thầu' && !(r.anh || []).length) throw new Error('Cần 1 ảnh tập thể đầu ca buổi ' + String(r.buoi).toLowerCase() + '.');
     if (!anh) {
       if (khoaDoi) throw new Error('Buổi này anh Vũ đã duyệt và khóa. Cần sửa thì báo anh Vũ.');
       const khoa = r.ds.filter((x) => cu.some((c) => c['Mã CN'] === x.ma && c['Trạng thái duyệt'] === 'Đã duyệt'));
@@ -287,7 +354,7 @@
     if (!anh) {
       const du = tb('DuyetCong').filter((x) => !(x['Ngày'] === r.ngay && x['Buổi'] === r.buoi && x['Đội'] === doi));
       du.push({ 'Ngày': r.ngay, 'Buổi': r.buoi, 'Đội': doi, 'Người gửi': u.ten, 'Giờ gửi': gio, 'Người duyệt': '', 'Giờ duyệt': '', 'Khóa': 'Không',
-        'Ảnh tập thể': (r.anh || []).join(' | '), 'Ghi chú': thay ? 'Điểm danh thay (tổ trưởng ' + doi + ' nghỉ)' : '' }); luuTb('DuyetCong', du);
+        'Ảnh tập thể': (r.anh || []).join(' | '), 'Ghi chú': thay ? 'Điểm danh giúp (tổ trưởng ' + doi + ' nghỉ) · ' + u.ten : '' }); luuTb('DuyetCong', du);
     }
     return { ok: true };
   }
@@ -310,15 +377,34 @@
       if (API.thu()) {
         const fn = THU[action]; if (!fn) throw new Error('Chưa có ở chế độ chạy thử: ' + action);
         const u = Object.assign({}, NGUOI_THU[LS.get('thu_i', 0)]); u.quyen = quyenThu(u);
-        return JSON.parse(JSON.stringify(await fn(u, body || {})));
+        if (u.nhom === 'Tổ trưởng') u.doi = u.doi; HOAN = null;
+        const kq = JSON.parse(JSON.stringify(await fn(u, body || {})));
+        if (HOAN && action !== 'hoanTac') window.dispatchEvent(new CustomEvent('gl-hoan', { detail: HOAN }));
+        return kq;
       }
       return goiThat(action, body);
+    },
+    soHang: () => hang().length,
+    baoHang() { const n = hang().length; document.querySelectorAll('.bang-hang').forEach((b) => { b.textContent = n ? `📶 Mất sóng: ${n} mục đang chờ gửi, tự gửi khi có mạng` : ''; b.style.display = n ? '' : 'none'; }); },
+    async guiHang() {
+      if (API.thu() || API.guiHang.dang) return; API.guiHang.dang = true;
+      try {
+        let ds = hang();
+        while (ds.length) {
+          const x = ds[0]; let j;
+          try { j = await guiMot(x.action, x.body, x.cid); } catch (e) { break; }
+          if (!j.ok && j.loi === 'HET_PHIEN') break;
+          if (!j.ok) { const loi = LS.get('hangLoi', []); loi.push(Object.assign({ loi: j.loi }, x)); LS.set('hangLoi', loi); }
+          ds = hang().filter((y) => y.cid !== x.cid); LS.set('hang', ds);
+        }
+      } finally { API.guiHang.dang = false; API.baoHang(); }
     },
     anhUrl(v) {
       v = String(v || '').trim(); if (!v) return '';
       if (v.startsWith('data:') || v.startsWith('http')) return v;
       return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(v) + '&sz=w800';
     },
+    LS,
     dsAnh: (v) => String(v || '').split('|').map((s) => s.trim()).filter(Boolean),
     ngay, bayGio, ky, BANG,
   };

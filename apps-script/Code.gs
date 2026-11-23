@@ -1,5 +1,5 @@
 /**
- * GreenLog – phần chạy ngầm (Google Apps Script), bản 0.2
+ * GreenLog – phần chạy ngầm (Google Apps Script), bản 0.3
  * Triển khai: Deploy → New deployment → Web app · Execute as: Me · Who has access: Anyone
  * Quyền dùng app do danh sách NguoiDung quyết định (đăng nhập Gmail), không phải do link.
  * Quy tắc ghi giống hệt chế độ chạy thử trong js/api.js.
@@ -27,11 +27,12 @@ const BANG = {
   DuAn: ['duan', 3], DuAnGiaiDoan: ['duan', 3], DuAnVatTu: ['duan', 3], DuAnTienDo: ['duan', 2],
   SuKien: ['sukien', 3], KeHoachTuan: ['kehoach', 2], TuanTra: ['tuantra', 3],
   ChamDiem: ['homnay', 3], KyCham: ['homnay', 3], CanhBaoBao: ['homnay', 3], ViecLapLai: ['homnay', 3],
+  VanChuyen: ['dinhky', 3], ViecPhatSinh: ['homnay', 2], Hop: ['homnay', 3], DaoTao: ['homnay', 3], ThuVienSOP: ['homnay', 3],
   CongNhanDangKy: ['congnhan', 2], PhanQuyen: ['danhmuc', 3], UyQuyen: ['danhmuc', 3], ThoiTiet: ['homnay', 1], NhatKyThayDoi: ['homnay', 3],
 };
-const COT_NGUOI = ['Người ghi', 'Người tạo', 'Người tick', 'Người phun', 'Người báo', 'Người chấm', 'Người đọc', 'Người đăng ký', 'Người đề xuất', 'Người lập', 'Người phát hiện', 'Người tuần tra', 'Người kích hoạt', 'Người'];
-const COT_GIO = ['Giờ ghi', 'Giờ tạo', 'Giờ tick', 'Giờ đăng ký', 'Thời điểm', 'Ngày giờ', 'Kích hoạt lúc', 'Cập nhật gần nhất'];
-const MA_SO = { Phieu: ['Mã phiếu', 'P'], DichHai: ['Mã DH', 'DH'], NhatKyPhunBon: ['Mã NK', 'NK'], SuKien: ['Mã SK', 'SK'], DuAn: ['Mã DA', 'DA'],
+const COT_NGUOI = ['Người thêm', 'Người ghi', 'Người tạo', 'Người tick', 'Người phun', 'Người báo', 'Người chấm', 'Người đọc', 'Người đăng ký', 'Người đề xuất', 'Người lập', 'Người phát hiện', 'Người tuần tra', 'Người kích hoạt', 'Người'];
+const COT_GIO = ['Giờ thêm', 'Giờ ghi', 'Giờ tạo', 'Giờ tick', 'Giờ đăng ký', 'Thời điểm', 'Ngày giờ', 'Kích hoạt lúc', 'Cập nhật gần nhất'];
+const MA_SO = { ViecPhatSinh: ['Mã PS', 'PS'], Hop: ['Mã họp', 'H'], DaoTao: ['Mã ĐT', 'ĐT'], ThuVienSOP: ['Mã SOP', 'SOP'], Phieu: ['Mã phiếu', 'P'], DichHai: ['Mã DH', 'DH'], NhatKyPhunBon: ['Mã NK', 'NK'], SuKien: ['Mã SK', 'SK'], DuAn: ['Mã DA', 'DA'],
   TuanTra: ['Mã tuần tra', 'TT'], ViecLapLai: ['Mã LL', 'LL'], CongNhanDangKy: ['Mã ĐK', 'ĐK'], DeXuatThuoc: ['Mã ĐX', 'ĐX'], KeHoachTuan: ['Mã KHT', 'KT'],
   KeHoachDinhKy: ['Mã KH', 'KH'], CongThucPha: ['Mã CT', 'CT'], PhieuSuaCong: ['Mã phiếu', 'SC'], CanhBaoBao: ['Mã đợt', 'BAO'] };
 const HAN_GIO = { 'Khẩn cấp': 2, 'Cao': 24, 'Trung bình': 72, 'Thấp': 168 };
@@ -49,7 +50,14 @@ function doPost(e) {
     if (!u) return json_({ ok: false, loi: 'HET_PHIEN' });
     const fn = API[req.action];
     if (!fn) return json_({ ok: false, loi: 'Không có chức năng ' + req.action });
-    return json_({ ok: true, data: fn(u, req) });
+    // mất sóng gửi lại: cùng mã lệnh (cid) chỉ làm một lần
+    const c = CacheService.getScriptCache();
+    if (req.cid) { const cu = c.get('CID_' + req.cid); if (cu) return json_(JSON.parse(cu)); }
+    HOAN_ = null;
+    const out = { ok: true, data: fn(u, req) };
+    if (HOAN_ && req.action !== 'hoanTac') out.hoan = nhoHoan_(u, HOAN_);
+    if (req.cid) { try { c.put('CID_' + req.cid, JSON.stringify(out), 21600); } catch (er) { c.put('CID_' + req.cid, JSON.stringify({ ok: true, data: { daNhan: true } }), 21600); } }
+    return json_(out);
   } catch (err) {
     console.error(err && err.stack || err);
     return json_({ ok: false, loi: String(err && err.message || err) });
@@ -61,7 +69,7 @@ const API = {
   'diemDanh.gui': function (u, r) { if (u.nhom === 'Quản lý nhà thầu') throw new Error('Anh Pháp chỉ tự điểm danh cho mình'); return ghiDD_(u, r); },
   'diemDanh.tuDiem': ddTuDiem_, 'diemDanh.duyet': ddDuyet_,
   'dinhKy.luu': dkLuu_, 'phieu.tao': phieuTao_, 'phieu.chuyen': phieuChuyen_,
-  'congNhan.duyet': cnDuyet_, 'thoiTiet': function () { return thoiTiet_(); },
+  'congNhan.duyet': cnDuyet_, 'congNhan.sua': cnSua_, 'vanChuyen.gui': vcGui_, 'hoanTac': hoanTac_, 'thoiTiet': function () { return thoiTiet_(); },
   'ai.cay': aiCay_, 'ai.trieuChung': aiTrieuChung_,
 };
 
@@ -153,14 +161,16 @@ function khoiDong_(u) {
     return { ma: x['Mã ĐX'], ten: x['Tên thuốc/phân'], nhom: x['Loại'], dvt: '', cachLy: +x['Cách ly đề xuất (ngày)'] || 14,
       tt: x['Trạng thái (Chờ duyệt/Đã duyệt/Từ chối)'] === 'Đã duyệt' ? 'Đang dùng' : 'Chờ duyệt', khongPha: x['Không pha chung với'] || '' };
   }));
+  const lieu = bang_(nen, 'LieuPha16L').filter(function (r) { return r['Mã']; }).map(function (r) { return { ma: r['Mã'], ten: r['Thuốc / phân'], cong: r['Công dụng'], lieu: r['Liều / bình 16L'], cach: r['Cách dùng'], cachLy: r['Cách ly (ngày)'], khongPha: r['Không pha chung'] }; });
+  thuoc.forEach(function (t) { const l = lieu.filter(function (x) { return x.ma === t.ma; })[0]; if (l) { t.lieu16 = l.lieu; t.tenNgan = l.ten; if (!t.khongPha) t.khongPha = l.khongPha; } });
   const thayCN = u.quyen.diemdanh || u.quyen.congnhan || u.quyen.baocao || u.quyen.homnay >= 3;
   return {
     user: u, ky: ky_(ngay_()), coThoiTiet: true, coAI: !!(prop_('PLANTNET_KEY', true) || prop_('GEMINI_KEY', true)),
-    vitri: bang_(nen, 'ViTri').map(function (r) { return { ma: r['Mã'], cum: r['Cụm'], kv: r['Khu vực'], ten: r['Vị trí'], ap: r['Áp dụng 8 việc chính'] }; }),
+    vitri: bang_(nen, 'ViTri').map(function (r) { return { ma: r['Mã'], cum: r['Cụm'], kv: r['Khu vực'], ten: r['Vị trí'], ap: r['Áp dụng 8 việc chính'], maiChe: r['Có mái che'] || '' }; }),
     dauviec: bang_(nen, 'DauViec').map(function (r) { return { ma: r['Mã'], ten: r['Tên việc'], nhom: r['Nhóm thực hiện'], tanSuat: r['Tần suất'], anh: r['Ảnh'] }; }),
     loi: bang_(nen, 'LoiCanhQuan').map(function (r) { return { nhom: r['Nhóm'], ten: r['Loại lỗi'], muc: r['Mức độ gợi ý'] }; }),
     diemkhac: bang_(nen, 'DiemKhac').map(function (r) { return { loai: r['Loại'], ma: r['Mã'], ten: r['Tên'] }; }),
-    cay: bang_(nen, 'DanhMucCay').filter(function (r) { return r['Mã']; }).map(function (r) { return { ma: r['Mã'], ten: r['Tên tiếng Việt'], en: r['Tên tiếng Anh'], kh: r['Tên khoa học'], nhom: r['Nhóm cây'], trong: r['Dùng để trồng'] }; }),
+    cay: bang_(nen, 'DanhMucCay').filter(function (r) { return r['Mã']; }).map(function (r) { return { ma: r['Mã'], ten: r['Tên tiếng Việt'], en: r['Tên tiếng Anh'], kh: r['Tên khoa học'], nhom: r['Nhóm cây'], trong: r['Dùng để trồng'], dh: r['Dịch hại thường gặp'] || '' }; }),
     thuoc: thuoc, congThuc: bang_(vh, 'CongThucPha').filter(function (r) { return r['Đang dùng'] !== 'Không'; }),
     caytrong: ds1('CayTrong'), batthuong: ds1('BatThuong'),
     ngayle: bang_(nen, 'NgayLe', 3).filter(function (r) { return r['Ngày']; }).map(function (r) { return { ngay: r['Ngày'], ten: r['Tên ngày lễ'] }; }),
@@ -172,6 +182,12 @@ function khoiDong_(u) {
     mucDoDH: bang_(nen, 'MucDoDichHai').map(function (r) { return { ten: r['Mức độ'], tyLe: r['Tỷ lệ bị hại'] }; }), phamVi: ds1('PhamViDichHai'),
     nhomCayDK: bang_(nen, 'NhomCayDinhKy').map(function (r) { return { ten: r['Nhóm cây'], viec: String(r['Việc định kỳ được tính luôn']).split(',').map(function (s) { return s.trim(); }) }; }),
     loaiPB: ds1('LoaiPhunBon'), dichHai: ds1('DanhMucDichHai'), baoHo: ds1('BaoHo'),
+    hangrao: bang_(nen, 'HangRao').filter(function (r) { return r['Mã']; }).map(function (r) { return { ma: r['Mã'], kv: r['Khu vực'], ten: r['Vị trí'], cay: r['Loại cây'] }; }),
+    hothuysinh: bang_(nen, 'HoThuySinh').filter(function (r) { return r['Mã']; }).map(function (r) { return { ma: r['Mã'], kv: r['Villa'], ten: r['Tên'] }; }),
+    lieu: lieu, dhThuoc: bang_(nen, 'DichHaiThuoc').filter(function (r) { return r['Dịch hại']; }).map(function (r) { return { dh: r['Dịch hại'], nhan: r['Nhận biết nhanh'], chinh: r['Thuốc chính (liều/16L)'], luan: r['Thuốc luân phiên'], ghi: r['Ghi chú'] }; }),
+    loaiHang: ['Rác cắt tỉa (cành, lá, cỏ)', 'Đất, cát, phân', 'Cây, chậu', 'Vật tư, dụng cụ', 'Khác'], loaiPhatSinh: ['Hỗ trợ bộ phận khác', 'Sự cố cần xử lý gấp', 'Theo yêu cầu khách', 'Theo yêu cầu anh Vũ', 'Khác'],
+    boPhan: ['F&B', 'Housekeeping', 'Engineering', 'Sales & Marketing', 'Front Office', 'Security', 'Spa', 'Khác'], viecNT: ['Tưới nước', 'Tưới phân', 'Bón phân hạt', 'Phun phân bón lá'],
+    chuDeSOP: ['Cây nội thất', 'Cỏ thảm', 'Cây bụi', 'Cây bóng mát', 'Phun thuốc, an toàn', 'Vườn rau', 'Compost', 'Bãi biển, máy sàng cát', 'Khác'],
   };
 }
 
@@ -214,16 +230,37 @@ function dien_(u, bang, dong, vh) {
   }
   return r;
 }
+/* ================= Hoàn tác 10 giây ================= */
+let HOAN_ = null;
+function nhoHoan_(u, info) {
+  const t = 'H' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); info.ai = u.ten; info.luc = Date.now();
+  try { CacheService.getScriptCache().put('HOAN_' + t, JSON.stringify(info), 600); } catch (e) { return null; }
+  return t;
+}
+function hoanTac_(u, r) {
+  const c = CacheService.getScriptCache(); const s = c.get('HOAN_' + r.ma); if (!s) throw new Error('Không hoàn tác được nữa (quá thời gian).');
+  const h = JSON.parse(s); if (h.ai !== u.ten) throw new Error('Chỉ người vừa lưu mới hoàn tác được.'); if (Date.now() - h.luc > 120000) throw new Error('Đã quá thời gian hoàn tác.');
+  return voiKhoa_(function () {
+    const vh = vh_();
+    (h.xoa || []).forEach(function (x) { xoaDong_(vh.getSheetByName(x.bang), function (y) { return khop_(y, x.khoa); }); });
+    if (h.them) ghiLo_(vh, h.them.bang, h.them.dong);
+    (h.khoi || []).forEach(function (x) { capNhat_(vh.getSheetByName(x.bang), function (y) { return khop_(y, x.khoa); }, x.cu); });
+    c.remove('HOAN_' + r.ma); return { ok: true };
+  });
+}
 function ghiAPI_(u, r, noiBo) {
   if (!noiBo) quyenBang_(u, r.bang, 2);
-  return voiKhoa_(function () { const vh = vh_(); const d = dien_(u, r.bang, r.dong, vh); ghi_(vh, r.bang, d); sauGhi_(u, r.bang, d); return d; });
+  return voiKhoa_(function () { const vh = vh_(); const d = dien_(u, r.bang, r.dong, vh); ghi_(vh, r.bang, d); sauGhi_(u, r.bang, d); if (!noiBo) HOAN_ = { xoa: [{ bang: r.bang, khoa: d }] }; return d; });
 }
 function ghiNhieu_(u, r) {
   quyenBang_(u, r.bang, 2);
   return voiKhoa_(function () {
     const vh = vh_(); const moi = r.dong.map(function (x) { return dien_(u, r.bang, x, vh); });
-    if (r.thay) xoaDong_(vh.getSheetByName(r.bang), function (o) { return moi.some(function (n) { return r.thay.every(function (k) { return o[k] === n[k]; }); }); });
+    const trung = function (o) { return moi.some(function (n) { return r.thay.every(function (k) { return o[k] === n[k]; }); }); };
+    const bo = r.thay ? bang_(vh, r.bang).filter(trung) : [];
+    if (r.thay) xoaDong_(vh.getSheetByName(r.bang), trung);
     ghiLo_(vh, r.bang, moi); moi.forEach(function (d) { sauGhi_(u, r.bang, d); });
+    HOAN_ = { xoa: moi.map(function (x) { return { bang: r.bang, khoa: x }; }), them: bo.length ? { bang: r.bang, dong: bo } : null };
     return moi;
   });
 }
@@ -262,9 +299,10 @@ function ghiDD_(u, r) {
     const ten = function (ma) { return (cnMap[ma] || {})['Họ và tên'] || ma; };
     const cu = bang_(vh, 'DiemDanh').filter(function (x) { return x['Ngày'] === r.ngay && x['Buổi'] === r.buoi; });
     const du = bang_(vh, 'DuyetCong').filter(function (x) { return x['Ngày'] === r.ngay && x['Buổi'] === r.buoi && x['Đội'] === doi; });
-    const thay = !anh && u.doi && doi !== u.doi && doi !== 'Quản lý nhà thầu';
+    const thay = !anh && u.doi && String(doi).toLowerCase() !== String(u.doi).toLowerCase() && doi !== 'Quản lý nhà thầu';
     if (thay && du.some(function (x) { return x['Người gửi'] !== u.ten; })) throw new Error(doi + ' đã được ' + du[0]['Người gửi'] + ' điểm danh buổi này.');
-    if (!anh && r.buoi === 'Sáng' && doi !== 'Quản lý nhà thầu' && !anhTT.length) throw new Error('Buổi sáng cần 1 ảnh tập thể đầu ca.');
+    if (!anh && r.ngay !== ngay_()) throw new Error('Chỉ điểm danh cho hôm nay.');
+    if (!anh && doi !== 'Quản lý nhà thầu' && !anhTT.length) throw new Error('Cần 1 ảnh tập thể đầu ca buổi ' + String(r.buoi).toLowerCase() + '.');
     if (!anh) {
       if (du.some(function (x) { return x['Khóa'] === 'Có'; })) throw new Error('Buổi này anh Vũ đã duyệt và khóa. Cần sửa thì báo anh Vũ.');
       const khoa = r.ds.filter(function (x) { return cu.some(function (c) { return c['Mã CN'] === x.ma && c['Trạng thái duyệt'] === 'Đã duyệt'; }); });
@@ -285,7 +323,7 @@ function ghiDD_(u, r) {
     ghiLo_(vh, 'DiemDanh', rows);
     if (!anh) {
       xoaDong_(vh.getSheetByName('DuyetCong'), function (x) { return x['Ngày'] === r.ngay && x['Buổi'] === r.buoi && x['Đội'] === doi; });
-      ghi_(vh, 'DuyetCong', { 'Ngày': r.ngay, 'Buổi': r.buoi, 'Đội': doi, 'Người gửi': u.ten, 'Giờ gửi': gio, 'Khóa': 'Không', 'Ảnh tập thể': anhTT.join(' | '), 'Ghi chú': thay ? 'Điểm danh thay (tổ trưởng ' + doi + ' nghỉ)' : '' });
+      ghi_(vh, 'DuyetCong', { 'Ngày': r.ngay, 'Buổi': r.buoi, 'Đội': doi, 'Người gửi': u.ten, 'Giờ gửi': gio, 'Khóa': 'Không', 'Ảnh tập thể': anhTT.join(' | '), 'Ghi chú': thay ? 'Điểm danh giúp (tổ trưởng ' + doi + ' nghỉ) · ' + u.ten : '' });
       if (doi !== 'Quản lý nhà thầu') {
         const co = r.ds.filter(function (x) { return x.tt === 'Có mặt'; }).length; const som = r.ds.filter(function (x) { return x.tt === 'Về sớm'; });
         guiNhom_('Trưởng bộ phận', '🧑‍🤝‍🧑 ' + u.ten + ' gửi điểm danh ' + r.buoi.toLowerCase() + ' ' + doi + ': ' + co + '/' + r.ds.length + ' có mặt' + (thay ? ' (điểm danh thay)' : '')
@@ -317,19 +355,75 @@ function dkLuu_(u, r) {
   can_(u, 'dinhky', 2);
   if (!r.anh || !r.anh.length) throw new Error('Cần ít nhất 1 ảnh hiện trường');
   const anh = r.anh.map(function (x) { return /^data:/.test(x) ? luuAnh_(x, 'dinhky') : x; });
+  const tt = r.trangThai === 'Đang làm' ? 'Đang làm' : 'Xong';
   return voiKhoa_(function () {
-    const vh = vh_(); const k = ky_(ngay_()).ten; const gio = bayGio_();
-    const t = bang_(vh, 'TickDinhKy').filter(function (y) { return y['Kỳ'] === k && y['Mã việc'] === r.viec; });
-    const rows = r.ds.map(function (x) {
-      const truoc = t.filter(function (y) { return y['Mã vị trí'] === x.vt; }).length;
+    const vh = vh_(); const hn = ngay_(); const k = ky_(hn).ten; const gio = bayGio_(); const sh = vh.getSheetByName('TickDinhKy');
+    const tat = bang_(vh, 'TickDinhKy').filter(function (y) { return y['Mã việc'] === r.viec; });
+    const t = tat.filter(function (y) { return y['Kỳ'] === k; }); const rows = []; const hoan = { xoa: [], khoi: [] };
+    r.ds.forEach(function (x) {
+      const mo = tat.filter(function (y) { return y['Mã vị trí'] === x.vt && y['Trạng thái'] === 'Đang làm'; })[0];
+      if (mo) {
+        if (tt === 'Đang làm') return;
+        const soNgay = Math.round((new Date(hn) - new Date(mo['Bắt đầu'])) / 864e5) + 1;
+        capNhat_(sh, function (y) { return y['Mã việc'] === r.viec && y['Mã vị trí'] === x.vt && y['Trạng thái'] === 'Đang làm'; }, { 'Trạng thái': 'Xong', 'Ngày xong': hn, 'Kỳ': k, 'Số ngày': soNgay, 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': [mo['Ghi chú'], r.ghiChu].filter(String).join(' · ') });
+        hoan.khoi.push({ bang: 'TickDinhKy', khoa: { 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Bắt đầu': mo['Bắt đầu'], 'Ngày xong': hn }, cu: { 'Trạng thái': 'Đang làm', 'Ngày xong': '', 'Số ngày': '', 'Kỳ': mo['Kỳ'], 'Người tick': mo['Người tick'], 'Giờ tick': mo['Giờ tick'] } });
+        return;
+      }
+      const truoc = t.filter(function (y) { return y['Mã vị trí'] === x.vt && (y['Trạng thái'] || 'Xong') === 'Xong'; }).length;
       if (truoc && !x.lyDo) throw new Error('Vị trí ' + x.vt + ' đã làm trong kỳ. Chọn lý do làm thêm.');
-      return { 'Ngày': ngay_(), 'Kỳ': k, 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Lần': truoc + 1, 'Lý do làm thêm': x.lyDo || '', 'Mã dịch hại': r.maDH || '', 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': r.ghiChu || '' };
+      rows.push({ 'Ngày': hn, 'Kỳ': k, 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Lần': truoc + 1, 'Lý do làm thêm': x.lyDo || '', 'Mã dịch hại': r.maDH || '', 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': r.ghiChu || '',
+        'Trạng thái': tt, 'Bắt đầu': hn, 'Ngày xong': tt === 'Xong' ? hn : '', 'Số ngày': tt === 'Xong' ? 1 : '', 'Mã NK': r.maNK || '' });
     });
-    ghiLo_(vh, 'TickDinhKy', rows);
+    if (rows.length) { ghiLo_(vh, 'TickDinhKy', rows); hoan.xoa.push({ bang: 'TickDinhKy', khoa: { 'Mã việc': r.viec, 'Giờ tick': gio, 'Người tick': u.ten, 'Bắt đầu': hn, 'Trạng thái': tt } }); }
     const kv = r.ds.map(function (d) { return d.kv; }).filter(function (v, i, a) { return v && a.indexOf(v) === i; }).join(', ');
-    ghiLo_(vh, 'AnhNgay', anh.map(function (a) { return { 'Ngày': ngay_(), 'Mã việc': r.viec, 'Khu vực': kv, 'Link ảnh': a, 'Nguồn ảnh': 'Chụp', 'Người chụp': u.ten, 'Giờ': gio }; }));
-    return { n: rows.length };
+    const bam = String(r.bam || '').split('|').map(function (s) { return s.trim(); });
+    const cuBam = bam.some(String) ? bang_(vh, 'AnhNgay').filter(function (y) { return y['Mã băm'] && y['Ngày'] !== hn; }).map(function (y) { return y['Mã băm']; }) : [];
+    const dung = bam.filter(function (b_) { return b_ && cuBam.indexOf(b_) >= 0; });
+    ghiLo_(vh, 'AnhNgay', anh.map(function (a, i) { return { 'Ngày': hn, 'Mã việc': r.viec, 'Khu vực': kv, 'Link ảnh': a, 'Nguồn ảnh': 'Chụp', 'Mã băm': bam[i] || '', 'Người chụp': u.ten, 'Giờ': gio }; }));
+    hoan.xoa.push({ bang: 'AnhNgay', khoa: { 'Mã việc': r.viec, 'Giờ': gio, 'Người chụp': u.ten } });
+    if (dung.length) guiNhom_('Trưởng bộ phận', '🖼️ Ảnh có thể dùng lại từ ngày khác: ' + u.ten + ' · ' + tenViec_(r.viec) + ' · ' + kv + '\n' + link_('dinhky/' + r.viec));
+    HOAN_ = hoan;
+    return { n: r.ds.length };
   });
+}
+function tenViec_(ma) { const v = bang_(nen_(), 'DauViec').filter(function (x) { return x['Mã'] === ma; })[0]; return v ? v['Tên việc'] : ma; }
+
+/* ================= Vận chuyển: 1 lần mỗi ngày mỗi đội ================= */
+function vcGui_(u, r) {
+  can_(u, 'dinhky', 2); const anhVu = (u.quyen.homnay || 0) >= 3;
+  const anh = (r.anh || []).map(function (x) { return /^data:/.test(x) ? luuAnh_(x, 'vanchuyen') : x; });
+  return voiKhoa_(function () {
+    const vh = vh_(); const hn = ngay_(); const doi = r.doi || u.doi || 'Chung'; const gio = bayGio_();
+    const cu = bang_(vh, 'VanChuyen').filter(function (x) { return x['Ngày'] === hn && x['Đội'] === doi; });
+    if (cu.length && !anhVu) throw new Error('Hôm nay ' + doi + ' đã gửi lúc ' + String(cu[0]['Giờ ghi']).slice(11, 16) + '. Cần sửa thì báo anh Vũ.');
+    if (anh.length < 2 && !anhVu) throw new Error('Cần ít nhất 2 ảnh của vài chuyến trong ngày');
+    xoaDong_(vh.getSheetByName('VanChuyen'), function (x) { return x['Ngày'] === hn && x['Đội'] === doi; });
+    const rows = r.ds.filter(function (x) { return +x.n > 0; }).map(function (x, i) { return { 'Ngày': hn, 'Đội': doi, 'Loại hàng': x.loai, 'Nhóm': /rác cắt tỉa/i.test(x.loai) ? 'Rác cắt tỉa' : 'Khác', 'Số chuyến': x.n, 'Ghi chú': r.ghiChu || '', 'Ảnh': i === 0 ? anh.join(' | ') : '', 'Người ghi': u.ten, 'Giờ ghi': gio }; });
+    ghiLo_(vh, 'VanChuyen', rows); return { n: rows.length };
+  });
+}
+
+/* ================= Công nhân: anh Vũ thêm, sửa, chuyển đội, đổi trạng thái (không xóa) ================= */
+function cnSua_(u, r) {
+  can_(u, 'congnhan', 3);
+  return voiKhoa_(function () {
+    const nen = nen_(); const vh = vh_(); const sh = nen.getSheetByName('CongNhan'); const ds = bang_(nen, 'CongNhan');
+    const MAP = { ten: 'Họ và tên', doi: 'Đội', cd: 'Chức danh', kv: 'Khu vực phụ trách', sdt: 'Số điện thoại', tt: 'Trạng thái' };
+    let ma = r.ma; const cu = ds.filter(function (x) { return x['Mã'] === ma; })[0] || {};
+    const doi = {}; Object.keys(r.doi).forEach(function (k) { if (MAP[k]) doi[MAP[k]] = r.doi[k]; });
+    if (!ma) { ma = 'CN' + ('0' + (Math.max.apply(null, ds.map(function (y) { return +String(y['Mã']).slice(2) || 0; })) + 1)).slice(-2); const o = { 'Mã': ma }; Object.keys(doi).forEach(function (k) { o[k] = doi[k]; }); ghi_(nen, 'CongNhan', o); }
+    else capNhat_(sh, function (y) { return y['Mã'] === ma; }, doi);
+    Object.keys(doi).forEach(function (k) { if (String(cu[k] || '') !== String(doi[k])) ghi_(vh, 'NhatKyThayDoi', { 'Thời điểm': bayGio_(), 'Người': u.ten, 'Trang': 'CongNhan', 'Mã bản ghi': ma, 'Trường': k, 'Giá trị cũ': cu[k] || '', 'Giá trị mới': doi[k], 'Lý do': r.lyDo || (r.ma ? 'Anh Vũ sửa' : 'Thêm mới') }); });
+    return { ma: ma };
+  });
+}
+
+/* phiếu trồng dặm được duyệt → Sổ trồng cây (tự cộng vào dự án) */
+function ghiTrong_(u, p, vh) {
+  const c = JSON.parse(p['Chi tiết trồng']); let n = bang_(vh, 'SoTrongCay').length;
+  ghiLo_(vh, 'SoTrongCay', c.cay.map(function (x, i) { return { 'STT': ++n, 'Thời gian': ngay_(), 'Khu vực': c.kv || '', 'Mã vị trí': p['Mã vị trí'], 'Vị trí khác': p['Vị trí khác'], 'Hình thức': c.ht, 'Nguồn cây': c.nc, 'Mã cây': x.ma || '', 'Tên cây': x.ten, 'ĐVT': x.dvt, 'Số lượng': x.sl,
+    'Chất cải tạo đất hữu cơ (bao)': i === 0 ? (c.bao || '') : '', 'Cây trước khi cải tạo': c.truoc || '', 'Ghi chú': 'Từ phiếu ' + p['Mã phiếu'], 'Ảnh trước': p['Ảnh trước'], 'Ảnh trong': p['Ảnh trong'], 'Ảnh sau': p['Ảnh sau'],
+    'Ảnh': [p['Ảnh trước'], p['Ảnh trong'], p['Ảnh sau']].filter(String).join(' | '), 'Mã DA': c.da || '', 'Mã phiếu': p['Mã phiếu'], 'Người ghi': p['Người nhận'] || u.ten }; }));
 }
 
 /* ================= Phiếu ================= */
@@ -339,7 +433,7 @@ function phieuTao_(u, r) {
   const p = ghiAPI_(u, { bang: 'Phieu', dong: { 'Mã phiếu': '', 'Loại': r.loaiPhieu || 'Lỗi', 'Nguồn': r.nguon || 'Nhân viên tự phát hiện', 'Nhóm lỗi': r.nhom || '', 'Loại lỗi': r.loai,
     'Mức độ': r.muc, 'Mã vị trí': r.vt || '', 'Vị trí khác': r.vtKhac || '', 'Mô tả': r.moTa || '', 'Giao cho': r.giao || '', 'Người tạo': '', 'Giờ tạo': '',
     'Hạn': Utilities.formatDate(han, TZ, 'yyyy-MM-dd HH:mm'), 'Ảnh trước': r.anh || [], 'Trạng thái': 'Mới', 'Số lần trả lại': 0,
-    'Mã tuần tra': r.maTT || '', 'Mã sự kiện': r.maSK || '', 'Mã dự án': r.maDA || '', 'Mã lặp lại': r.maLL || '' } }, true);
+    'Mã tuần tra': r.maTT || '', 'Mã sự kiện': r.maSK || '', 'Mã dự án': r.maDA || '', 'Mã lặp lại': r.maLL || '', 'Chi tiết trồng': r.trong ? JSON.stringify(r.trong) : '' } }, true);
   ghiAPI_(u, { bang: 'PhieuLichSu', dong: { 'Mã phiếu': p['Mã phiếu'], 'Thời điểm': '', 'Hành động': 'Tạo', 'Người': '' } }, true);
   if (r.muc === 'Khẩn cấp' || r.muc === 'Cao') guiGiao_(r.giao, (r.muc === 'Khẩn cấp' ? '🚨 KHẨN CẤP' : '🔶 Cao') + ': ' + r.loai + '\n📍 ' + tenVT_(r.vt, r.vtKhac) + '\nHạn ' + p['Hạn'].slice(11) + ' · ' + link_('phieu'), r.muc === 'Khẩn cấp');
   return { ma: p['Mã phiếu'] };
@@ -347,14 +441,15 @@ function phieuTao_(u, r) {
 function phieuChuyen_(u, r) {
   can_(u, 'phieu', r.hd === 'duyet' || r.hd === 'traLai' ? 3 : 2);
   const anh = (r.anh || []).map(function (x) { return /^data:/.test(x) ? luuAnh_(x, 'phieu') : x; });
+  const anhT = (r.anhTrong || []).map(function (x) { return /^data:/.test(x) ? luuAnh_(x, 'phieu') : x; });
   return voiKhoa_(function () {
     const vh = vh_(); const now = bayGio_();
     const p = bang_(vh, 'Phieu').filter(function (x) { return x['Mã phiếu'] === r.ma; })[0];
     if (!p) throw new Error('Không tìm thấy phiếu ' + r.ma);
     let doi;
     if (r.hd === 'nhan') doi = { 'Người nhận': u.ten, 'Giờ nhận': now, 'Trạng thái': 'Đang xử lý' };
-    if (r.hd === 'xong') { if (!anh.length) throw new Error('Cần ảnh sau khi xử lý'); doi = { 'Ảnh sau': anh.join(' | '), 'Giờ xong': now, 'Trạng thái': 'Báo xong' }; }
-    if (r.hd === 'duyet') doi = { 'Giờ duyệt': now, 'Trạng thái': 'Đã duyệt' };
+    if (r.hd === 'xong') { if (!anh.length) throw new Error('Cần ảnh sau khi xử lý'); if (p['Chi tiết trồng'] && !anhT.length) throw new Error('Phiếu trồng cây cần ảnh trong khi trồng'); doi = { 'Ảnh sau': anh.join(' | '), 'Ảnh trong': anhT.join(' | '), 'Giờ xong': now, 'Trạng thái': 'Báo xong' }; }
+    if (r.hd === 'duyet') { doi = { 'Giờ duyệt': now, 'Trạng thái': 'Đã duyệt' }; if (p['Chi tiết trồng']) ghiTrong_(u, p, vh); }
     if (r.hd === 'traLai') doi = { 'Trạng thái': 'Bị trả lại', 'Số lần trả lại': Number(p['Số lần trả lại'] || 0) + 1 };
     capNhat_(vh.getSheetByName('Phieu'), function (x) { return x['Mã phiếu'] === r.ma; }, doi);
     ghi_(vh, 'PhieuLichSu', { 'Mã phiếu': r.ma, 'Thời điểm': now, 'Hành động': r.hd, 'Người': u.ten, 'Ghi chú': r.ghiChu || '' });
@@ -393,11 +488,14 @@ function sauGhi_(u, bang, d) {
     if (bang === 'CongNhanDangKy') guiNhom_('Trưởng bộ phận', '👷 ' + u.ten + ' đăng ký ' + String(d['Loại (Mới/Thay đổi/Nghỉ việc)']).toLowerCase() + ': ' + d['Họ và tên'] + '\nDuyệt: ' + link_('congnhan'));
     if (bang === 'DeXuatThuoc') guiNhom_('Trưởng bộ phận', '🧴 Đề xuất thuốc mới: ' + d['Tên thuốc/phân'] + ' (' + u.ten + ')\n' + link_('thuoc'));
     if (bang === 'DichHai' && /dừa|cọ|chà là/i.test(d['Tên cây'])) guiNhom_('Trưởng bộ phận', '🐛 Dịch hại trên ' + d['Tên cây'] + ': ' + d['Loại dịch hại'] + ' · ' + d['Mức độ'] + '\n📍 ' + tenVT_(d['Mã vị trí'], d['Vị trí chi tiết']) + '\n' + link_('dichhai'));
+    if (bang === 'NhatKyPhunBon' && d['Cảnh báo pha']) guiNhom_('Trưởng bộ phận', '⚠️ Pha thuốc có cảnh báo tương kỵ (' + u.ten + '): ' + d['Cảnh báo pha'] + '\n📍 ' + d['Vị trí chi tiết'] + '\n' + link_('phunbon'));
+    if (bang === 'BatThuong' && d['Mã điểm']) guiNhom_('Trưởng bộ phận', '🥀 Cây nội thất bất thường: ' + d['Tên cây'] + ' · ' + d['Tình trạng'] + ' (' + d['Mã điểm'] + ', ' + u.ten + ')\nTrả lời cách xử lý: ' + link_('nb/noithat'));
     if (bang === 'VuonRau' && d['Ngoài ngưỡng'] === 'Có') guiNhom_('Trưởng bộ phận', '⚠️ Vườn rau ' + d['Mã vườn'] + ': ' + d['Trường'] + ' = ' + d['Giá trị'] + ' (ngoài ngưỡng)');
   } catch (e) { console.error(e); }
 }
 function sauSua_(u, bang, khoa, doi) {
   try {
+    if (bang === 'BatThuong' && doi['Trả lời của anh Vũ']) { const r = bang_(vh_(), 'BatThuong').filter(function (x) { return khop_(x, khoa); })[0]; if (r) guiTen_(r['Người báo'], '🥀 Anh Vũ trả lời về ' + r['Tên cây'] + ' (' + r['Mã điểm'] + '): ' + doi['Trả lời của anh Vũ']); }
     if (bang === 'DichHai' && /Báo xong/.test(doi['Trạng thái (Phát hiện/Đang xử lý/Báo xong/Đã duyệt)'] || '')) guiNhom_('Trưởng bộ phận', '🐛 Hồ sơ dịch hại ' + khoa['Mã DH'] + ' báo xong, chờ duyệt\n' + link_('dichhai'));
   } catch (e) { console.error(e); }
 }
@@ -512,12 +610,15 @@ function ghiLo_(ss, ten, ds) {
   if (!ds.length) return;
   const sh = ss.getSheetByName(ten); if (!sh) throw new Error('Thiếu trang ' + ten + ' (chạy lại khoiTao)');
   const h = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  // cột mới chưa có trên trang thì tự thêm vào cuối, không mất dữ liệu
+  ds.forEach(function (o) { Object.keys(o).forEach(function (k) { if (k && k.charAt(0) !== '_' && h.indexOf(k) < 0) { h.push(k); sh.getRange(1, h.length).setValue(k).setFontWeight('bold'); } }); });
   const rows = ds.map(function (o) { return h.map(function (k) { const v = o[k]; return v === undefined || v === null ? '' : String(Array.isArray(v) ? v.join(' | ') : v); }); });
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, h.length).setNumberFormat('@').setValues(rows);
   quenBang_(ss, ten);
 }
 function capNhat_(sh, dk, doi) {
   const v = sh.getDataRange().getDisplayValues(); const h = v[0]; let n = 0;
+  Object.keys(doi).forEach(function (k) { if (k && h.indexOf(k) < 0) { h.push(k); sh.getRange(1, h.length).setValue(k).setFontWeight('bold'); } });
   for (let i = 1; i < v.length; i++) {
     const o = {}; h.forEach(function (k, j) { o[k] = v[i][j]; });
     if (!dk(o)) continue;

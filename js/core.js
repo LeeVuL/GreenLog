@@ -104,16 +104,32 @@
   };
 
   /* ---------- Ảnh: chụp, chọn từ máy (nhiều ảnh), dán ---------- */
+  /* AI nhẹ trên máy: ảnh mờ (độ nét Laplace thấp) và mã băm 8×8 để phát hiện ảnh dùng lại */
+  G.anhInfo = {};
+  function kiemAnh(img) {
+    const w = 96, hh = Math.max(8, Math.round(96 * img.height / img.width)); const c = document.createElement('canvas'); c.width = w; c.height = hh;
+    const x = c.getContext('2d'); x.drawImage(img, 0, 0, w, hh); const p = x.getImageData(0, 0, w, hh).data;
+    const g = new Float32Array(w * hh); for (let i = 0; i < w * hh; i++) g[i] = 0.299 * p[i * 4] + 0.587 * p[i * 4 + 1] + 0.114 * p[i * 4 + 2];
+    let s = 0, s2 = 0, n = 0;
+    for (let yy = 1; yy < hh - 1; yy++) for (let xx = 1; xx < w - 1; xx++) { const i = yy * w + xx; const l = 4 * g[i] - g[i - 1] - g[i + 1] - g[i - w] - g[i + w]; s += l; s2 += l * l; n++; }
+    const net = n ? s2 / n - (s / n) * (s / n) : 0;
+    const c8 = document.createElement('canvas'); c8.width = 8; c8.height = 8; const x8 = c8.getContext('2d'); x8.drawImage(img, 0, 0, 8, 8); const q8 = x8.getImageData(0, 0, 8, 8).data;
+    const v = []; for (let i = 0; i < 64; i++) v.push(q8[i * 4] + q8[i * 4 + 1] + q8[i * 4 + 2]); const tb = v.reduce((a, b) => a + b, 0) / 64;
+    let bam = ''; for (let i = 0; i < 64; i += 4) bam += ((v[i] > tb) * 8 + (v[i + 1] > tb) * 4 + (v[i + 2] > tb) * 2 + (v[i + 3] > tb)).toString(16);
+    return { mo: net < 60, net: Math.round(net), bam };
+  }
   function nenAnh(file) {
     return new Promise((ok, loi) => {
       const r = new FileReader();
       r.onload = () => {
         const img = new Image();
         img.onload = () => {
-          const max = API.thu() ? 900 : 1600; const k = Math.min(1, max / Math.max(img.width, img.height));
+          const max = API.thu() ? 900 : 1280; const k = Math.min(1, max / Math.max(img.width, img.height));
           const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
           c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-          ok(c.toDataURL('image/jpeg', API.thu() ? 0.6 : 0.75));
+          const url = c.toDataURL('image/jpeg', API.thu() ? 0.6 : 0.72);
+          try { G.anhInfo[url] = kiemAnh(img); } catch (e) { /* bỏ qua */ }
+          ok(url);
         };
         img.onerror = () => loi(new Error('Không đọc được ảnh này'));
         img.src = r.result;
@@ -134,8 +150,10 @@
       luoi.querySelectorAll('[data-x]').forEach((b) => { b.onclick = () => { ds.splice(+b.dataset.x, 1); ve(); }; });
     };
     const them = async (files) => {
-      for (const f of files) { if (ds.length >= toiDa) { G.bao('Đã đủ ' + toiDa + ' ảnh', true); break; } if (f.type && !f.type.startsWith('image/')) continue; ds.push(await nenAnh(f)); }
+      let mo = 0;
+      for (const f of files) { if (ds.length >= toiDa) { G.bao('Đã đủ ' + toiDa + ' ảnh', true); break; } if (f.type && !f.type.startsWith('image/')) continue; const a = await nenAnh(f); if ((G.anhInfo[a] || {}).mo) mo++; ds.push(a); }
       ve();
+      if (mo) G.bao(mo + ' ảnh có vẻ bị mờ. Nên chụp lại cho rõ.', true);
     };
     goc.querySelectorAll('input[type=file]').forEach((i) => { i.onchange = () => { G.chay(() => them([...i.files])); i.value = ''; }; });
     goc.querySelector('[data-a=chup]').onclick = () => goc.querySelector('[data-i=chup]').click();
@@ -150,7 +168,7 @@
     // dán bằng Ctrl+V / giữ ô → Dán
     const nghe = (e) => { if (!goc.isConnected) return document.removeEventListener('paste', nghe); const fs = [...(e.clipboardData || {}).files || []].filter((f) => f.type.startsWith('image/')); if (fs.length) { e.preventDefault(); G.chay(() => them(fs)); } };
     document.addEventListener('paste', nghe);
-    return { ds: () => ds.slice(), kiemTra: () => { if (opt.batBuoc && !ds.length) throw new Error('Cần ít nhất 1 ảnh'); return ds.slice(); } };
+    return { bam: () => ds.map((d) => (G.anhInfo[d] || {}).bam || '').join(' | '), ds: () => ds.slice(), kiemTra: () => { if (opt.batBuoc && !ds.length) throw new Error('Cần ít nhất 1 ảnh'); return ds.slice(); } };
   };
   G.xemAnh = (v) => API.dsAnh(v).map((a) => `<img class="anh-xem" src="${esc(API.anhUrl(a))}" alt="" loading="lazy" onclick="GL.phongAnh(this.src)">`).join('');
   G.phongAnh = (src) => { const l = G.h(`<div class="lop-phu den" style="align-items:center"><img src="${esc(src)}" style="max-width:96vw;max-height:90vh;border-radius:8px"></div>`); l.onclick = () => l.remove(); document.body.appendChild(l); };

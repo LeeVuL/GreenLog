@@ -73,6 +73,12 @@ function moiPhut() {
     if (luc(6, 0) && motLan_('lapLai')) taoViecLapLai_();
     if (luc(7, 0) && motLan_('ddSang')) nhacDiemDanh_('Sáng');
     if (luc(14, 0) && motLan_('ddChieu')) nhacDiemDanh_('Chiều');
+    if (luc(7, 30) && motLan_('ddGiupSang')) nhacDiemDanhGiup_('Sáng');
+    if (luc(14, 30) && motLan_('ddGiupChieu')) nhacDiemDanhGiup_('Chiều');
+    if (luc(7, 15) && motLan_('dangLam')) nhacDangTrienKhai_();
+    if (luc(23, 30) && motLan_('saoLuu')) saoLuuDem_();
+    if (luc(1, 0) && Utilities.formatDate(now, TZ, 'MM-dd') === '01-02' && motLan_('tachNam')) tachNam_();
+    if (luc(7, 45) && thu === 1 && motLan_('tomTatTuan')) tomTatTuan_();
     if (luc(8, 0) && motLan_('phapSang')) nhacPhap_('Sáng');
     if (luc(14, 30) && motLan_('phapChieu')) nhacPhap_('Chiều');
     if (luc(8, 0) && motLan_('baoCao8h')) baoCaoSang_();
@@ -99,7 +105,7 @@ function nhacKhan_() {
 function nhacDiemDanh_(buoi) {
   const du = bang_(vh_(), 'DuyetCong').filter(function (x) { return x['Ngày'] === ngay_() && x['Buổi'] === buoi; });
   danhBa_().filter(function (x) { return x.nhom === 'Tổ trưởng'; }).forEach(function (x) {
-    if (!du.some(function (d) { return d['Đội'] === x.doi; })) guiTin_(x, '🧑‍🤝‍🧑 Nhắc điểm danh buổi ' + buoi.toLowerCase() + ' ' + x.doi + (buoi === 'Sáng' ? ' (kèm 1 ảnh tập thể)' : '') + '\n' + link_('diemdanh'));
+    if (!du.some(function (d) { return d['Đội'] === x.doi; })) guiTin_(x, '🧑‍🤝‍🧑 Nhắc điểm danh buổi ' + buoi.toLowerCase() + ' ' + x.doi + ' (kèm 1 ảnh tập thể)\n' + link_('diemdanh'));
   });
 }
 function nhacPhap_(buoi) {
@@ -167,4 +173,84 @@ function denHanLL_(r, d) {
   if (ck === 'Ngày trong tháng') return ts.split(',').map(Number).indexOf(+Utilities.formatDate(d, TZ, 'd')) >= 0;
   if (ck === 'Theo kỳ 20→19') return +Utilities.formatDate(d, TZ, 'd') === 20;
   return false;
+}
+
+
+/* ================= 0.3: nhắc điểm danh giúp, việc đang triển khai, sao lưu đêm, tách file theo năm, tóm tắt tuần ================= */
+/* 7h30 / 14h30: đội nào chưa điểm danh thì nhắc tổ trưởng đội còn lại (điểm danh giúp) */
+function nhacDiemDanhGiup_(buoi) {
+  const du = bang_(vh_(), 'DuyetCong').filter(function (x) { return x['Ngày'] === ngay_() && x['Buổi'] === buoi; });
+  const tt = danhBa_().filter(function (x) { return x.nhom === 'Tổ trưởng'; });
+  tt.forEach(function (x) {
+    if (du.some(function (d) { return String(d['Đội']).toLowerCase() === String(x.doi).toLowerCase(); })) return;
+    tt.filter(function (y) { return y.doi !== x.doi; }).forEach(function (y) { guiTin_(y, '🧑‍🤝‍🧑 ' + x.doi + ' chưa điểm danh buổi ' + buoi.toLowerCase() + '. Nếu tổ trưởng ' + x.ten + ' nghỉ, anh điểm danh giúp: ' + link_('diemdanh')); });
+  });
+}
+/* việc định kỳ đang triển khai quá 7 ngày */
+function nhacDangTrienKhai_() {
+  const ds = bang_(vh_(), 'TickDinhKy').filter(function (x) { return x['Trạng thái'] === 'Đang làm' && (new Date(ngay_()) - new Date(x['Bắt đầu'])) / 864e5 >= 7; });
+  if (!ds.length) return;
+  const nhom = {}; ds.forEach(function (x) { (nhom[x['Mã việc']] = nhom[x['Mã việc']] || []).push(x['Mã vị trí']); });
+  const text = '⏰ Việc đang triển khai quá 7 ngày:\n' + Object.keys(nhom).map(function (k) { return '• ' + tenViec_(k) + ': ' + nhom[k].length + ' vị trí'; }).join('\n') + '\n' + link_('viec');
+  guiNhom_('Tổ trưởng', text); guiNhom_('Trưởng bộ phận', text);
+}
+/* 23h30: sao chép file vận hành vào thư mục 04_SaoLuu, giữ 30 bản gần nhất */
+function saoLuuDem_() {
+  const id = prop_('VANHANH_ID'); const f = DriveApp.getFileById(id);
+  const cha = f.getParents().hasNext() ? f.getParents().next() : DriveApp.getRootFolder();
+  const goc = cha.getParents().hasNext() ? cha.getParents().next() : cha;
+  const it = goc.getFoldersByName('04_SaoLuu'); const thuMuc = it.hasNext() ? it.next() : goc.createFolder('04_SaoLuu');
+  f.makeCopy('SaoLuu_' + f.getName() + '_' + Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'), thuMuc);
+  const ban = []; const fs = thuMuc.getFiles(); while (fs.hasNext()) ban.push(fs.next());
+  ban.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); }).slice(30).forEach(function (x) { x.setTrashed(true); });
+}
+/* 02/01: chuyển dữ liệu năm trước của các trang lớn sang file riêng GreenLog_VanHanh_<năm>, file chính nhẹ lại */
+const TRANG_TACH = ['TickDinhKy', 'AnhNgay', 'Tuoi', 'ViecHangNgay', 'DiemDanh', 'DuyetCong', 'VanChuyen', 'VeSinhBien', 'KiemTraBien', 'VuonRau', 'CayNoiThat', 'RacHuuCo', 'DongHoNuoc', 'PhieuLichSu', 'NhatKyThayDoi'];
+function tachNam_() {
+  const nam = String(new Date().getFullYear() - 1); const vh = vh_();
+  const f = DriveApp.getFileById(prop_('VANHANH_ID')); const cha = f.getParents().hasNext() ? f.getParents().next() : DriveApp.getRootFolder();
+  const ten = 'GreenLog_VanHanh_' + nam; const it = cha.getFilesByName(ten); const daCo = it.hasNext();
+  const dich = daCo ? SpreadsheetApp.open(it.next()) : SpreadsheetApp.create(ten);
+  if (!daCo) DriveApp.getFileById(dich.getId()).moveTo(cha);
+  TRANG_TACH.forEach(function (t) {
+    const sh = vh.getSheetByName(t); if (!sh || sh.getLastRow() < 2) return;
+    const v = sh.getDataRange().getValues(); const h = v[0]; const cotNgay = h.indexOf('Ngày') >= 0 ? h.indexOf('Ngày') : h.indexOf('Thời điểm');
+    if (cotNgay < 0) return;
+    const cu = v.slice(1).filter(function (r) { return String(r[cotNgay]).slice(0, 4) <= nam; }); if (!cu.length) return;
+    let d = dich.getSheetByName(t); if (!d) { d = dich.insertSheet(t); d.getRange(1, 1, 1, h.length).setValues([h]).setFontWeight('bold'); }
+    d.getRange(d.getLastRow() + 1, 1, cu.length, h.length).setNumberFormat('@').setValues(cu);
+    // giữ lại dòng năm nay: ghi đè một lần (nhanh hơn xóa từng dòng)
+    const con = v.slice(1).filter(function (r) { return String(r[cotNgay]).slice(0, 4) > nam; });
+    sh.getRange(2, 1, sh.getLastRow() - 1, h.length).clearContent();
+    if (con.length) sh.getRange(2, 1, con.length, h.length).setNumberFormat('@').setValues(con);
+    quenBang_(vh, t);
+  });
+  const s1 = dich.getSheetByName('Sheet1') || dich.getSheetByName('Trang tính1'); if (s1 && dich.getSheets().length > 1) dich.deleteSheet(s1);
+  guiNhom_('Trưởng bộ phận', '🗄️ Đã chuyển dữ liệu năm ' + nam + ' sang file ' + ten + '. File chính nhẹ hơn, báo cáo năm cũ mở file này.');
+}
+/* thứ Hai 7h45: tóm tắt tuần trước (AI viết lại nếu có GEMINI_KEY) */
+function tomTatTuan_() {
+  const vh = vh_(); const tu = Utilities.formatDate(new Date(Date.now() - 7 * 864e5), TZ, 'yyyy-MM-dd'); const den = Utilities.formatDate(new Date(Date.now() - 864e5), TZ, 'yyyy-MM-dd');
+  const trong = function (x, k) { return x[k] >= tu && x[k] <= den + ' 99'; };
+  const tick = bang_(vh, 'TickDinhKy').filter(function (x) { return (x['Trạng thái'] || 'Xong') === 'Xong' && trong(x, 'Ngày xong') || (!x['Trạng thái'] && trong(x, 'Ngày')); });
+  const ph = bang_(vh, 'Phieu'); const moi = ph.filter(function (p) { return trong(p, 'Giờ tạo'); }); const xong = ph.filter(function (p) { return trong(p, 'Giờ duyệt'); });
+  const mo = ph.filter(function (p) { return p['Trạng thái'] !== 'Đã duyệt'; }); const qh = mo.filter(function (p) { return p['Hạn'] && p['Hạn'] < bayGio_(); });
+  const cong = bang_(vh, 'DiemDanh').filter(function (x) { return trong(x, 'Ngày'); }).reduce(function (s, x) { return s + (+x['Công'] || 0); }, 0);
+  const rac = bang_(vh, 'RacHuuCo').filter(function (x) { return trong(x, 'Ngày'); }).reduce(function (s, x) { return s + (+x['kg rác thu gom'] || 0); }, 0);
+  const vc = bang_(vh, 'VanChuyen').filter(function (x) { return trong(x, 'Ngày'); }).reduce(function (s, x) { return s + (+x['Số chuyến'] || 0); }, 0);
+  const dh = bang_(vh, 'DichHai').filter(function (x) { return trong(x, 'Ngày phát hiện'); });
+  const dang = bang_(vh, 'TickDinhKy').filter(function (x) { return x['Trạng thái'] === 'Đang làm'; }).length;
+  const so = 'Tuần ' + tu + ' → ' + den + ': định kỳ xong ' + tick.length + ' lượt vị trí; đang triển khai ' + dang + '; phiếu mới ' + moi.length + ', duyệt ' + xong.length + ', còn mở ' + mo.length + ' (quá hạn ' + qh.length + '); công ' + cong + '; rác hữu cơ ' + Math.round(rac) + ' kg; vận chuyển ' + vc + ' chuyến; dịch hại mới ' + dh.length + (dh.length ? ' (' + dh.map(function (x) { return x['Loại dịch hại'] + ' trên ' + x['Tên cây']; }).slice(0, 5).join(', ') + ')' : '') + '.';
+  let text = '📊 Tóm tắt tuần\n' + so;
+  const key = prop_('GEMINI_KEY', true);
+  if (key) {
+    try {
+      const model = prop_('GEMINI_MODEL', true) || 'gemini-2.5-flash';
+      const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key, { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+        payload: JSON.stringify({ contents: [{ parts: [{ text: 'Bạn là trợ lý của trưởng bộ phận cảnh quan resort. Viết tóm tắt tuần bằng tiếng Việt, tối đa 6 dòng gạch đầu dòng, nêu 2 điểm tốt, 2 điểm cần chú ý và 1 việc nên làm tuần này. Chỉ dùng số liệu sau, không bịa thêm:\n' + so }] }] }) });
+      const j = JSON.parse(res.getContentText()); const t = j.candidates && j.candidates[0].content.parts.map(function (x) { return x.text; }).join('');
+      if (t) text = '📊 Tóm tắt tuần (AI viết từ số liệu, kiểm tra lại khi cần)\n' + t + '\n\nSố liệu: ' + so;
+    } catch (e) { console.error(e); }
+  }
+  guiNhom_('Trưởng bộ phận', text + '\n' + link_('baocao'));
 }

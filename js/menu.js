@@ -6,10 +6,11 @@
     _tuoi: { ten: 'Tưới nước', bt: '💧', nhom: 'Việc hằng ngày', ph: 'dinhky', fn: di('#/tuoi') },
     _vesinh: { ten: 'Vệ sinh theo cụm', bt: '🧹', nhom: 'Việc hằng ngày', ph: 'dinhky', fn: di('#/cum/DV10') },
     _nhoco: { ten: 'Nhổ cỏ dại', bt: '🌿', nhom: 'Việc hằng ngày', ph: 'dinhky', fn: di('#/cum/DV11') },
-    _dinhky: { ten: '8 việc định kỳ', bt: '🗂️', nhom: 'Việc hằng ngày', ph: 'dinhky', fn: di('#/dinhky') },
+    _dinhky: { ten: 'Việc định kỳ', bt: '🗂️', nhom: 'Việc hằng ngày', ph: 'dinhky', fn: di('#/viec') },
     _diemdanh: { ten: 'Điểm danh', bt: '🧑‍🤝‍🧑', nhom: 'Nhân sự', ph: 'diemdanh', fn: di('#/diemdanh') },
     _phieu: { ten: 'Phiếu giao việc', bt: '🎫', nhom: 'Cây xanh', ph: 'phieu', fn: di('#/phieu') },
   });
+  if (G._ICMAP) Object.keys(G._ICMAP).forEach((k) => { if (G.man[k]) G.man[k].ic = G.man[k].ic || G._ICMAP[k]; });
   // thứ tự nhóm hiển thị
   const thuTu = ['Việc hằng ngày', 'Cây xanh', 'Kế hoạch', 'Kiểm tra', 'Nhân sự', 'Báo cáo', 'Quản trị'];
   const goc = G.man; const moi = {};

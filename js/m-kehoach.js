@@ -86,15 +86,17 @@
   }
   function taoDA() {
     const gd = []; const vt = [];
-    hop('Tạo dự án', `<div id="f"></div><h3 style="font-size:14px">Giai đoạn</h3><div id="gd"></div><button class="nut rong" id="tg">＋ Thêm giai đoạn</button>
+    const stVT = { cum: '', mat: 'Cả 3', chon: new Set() };
+    hop('Tạo dự án', `<div id="f"></div><div class="o"><span class="nhan-o">Vị trí dự án (chọn nhiều cụm, nhiều vị trí) *</span><div id="vtda"></div></div><h3 style="font-size:14px">Giai đoạn</h3><div id="gd"></div><button class="nut rong" id="tg">＋ Thêm giai đoạn</button>
       <h3 style="font-size:14px;margin-top:14px">Vật tư kế hoạch</h3><div id="vt"></div><button class="nut rong" id="tv">＋ Thêm vật tư</button>
       <button class="nut chinh rong" id="l" style="margin-top:14px">Lưu dự án</button>`, (o, dong) => {
       const lay = G.form(o.querySelector('#f'), [{ k: 'ten', nhan: 'Tên dự án', loai: 'chu', bb: true }, { k: 'loai', nhan: 'Loại', loai: 'chips', ds: ['Cải tạo cảnh quan', 'Trồng mới', 'Mùa mưa bão', 'Vườn ươm', 'Khác'], bb: true },
-        { k: 'vt', nhan: 'Vị trí', loai: 'vitri', bb: true }, { k: 'bd', nhan: 'Bắt đầu', loai: 'ngay', bb: true }, { k: 'kt', nhan: 'Kết thúc', loai: 'ngay', bb: true }, { k: 'gc', nhan: 'Ghi chú', loai: 'mota' }]);
-      const veGD = () => { o.querySelector('#gd').innerHTML = gd.map((g, i) => `<div class="the" style="padding:10px;margin-bottom:6px"><b>${i + 1}. ${esc(g.nd)}</b><div class="mo">${esc(g.kl)} ${esc(g.dvt)} · ${G.ngayVN(g.bd)} → ${G.ngayVN(g.ht)}</div></div>`).join(''); };
+        { k: 'bd', nhan: 'Bắt đầu', loai: 'ngay', bb: true }, { k: 'kt', nhan: 'Kết thúc', loai: 'ngay', bb: true }, { k: 'gc', nhan: 'Ghi chú', loai: 'mota' }]);
+      G.luoiVT(o.querySelector('#vtda'), { ds: S.dm.vitri, st: stVT, trangThai: () => ({ cls: '' }), coMat: true });
+      const veGD = () => { o.querySelector('#gd').innerHTML = gd.map((g, i) => `<div class="the" style="padding:10px;margin-bottom:6px"><b>${i + 1}. ${esc(g.nd)}</b><div class="mo">${esc(g.kl)} ${esc(g.dvt)} · ${G.ngayVN(g.bd)} → ${G.ngayVN(g.ht)}${g.kv ? ' · ' + esc(G.tenVT(g.kv.ma, g.kv.ten)) : ''}</div></div>`).join(''); };
       const veVT = () => { o.querySelector('#vt').innerHTML = vt.map((v) => `<div class="mo">• GĐ ${esc(v.gd)}: ${esc(v.ten)} ${esc(v.kh)} ${esc(v.dvt)}</div>`).join(''); };
       o.querySelector('#tg').onclick = () => hop('Giai đoạn ' + (gd.length + 1), '<div id="f2"></div><button class="nut chinh rong" id="ok">Thêm</button>', (o2, d2) => {
-        const l2 = G.form(o2.querySelector('#f2'), [{ k: 'nd', nhan: 'Nội dung', loai: 'chu', bb: true, goiY: 'Ví dụ: Dọn mặt bằng, Trồng dứa vàng' }, { k: 'kl', nhan: 'Khối lượng', loai: 'so', bb: true }, { k: 'dvt', nhan: 'ĐVT', loai: 'chips', ds: S.dm.dvt, bb: true }, { k: 'bd', nhan: 'Bắt đầu', loai: 'ngay', bb: true }, { k: 'ht', nhan: 'Hoàn thành', loai: 'ngay', bb: true }]);
+        const l2 = G.form(o2.querySelector('#f2'), [{ k: 'nd', nhan: 'Nội dung', loai: 'chu', bb: true, goiY: 'Ví dụ: Dọn mặt bằng, Trồng dứa vàng' }, { k: 'kl', nhan: 'Khối lượng', loai: 'so', bb: true }, { k: 'dvt', nhan: 'ĐVT', loai: 'chips', ds: S.dm.dvt, bb: true }, { k: 'bd', nhan: 'Bắt đầu', loai: 'ngay', bb: true }, { k: 'ht', nhan: 'Hoàn thành', loai: 'ngay', bb: true }, { k: 'kv', nhan: 'Khu vực của giai đoạn (không bắt buộc)', loai: 'vitri', opt: { caNhom: true } }]);
         o2.querySelector('#ok').onclick = () => chay(async () => { const v = l2(); if (v.ht < v.bd) throw new Error('Ngày hoàn thành trước ngày bắt đầu'); gd.push(v); d2(); veGD(); });
       });
       o.querySelector('#tv').onclick = () => hop('Vật tư', '<div id="f2"></div><button class="nut chinh rong" id="ok">Thêm</button>', (o2, d2) => {
@@ -102,9 +104,9 @@
         o2.querySelector('#ok').onclick = () => chay(async () => { vt.push(l2()); d2(); veVT(); });
       });
       o.querySelector('#l').onclick = (e) => chay(async () => {
-        const v = lay(); if (!gd.length) throw new Error('Thêm ít nhất 1 giai đoạn');
-        const a = await API.goi('ghi', { bang: 'DuAn', dong: { 'Mã DA': '', 'Tên': v.ten, 'Loại': v.loai, 'Mã vị trí': v.vt.ma || v.vt.ten, 'Bắt đầu': v.bd, 'Kết thúc': v.kt, 'Trạng thái': 'Đang làm', 'Ghi chú': v.gc } });
-        await API.goi('ghiNhieu', { bang: 'DuAnGiaiDoan', dong: gd.map((g, i) => ({ 'Mã DA': a['Mã DA'], 'STT': i + 1, 'Nội dung': g.nd, 'Khối lượng': g.kl, 'ĐVT': g.dvt, 'Bắt đầu': g.bd, 'Hoàn thành': g.ht })) });
+        const v = lay(); if (!stVT.chon.size) throw new Error('Chọn vị trí dự án'); if (!gd.length) throw new Error('Thêm ít nhất 1 giai đoạn');
+        const a = await API.goi('ghi', { bang: 'DuAn', dong: { 'Mã DA': '', 'Tên': v.ten, 'Loại': v.loai, 'Mã vị trí': [...stVT.chon].join(' | '), 'Bắt đầu': v.bd, 'Kết thúc': v.kt, 'Trạng thái': 'Đang làm', 'Ghi chú': v.gc } });
+        await API.goi('ghiNhieu', { bang: 'DuAnGiaiDoan', dong: gd.map((g, i) => ({ 'Mã DA': a['Mã DA'], 'STT': i + 1, 'Nội dung': g.nd, 'Khối lượng': g.kl, 'ĐVT': g.dvt, 'Bắt đầu': g.bd, 'Hoàn thành': g.ht, 'Mã vị trí': g.kv ? (g.kv.ma || (g.kv.caNhom ? g.kv.ten : g.kv.ten)) : '' })) });
         if (vt.length) await API.goi('ghiNhieu', { bang: 'DuAnVatTu', dong: vt.map((x) => ({ 'Mã DA': a['Mã DA'], 'STT giai đoạn': x.gd, 'Vật tư': x.ten, 'ĐVT': x.dvt, 'Kế hoạch': x.kh, 'Thực tế': '' })) });
         dong(); bao('Đã tạo dự án ' + a['Mã DA']); location.hash = '#/duan/' + a['Mã DA'];
       }, e.target);
@@ -119,7 +121,7 @@
     m.innerHTML = `<div class="the"><p class="mo" style="margin-top:0">${esc(a['Loại'])} · ${esc(G.tenVT(a['Mã vị trí']))} · ${G.ngayVN(a['Bắt đầu'])} → ${G.ngayVN(a['Kết thúc'])}</p>
       <div class="hang"><span class="gian">Thực tế <b>${Math.round(t.thucTe * 100)}%</b> · kế hoạch ${Math.round(t.keHoach * 100)}%</span>${t.cham ? '<span class="chip do">Chậm hơn 15%</span>' : '<span class="chip xanh">Đúng tiến độ</span>'}</div>
       <div class="thanh ${t.cham ? 'do' : ''}" style="margin-top:6px"><i style="width:${Math.round(t.thucTe * 100)}%"></i></div></div>
-      <h3 style="font-size:14px">Giai đoạn</h3><div class="cuon"><table class="bang"><tr><th>STT</th><th>Nội dung</th><th>KL</th><th>Đã làm</th><th>Bắt đầu</th><th>Xong</th><th>Ngày</th></tr>${t.gd.map((g) => `<tr><td>${esc(g['STT'])}</td><td>${esc(g['Nội dung'])}</td><td>${G.so(g['Khối lượng'])} ${esc(g['ĐVT'])}</td><td style="color:${g.k - g.p > 0.15 ? 'var(--do)' : 'inherit'}">${G.so(g.lam)} (${Math.round(g.p * 100)}%)</td><td>${G.ngayVN(g['Bắt đầu']).slice(0, 5)}</td><td>${G.ngayVN(g['Hoàn thành']).slice(0, 5)}</td><td>${g.soNgay}</td></tr>`).join('')}</table></div>
+      <h3 style="font-size:14px">Giai đoạn</h3><div class="cuon"><table class="bang"><tr><th>STT</th><th>Nội dung</th><th>Khu vực</th><th>KL</th><th>Đã làm</th><th>Bắt đầu</th><th>Xong</th><th>Ngày</th></tr>${t.gd.map((g) => `<tr><td>${esc(g['STT'])}</td><td>${esc(g['Nội dung'])}</td><td>${esc(g['Mã vị trí'] ? G.tenVT(g['Mã vị trí']) : '')}</td><td>${G.so(g['Khối lượng'])} ${esc(g['ĐVT'])}</td><td style="color:${g.k - g.p > 0.15 ? 'var(--do)' : 'inherit'}">${G.so(g.lam)} (${Math.round(g.p * 100)}%)</td><td>${G.ngayVN(g['Bắt đầu']).slice(0, 5)}</td><td>${G.ngayVN(g['Hoàn thành']).slice(0, 5)}</td><td>${g.soNgay}</td></tr>`).join('')}</table></div>
       ${vt.length ? `<h3 style="font-size:14px">Vật tư</h3><div class="cuon"><table class="bang"><tr><th>GĐ</th><th>Vật tư</th><th>Kế hoạch</th><th>Thực tế</th></tr>${vt.map((v) => { const tt = thucTeVT(v['Vật tư']); return `<tr><td>${esc(v['STT giai đoạn'])}</td><td>${esc(v['Vật tư'])}</td><td>${G.so(v['Kế hoạch'])} ${esc(v['ĐVT'])}${/bao/i.test(v['ĐVT']) ? ` = ${G.so(v['Kế hoạch'] * 25)} kg` : ''}</td><td>${G.so(tt)} ${esc(v['ĐVT'])}</td></tr>`; }).join('')}</table></div>` : ''}
       ${q('duan') >= 2 ? '<button class="nut chinh rong" id="cn" style="margin-bottom:12px">＋ Cập nhật tiến độ hôm nay</button>' : ''}
       ${q('duan') >= 3 && a['Trạng thái'] !== 'Hoàn thành' ? '<button class="nut rong" id="ht" style="margin-bottom:12px">Đánh dấu hoàn thành dự án</button>' : ''}
@@ -270,7 +272,7 @@
       hop('Kiểm tra ngẫu nhiên', `<p class="mo">Chấm 1–5 từng tiêu chí. Bỏ trống tiêu chí không áp dụng.</p>${vt.map((v, i) => `<div class="the" style="padding:10px"><b>${i + 1}. ${esc(v.ten)}</b> <span class="mo">${esc(v.kv)}</span>${S.dm.tieuChi.map((t, j) => `<div style="margin-top:8px"><div class="mo">${esc(t.ten)}</div><div class="sao" data-v="${i}" data-t="${j}">${[1, 2, 3, 4, 5].map((s) => `<button type="button" data-s="${s}">${s}</button>`).join('')}</div></div>`).join('')}<input type="text" placeholder="Ghi chú" data-gc="${i}" style="margin-top:8px"></div>`).join('')}<button class="nut chinh rong" id="l">Lưu điểm</button>`, (o, dong) => {
         const diem = {};
         o.querySelectorAll('.sao').forEach((s) => s.querySelectorAll('[data-s]').forEach((b) => { b.onclick = () => { diem[s.dataset.v + '|' + s.dataset.t] = b.dataset.s; s.querySelectorAll('button').forEach((x) => x.classList.toggle('dang', x === b)); }; }));
-        o.querySelector('#l').onclick = (e) => chay(async () => { const rows = Object.keys(diem).map((k) => { const [i, j] = k.split('|'); return { 'Ngày': '', 'Mã vị trí': vt[+i].ma, 'Tiêu chí': S.dm.tieuChi[+j].ten, 'Điểm (1–5)': diem[k], 'Ảnh': '', 'Ghi chú': o.querySelector(`[data-gc="${i}"]`).value, 'Người chấm': '' }; }); if (!rows.length) throw new Error('Chưa chấm điểm nào'); await API.goi('ghiNhieu', { bang: 'ChamDiem', dong: rows }); dong(); bao('Đã lưu ' + rows.length + ' điểm'); G.taiLai(); }, e.target);
+        o.querySelector('#l').onclick = (e) => chay(async () => { const rows = Object.keys(diem).map((k) => { const [i, j] = k.split('|'); return { 'Ngày': '', 'Mã vị trí': vt[+i].ma, 'Tiêu chí': S.dm.tieuChi[+j].ten, 'Điểm (1–5)': diem[k], 'Ảnh': '', 'Ghi chú': o.querySelector(`[data-gc="${i}"]`).value, 'Người chấm': '' }; }); if (!rows.length) throw new Error('Chưa chấm điểm nào'); await API.goi('ghiNhieu', { bang: 'ChamDiem', dong: rows }); dong(); if (G.phieuTuDiem) G.phieuTuDiem(rows); else { bao('Đã lưu ' + rows.length + ' điểm'); G.taiLai(); } }, e.target);
       }, true);
     };
   } };
