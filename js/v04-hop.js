@@ -61,7 +61,7 @@
     if (ma === 'kehoach') return manDangKy();
     const t = tuanTruoc(); const tn = tuanNay(); const maHop = 'HT' + tn.tu.replace(/-/g, '').slice(2);
     let ds = await G.doc('Hop', null, 200); let h = ds.find((x) => x['Mã họp'] === maHop);
-    if (!h && G.laAnhVu()) { await API.goi('ghi', { bang: 'Hop', dong: { 'Mã họp': maHop, 'Loại': 'Họp nhà thầu tuần', 'Tiêu đề': `Họp nhà thầu tuần ${soTuan(tn.tu)}`, 'Bắt đầu': tn.tu + ' 09:00', 'Địa điểm': 'Văn phòng cảnh quan', 'Người dự': 'Lê Vũ, Mai Hòa Pháp, Phan Văn Thìn, Phạm Nhật Trường', 'Trạng thái': 'Chuẩn bị', 'Người lập': '' } }); ds = await G.doc('Hop', null, 200); h = ds.find((x) => x['Mã họp'] === maHop); }
+    if (!h && G.laAnhVu()) { await API.goi('ghi', { imLang: true, bang: 'Hop', dong: { 'Mã họp': maHop, 'Loại': 'Họp nhà thầu tuần', 'Tiêu đề': `Họp nhà thầu tuần ${soTuan(tn.tu)}`, 'Bắt đầu': tn.tu + ' 09:00', 'Địa điểm': 'Văn phòng cảnh quan', 'Người dự': 'Lê Vũ, Mai Hòa Pháp, Phan Văn Thìn, Phạm Nhật Trường', 'Trạng thái': 'Chuẩn bị', 'Người lập': '' } }); ds = await G.doc('Hop', null, 200); h = ds.find((x) => x['Mã họp'] === maHop); }
     const m = G.khung('Họp nhà thầu thứ Hai', `Tuần ${soTuan(tn.tu)} · báo cáo ${G.ngayVN(t.tu).slice(0, 5)}–${G.ngayVN(t.den).slice(0, 5)} · kế hoạch ${G.ngayVN(tn.tu).slice(0, 5)}–${G.ngayVN(tn.den).slice(0, 5)}`);
     const sl = await soLieuTuan(t); const bc = sl.BaoCaoTuan;
     const xong = h && h['Trạng thái'] === 'Đã duyệt kết thúc';
@@ -170,7 +170,7 @@
     const khN = sl.KeHoachTuan.filter((x) => x['Tuần'] === tn.tu);
     s += `<h2>II. KẾ HOẠCH TUẦN TIẾP THEO · ${G.ngayVN(tn.tu)} – ${G.ngayVN(tn.den)}</h2>${tbl(['Đội', 'Việc', 'Cụm / vị trí', 'Trạng thái'], khN.map((x) => [esc(x['Đội/Người']), esc(x['Mã việc'] ? G.dvTen(x['Mã việc']) : x['Nội dung']), esc(x['Cụm'] || G.tenVT(x['Mã vị trí'])), esc(x['Trạng thái']) + (/Hoãn/.test(x['Nguồn'] || '') ? ' <span class="chip o">bù</span>' : '')]))}`;
     const tt = sl.cong.reduce((a, x) => a + x.tt, 0), hd = sl.cong.reduce((a, x) => a + x.hd, 0);
-    s += `<h2>III. NHÂN SỰ · Định biên 31 · CN, lễ 20</h2>${tbl([''].concat(sl.cong.map((x) => G.thu(x.ngay).replace('Thứ ', 'T').replace('Chủ nhật', 'CN'))).concat(['Tổng']), [['Thực tế'].concat(sl.cong.map((x) => G.so(x.tt))).concat([G.so(tt)]), ['Hợp đồng'].concat(sl.cong.map((x) => x.hd)).concat([hd]), ['Chênh lệch'].concat(sl.cong.map((x) => G.so(x.tt - x.hd))).concat([G.so(tt - hd)])])}`;
+    s += `<h2>III. NHÂN SỰ · Định biên 31 · CN, lễ 20</h2>${tbl([''].concat(sl.cong.map((x) => G.thuNgan(x.ngay))).concat(['Tổng']), [['Thực tế'].concat(sl.cong.map((x) => G.so(x.tt))).concat([G.so(tt)]), ['Hợp đồng'].concat(sl.cong.map((x) => x.hd)).concat([hd]), ['Chênh lệch'].concat(sl.cong.map((x) => G.so(x.tt - x.hd))).concat([G.so(tt - hd)])])}`;
     const tong = {}; hoan.forEach((x) => { tong[x['Lý do']] = (tong[x['Lý do']] || 0) + 1; });
     s += `<h2>IV. NỘI DUNG CẦN LƯU Ý VÀ ĐIỀU CHỈNH</h2>${tbl(['#', 'Nội dung', 'Xử lý'], (ly.daXL || []).map((x, i) => [i + 1, esc((x.nguon ? x.nguon + ': ' : '') + x.nd), esc(x.xl) + (x.phieu ? ' · ' + esc(x.phieu) : '')]))}${hoan.length ? `<p><b>Tổng hợp hoãn theo lý do:</b> ${Object.keys(tong).map((k) => `${esc(k)} ${tong[k]}`).join(' · ')}</p>` : ''}`;
     s += `<h2>V. KHÓ KHĂN</h2>${sl.KhoKhan.length ? tbl(['Loại', 'Mô tả', 'Người báo'], sl.KhoKhan.map((x) => [esc(x['Loại']), esc(x['Mô tả']), esc(x['Người báo'])])) : '<p>Không gặp phải.</p>'}`;

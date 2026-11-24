@@ -103,8 +103,8 @@
     // danh sách việc: tổ trưởng = việc giao trong ngày; nội bộ = việc nội bộ theo lịch; Pháp = xem
     let viec = [];
     if (laTT) viec = gv.map((g) => ({ ten: g['Nội dung'], phu: g['Người'], tt: g['Trạng thái'] === 'Xong' ? 'xong' : g['Trạng thái'] === 'Đang làm' ? 'dang' : 'chua', ma: g['Mã'] }));
-    if (S.u.nhom === 'Nhân viên nội bộ') viec = [['nb/bien', 'Vệ sinh bãi biển'], ['nb/ktbien', 'Kiểm tra bãi biển'], ['nb/vuonrau', 'Chăm sóc Vị Garden'], ['nb/noithat', 'Cây nội thất'], ['nb/vuonuomnt', 'Vườn ươm nội thất'], ['nb/compost', 'Phân compost']]
-      .concat(G.lichNoiBo(new Date()).map((x) => ['nb/hangrao', x[1]])).map(([l, t]) => ({ ten: t, phu: tt[l] ? `✓ ${tt[l].gio} ${tt[l].ai}` : '', tt: tt[l] ? 'xong' : 'chua', link: l }));
+    const laNB = S.u.nhom === 'Nhân viên nội bộ'; let kca = null;
+    if (laNB) { viec = await G.viecNoiBo(hn(), tt); kca = (await G.doc('NgayLamViec', { 'Ngày': hn(), 'Loại': 'Kết thúc ca' })).find((x) => x['Người'] === S.u.ten); }
     const n = { chua: viec.filter((x) => x.tt === 'chua').length, dang: viec.filter((x) => x.tt === 'dang').length, xong: viec.filter((x) => x.tt === 'xong').length };
     const p = viec.length ? Math.round(n.xong / viec.length * 100) : 0;
     const nn = (d.NhacNho || []).filter((x) => !/Đã xong|Bỏ/.test(x['Trạng thái']) && (x['Giao đội'] === doi || x['Giao đội'] === S.u.ten || (S.u.nhom === 'Nhân viên nội bộ' && x['Giao đội'] === 'Nội bộ') || S.u.nhom === 'Quản lý nhà thầu'));
@@ -115,17 +115,19 @@
       <div class="hang" style="font-size:14px"><span class="gian">${viec.length ? `${n.xong}/${viec.length} việc xong` : S.u.nhom === 'Quản lý nhà thầu' ? 'Anh Pháp xem tình hình, không cần xác nhận' : 'Chưa có việc'}</span><b style="color:var(--chanh)">${p}%</b></div><div class="thanh" style="margin-top:8px"><i style="width:${p}%"></i></div></div>`;
     if (laTT) html += `<div class="luoi2" style="margin-bottom:12px"><a class="the ${bd ? 'the-xanh' : gioNay() > '07:30' ? 'the-do' : 'the-mo'}" href="#/batdaungay" style="color:inherit;margin:0"><b>🌅 Bắt đầu ngày</b><div class="mo">${bd ? 'Đã gửi ' + String(bd['Giờ']).slice(11, 16) : 'Hạn 07:30'}</div></a>
       <a class="the ${ch ? 'the-xanh' : gioNay() > '17:30' ? 'the-do' : ''}" href="#/chotngay" style="color:inherit;margin:0"><b>🌇 Chốt ngày</b><div class="mo">${ch ? esc(ch['Trạng thái']) : 'Hạn 17:30'}</div></a></div>`;
+    if (laNB) html += `<a class="the ${kca ? 'the-xanh' : gioNay() > '17:30' ? 'the-do' : 'the-mo'}" href="#/ketthucca" style="display:block;color:inherit"><b>🌇 Kết thúc ca</b><div class="mo">${kca ? 'Đã kết thúc lúc ' + esc(String(kca['Giờ']).slice(11, 16)) + (kca['Trạng thái'] === 'Đã xem' ? ' · anh Vũ đã xem' : '') : 'Ca kết thúc 17:30 · bấm để xem đã làm gì, còn sót gì'}</div></a>`;
     if (S.u.nhom === 'Quản lý nhà thầu') html += `<div class="the"><h2>Tự điểm danh</h2><div class="nhom-nut"><button class="nut chinh" data-buoi="Sáng">Có mặt sáng</button><button class="nut chinh" data-buoi="Chiều">Có mặt chiều</button></div></div><a class="the-viec" href="#/homnay"><span class="gian"><b>Xem tình hình toàn bộ phận hôm nay</b></span>›</a>`;
     html += nn.map((x) => `<a class="the the-mo" href="#/nhacnho" style="display:block;color:inherit">📣 <b>${esc(x['Nội dung'])}</b><div class="mo">${esc(x['Nguồn'])} · hạn ${G.ngayVN(x['Hạn']).slice(0, 5)}</div></a>`).join('');
     html += bt.map((x) => `<a class="the the-do" href="#/batthuong/${encodeURIComponent(G.maBT(x))}" style="display:block;color:inherit">🥀 <b>${esc(x['Tên cây'])} · ${esc(x['Tình trạng'])}</b><div class="mo">Việc trao đổi với anh Vũ đang mở</div></a>`).join('');
     html += su.map((x) => `<a class="the the-mo" href="#/nb/noithat" style="display:block;color:inherit">🪴 <b>${esc(x['Mô tả'])}</b><div class="mo">Phiếu setup · hạn ${esc(G.gioVN(x['Hạn']))}</div></a>`).join('');
     if (viec.length) {
       html += `<div class="loc-tt">${[['chua', 'Chưa làm'], ['dang', 'Đang làm'], ['xong', 'Xong']].map(([k, t]) => `<button data-loc="${k}" class="${st === k ? 'dang' : ''}">${t} (${n[k]})</button>`).join('')}</div>`;
-      html += viec.filter((x) => x.tt === st).map((x) => (x.link ? `<a class="the-viec" href="#/${x.link}"><span class="bt">${x.tt === 'xong' ? '✅' : '⬜'}</span><span class="gian"><b>${esc(x.ten)}</b><span class="mo">${esc(x.phu)}</span></span>›</a>`
+      html += viec.filter((x) => x.tt === st).map((x) => (x.link ? `<div class="the-viec"><a href="#/${x.link}" style="display:flex;gap:10px;align-items:center;flex:1;color:inherit;text-decoration:none"><span class="bt">${x.tt === 'xong' ? '✅' : x.tt === 'dang' ? '◐' : '⬜'}</span><span class="gian"><b>${esc(x.ten)}</b><span class="mo">${esc(x.phu)}</span></span></a>${laNB && x.tt === 'chua' ? `<button class="nut nho" data-bd="${esc(x.link)}" data-ten="${esc(x.ten)}">▶ Bắt đầu</button>` : '›'}</div>`
         : `<div class="the-viec"><button class="tick-gv" data-gv="${esc(x.ma)}" style="background:none;border:0;font-size:24px">${x.tt === 'xong' ? '✅' : x.tt === 'dang' ? '◐' : '⬜'}</button><span class="gian"><b>${esc(x.ten)}</b><span class="mo">${esc(x.phu)}</span></span><button class="nut nho" data-ps="1">＋ Phát sinh</button></div>`)).join('') || G.trong('Không có việc ở mục này.');
     }
     m.innerHTML = html;
     m.querySelectorAll('[data-loc]').forEach((b) => { b.onclick = () => { G.manHomNayMoi.loc = b.dataset.loc; G.taiLai(); }; });
+    m.querySelectorAll('[data-bd]').forEach((b) => { b.onclick = () => chay(async () => { await G.batDauViecNB(b.dataset.bd, b.dataset.ten); G.taiLai(); }, b); });
     m.querySelectorAll('[data-gv]').forEach((b) => { b.onclick = () => chay(async () => { const g = gv.find((x) => x['Mã'] === b.dataset.gv); const moi = g['Trạng thái'] === 'Xong' ? 'Chưa làm' : g['Trạng thái'] === 'Đang làm' ? 'Xong' : 'Đang làm';
       await API.goi('sua', { bang: 'GiaoViecNgay', khoa: { 'Mã': g['Mã'] }, doi: { 'Trạng thái': moi, 'Giờ cập nhật': API.bayGio() } }); G.taiLai(); }); });
     m.querySelectorAll('[data-ps]').forEach((b) => { b.onclick = () => { location.hash = '#/phatsinh'; }; });

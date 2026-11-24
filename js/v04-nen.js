@@ -28,7 +28,7 @@
   const QV = {
     DV01: [W, W, X, K], DV02: [W, W, X, K], DV03: [W, W, X, K], DV04: [W, W, X, K], DV05: [W, W, X, K], DV06: [W, W, X, K], DV07: [W, W, X, K], DV08: [W, W, X, K], DV37: [W, W, X, K], DV38: [W, W, X, K], DV39: [W, W, X, K],
     DV09: [W, W, X, K], DV10: [W, W, X, K], DV11: [W, W, X, K], DV12: [X, W, X, K], DV13: [W, W, W, K], DV14: [W, W, W, K], DV15: [W, W, X, K], DV16: [W, W, X, K], DV17: [X, W, X, K],
-    DV18: [K, K, K, W], DV19: [K, K, K, W], DV20: [K, K, K, W], DV31: [K, K, K, W], DV21: [K, K, K, W], DV22: [K, K, K, W], DV24: [K, K, K, W], DV25: [K, K, K, W], DV26: [K, K, K, W], DV30: [K, K, K, W],
+    DV18: [K, K, K, W], DV23: [K, K, K, W], DV19: [K, K, K, W], DV20: [K, K, K, W], DV31: [K, K, K, W], DV21: [K, K, K, W], DV22: [K, K, K, W], DV24: [K, K, K, W], DV25: [K, K, K, W], DV26: [K, K, K, W], DV30: [K, K, K, W],
     DV27: [K, K, K, K], DV28: [X, X, X, K], DV29: [K, K, X, K], DV33: [W, W, X, W], DV36: [K, K, K, K], DV32: [W, W, X, K], DV34: [X, X, X, X], DV35: [W, W, X, K],
     CN01: [W, W, W, K], CN02: [X, X, W, K], CN03: [K, K, X, K], CN04: [W, W, X, K], CN05: [W, W, W, W], CN06: [W, W, X, W], CN07: [W, W, X, W], CN08: [W, W, X, W], CN09: [W, W, X, W],
     CN10: [K, K, K, W], CN11: [W, W, X, W], CN12: [W, W, X, W],
@@ -96,7 +96,7 @@
   const suaDM = () => {
     const d = S.dm; if (!d || d._v04) return; d._v04 = true;
     d.dauviec.forEach((v) => { v.ten = G.doiTenVi(v.ten); });
-    d.dauviec = d.dauviec.filter((v) => v.ma !== 'DV23');
+    d.dauviec.forEach((v) => { if (v.ma === 'DV23') v.ten = 'Thu gom rau củ làm compost'; });
     if (!d.dauviec.some((v) => v.ma === 'DV39')) d.dauviec.push({ ma: 'DV39', ten: 'Túi thuốc họ dừa', nhom: 'Nhà thầu', lich: 'Có lịch', tanSuat: '4 đợt/năm', apDung: 'Danh sách dừa, cọ, kè bạc', anh: 'Bắt buộc' });
     if (!d.dauviec.some((v) => v.ma === 'DV40')) d.dauviec.push({ ma: 'DV40', ten: 'Cắt tỉa Hoa Giấy đường N2, N4', nhom: 'Nhà thầu', lich: 'Có lịch', tanSuat: '2 lần/năm', apDung: 'Đường N2, N4', anh: 'Bắt buộc' });
     d.diemkhac = d.diemkhac.filter((x) => x.loai !== 'Nguồn rác hữu cơ');
@@ -125,7 +125,7 @@
   /* ---------- khung: thanh bên (máy tính) + thanh dưới nổi có ＋ (điện thoại) ---------- */
   const MENU = () => [
     { k: '', ten: G.laAnhVu() ? 'Tổng quan' : 'Hôm nay', ic: 'hom_nay' },
-    G.laAnhVu() ? { k: 'homnay', ten: 'Hôm nay toàn bộ phận', ic: 'diem_danh' } : null,
+    G.laAnhVu() ? { k: 'homnay', ten: 'Hôm nay toàn bộ phận', ic: 'toan_bp' } : null,
     q('diemdanh') && S.u.nhom !== 'Nhân viên nội bộ' ? { k: 'diemdanh', ten: 'Điểm danh', ic: 'diem_danh' } : null,
     (q('dinhky') || q('noibo')) ? { k: 'viec', ten: 'Việc', ic: 'viec' } : null,
     q('phieu') ? { k: 'phieu', ten: 'Phiếu', ic: 'phieu' } : null,
@@ -147,7 +147,7 @@
       q('phieu') ? { k: 'phieu', ten: 'Phiếu', ic: 'phieu' } : { k: 'baocao', ten: 'Báo cáo', ic: 'bao_cao' }, { k: 'them', ten: 'Thêm', ic: 'lap_lai' }];
     const ten = S.u.ten.split(' ').pop();
     $app.innerHTML = `
-      <aside class="ben"><a class="logo" href="#/"><i>✓</i>GreenLog</a>
+      <aside class="ben"><a class="logo" href="#/"><i>${G.LOGO}</i>GreenLog</a>
         ${MENU().map((m) => `<a class="m ${tuyen === m.k ? 'dang' : ''}" href="#/${m.k}">${G.ic(m.ic, 26)}<span>${esc(m.ten)}</span>${m.k === 'phieu' ? '<span class="so-do an" id="soPhieu"></span>' : ''}</a>`).join('')}
         <div class="ky">Kỳ ${esc(k.ten)} · ${G.ngayVN(k.tu).slice(0, 5)} → ${G.ngayVN(k.den).slice(0, 5)}<b>Ngày ${Math.max(1, ngayThu)}/${tong}</b><div class="thanh" style="margin-top:8px;background:rgba(255,255,255,.15)"><i style="width:${Math.min(100, Math.round(ngayThu / tong * 100))}%;background:var(--chanh)"></i></div></div></aside>
       ${API.thu() ? '<div class="bang-thu">Chế độ chạy thử · dữ liệu mẫu, chỉ lưu trên máy này</div>' : ''}
@@ -204,9 +204,12 @@
       q('phieu') >= 2 ? ['phieu', '🎫 Phiếu giao việc', () => (G.taoPhieu ? G.taoPhieu() : (location.hash = '#/phieu'))] : null,
       G.qv('CN06') >= 2 ? ['phat_sinh', '⚡ Việc phát sinh', () => { location.hash = '#/phatsinh'; }] : null,
       ['bao', '⚠ Báo khó khăn', () => G.baoKhoKhan({ nguon: 'Tạo nhanh' })],
-      G.laAnhVu() ? ['hop', '📣 Nhắc nhở (từ Zalo bộ phận khác)', () => G.moNhacNho()] : null,
-      G.laAnhVu() ? ['hop', '📌 Ghi chú đưa vào họp', () => G.ghimHop({ loai: 'Ghi chú', tieuDe: '' })] : null,
-      q('phunbon') >= 2 && G.qv('CN07') >= 2 ? ['phun_bon', '🧪 Nhật ký phun, bón', () => { location.hash = '#/phunbon'; }] : null,
+      G.laAnhVu() ? ['nhac_nho', '📣 Nhắc nhở (từ Zalo bộ phận khác)', () => G.moNhacNho()] : null,
+      G.laAnhVu() ? ['hop', '👥 Họp đột xuất', () => { location.hash = '#/hop/dxmoi'; }] : null,
+      G.laAnhVu() ? ['lich', '📌 Ghi chú đưa vào họp', () => G.ghimHop({ loai: 'Ghi chú', tieuDe: '' })] : null,
+      q('phunbon') >= 2 && G.qv('CN07') >= 2 ? ['phun_bui', '🧪 Phun thuốc', () => { location.hash = '#/phunbon/thuoc'; }] : null,
+      q('phunbon') >= 2 && G.qv('CN07') >= 2 ? ['phun_bon', '🍃 Phun phân bón lá', () => { location.hash = '#/phunbon/la'; }] : null,
+      q('phunbon') >= 2 && G.qv('CN07') >= 2 ? ['bon_phan_bui', '🌱 Bón gốc', () => { location.hash = '#/phunbon/goc'; }] : null,
       q('phieu') >= 2 && G.qv('CN08') >= 2 ? ['dich_hai', '🐛 Hồ sơ dịch hại', () => { location.hash = '#/dichhai'; }] : null,
       q('phieu') >= 2 && G.qv('CN09') >= 2 ? ['trong_cay', '🌳 Sổ trồng cây', () => { location.hash = '#/sotrongcay'; }] : null,
       ['dao_tao', '🎓 Đăng ký lớp đào tạo', () => { location.hash = '#/daotao/moi'; }],
@@ -295,6 +298,8 @@
   } };
 
   /* ---------- dữ liệu mẫu cho chế độ chạy thử (để xem Tổng quan có số) ---------- */
+  G.ANH_MAU = 'img/hoso/cover_aerial.jpg';
+  G.LOGO = '<svg viewBox="0 0 48 48" width="28" height="28" aria-hidden="true"><g fill="none" stroke="#123524" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M24 40V24"/><path d="M24 29c-7 0-11-4-11-11 7 0 11 4 11 11z"/><path d="M24 24c0-9 5-14 14-14 0 9-5 14-14 14z" fill="#123524"/><path d="M27.5 18.5l2.5 2.5 4.5-5.5" stroke="#C9E265" stroke-width="2.4"/><ellipse cx="24" cy="41.5" rx="9" ry="2.5"/></g></svg>';
   G.napMau = function () {
     const tb = (k) => LS.get('tb_' + k, []); const luu = (k, v) => LS.set('tb_' + k, v);
     if (LS.get('mau04')) return; LS.set('mau04', 1);
@@ -306,7 +311,7 @@
       c1 += r(7, 14); c2 += r(24, 40);
       dh.push({ 'Ngày': d, 'Mã đồng hồ': 'DH01', 'Chỉ số': String(c1), 'Người đọc': 'Phạm Nhật Trường' }, { 'Ngày': d, 'Mã đồng hồ': 'DH02', 'Chỉ số': String(c2), 'Người đọc': 'Phạm Nhật Trường' });
       if (i % 3 === 0) co.push({ 'Ngày': d, 'Phân compost tuần hoàn (kg)': String(r(30, 70)), 'Ghi chú': 'Bón vườn rau, chậu nội thất', 'Người ghi': 'Nguyễn Tấn Hiệp' });
-      th.push({ 'Ngày': d, 'Vườn': vr[i % 7], 'Tên cây': ['Rau muống', 'Cải xanh', 'Húng quế', 'Nấm bào ngư', 'Ớt', 'Rau thơm'][i % 6], 'kg': String(r(3, 12)), 'Bếp nhận': 'Bếp nóng', 'Người ghi': 'Lê Hữu Nghị' });
+      th.push({ 'Ngày': d, 'Vườn': vr[i % 7], 'Tên cây': ['Rau muống', 'Cải xanh', 'Húng quế', 'Nấm bào ngư', 'Ớt', 'Rau thơm'][i % 6], 'kg': String(r(3, 12)), 'Bộ phận nhận': ['Bếp', 'Bếp', 'Bar', 'Nhà hàng'][i % 4], 'Ghi chú': i % 4 < 2 ? ['Bếp nóng', 'Bếp lạnh'][i % 2] : '', 'Người ghi': 'Lê Hữu Nghị' });
       vs.push({ 'Ngày': d, 'Buổi': 'Sáng', 'kg rác': String(r(15, 60)), 'Người ghi': 'Nguyễn Tấn Hiệp' }, { 'Ngày': d, 'Buổi': 'Chiều', 'kg rác': String(r(10, 40)), 'Người ghi': 'Lê Hữu Nghị' });
       if (i % 7 === 2) vu.push({ 'Ngày': d, 'Vườn ươm': 'Vườn ươm sân vườn', 'Loại ghi': 'Ươm vào', 'Việc': 'Ươm vào', 'Tên cây': ['Dứa vàng', 'Huỳnh Anh', 'Hồng Lộc', 'Chuỗi Ngọc'][i % 4], 'Số lượng': String(r(60, 200)), 'ĐVT': 'Bầu', 'Chất cải tạo đất hữu cơ (bao)': String(r(2, 6)), 'Người ghi': 'Trương Thị Men' });
       if (i % 7 === 5) vu.push({ 'Ngày': d, 'Vườn ươm': 'Vườn ươm sân vườn', 'Loại ghi': 'Xuất vườn', 'Việc': 'Xuất vườn', 'Tên cây': ['Dứa vàng', 'Huỳnh Anh'][i % 2], 'Số lượng': String(r(30, 90)), 'ĐVT': 'Bầu', 'Xuất đi': 'Villa 32 · mặt sau', 'Người ghi': 'Trương Thị Men' });
@@ -329,9 +334,9 @@
     luu('TickDinhKy', tk);
     // điểm danh sáng hôm nay: 29/31
     const cn = (G.S.dm ? G.S.dm.congnhan : []).filter((x) => x.tt !== 'Đã nghỉ'); const dd = tb('DiemDanh'); const vang = ['CN19', 'CN33'];
-    cn.forEach((x) => dd.push({ 'Ngày': hn(), 'Buổi': 'Sáng', 'Mã CN': x.ma, 'Họ tên': x.ten, 'Đội': x.doi, 'Trạng thái (Có mặt/Vắng/Về sớm)': vang.includes(x.ma) ? 'Vắng' : 'Có mặt', 'Lý do': vang.includes(x.ma) ? 'Nghỉ phép' : '', 'Công': vang.includes(x.ma) ? '0' : '0.5', 'Người ghi': x.doi === 'Đội cơ động' ? 'Phan Văn Thìn' : 'Phạm Nhật Trường', 'Giờ ghi': hn() + ' 06:40:00', 'Trạng thái duyệt': 'Chờ duyệt' }));
+    cn.forEach((x) => dd.push({ 'Ngày': hn(), 'Buổi': 'Sáng', 'Mã CN': x.ma, 'Họ tên': x.ten, 'Đội': x.doi, 'Trạng thái (Có mặt/Vắng/Về sớm)': vang.includes(x.ma) ? 'Vắng' : 'Có mặt', 'Lý do': vang.includes(x.ma) ? 'Nghỉ phép' : '', 'Công': vang.includes(x.ma) ? '0' : '0.5', 'Người ghi': x.doi === 'Đội cơ động' ? 'Phan Văn Thìn' : x.doi === 'Quản lý nhà thầu' || /Quản lý/.test(x.cd || '') ? x.ten : 'Phạm Nhật Trường', 'Giờ ghi': hn() + ' 06:40:00', 'Trạng thái duyệt': 'Chờ duyệt' }));
     luu('DiemDanh', dd);
-    luu('DuyetCong', tb('DuyetCong').concat([{ 'Ngày': hn(), 'Buổi': 'Sáng', 'Đội': 'Đội cơ động', 'Người gửi': 'Phan Văn Thìn', 'Giờ gửi': hn() + ' 06:40:00', 'Khóa': 'Không' }, { 'Ngày': hn(), 'Buổi': 'Sáng', 'Đội': 'Đội khu vực', 'Người gửi': 'Phạm Nhật Trường', 'Giờ gửi': hn() + ' 06:45:00', 'Khóa': 'Không' }]));
+    luu('DuyetCong', tb('DuyetCong').concat([{ 'Ngày': hn(), 'Buổi': 'Sáng', 'Đội': 'Đội cơ động', 'Người gửi': 'Phan Văn Thìn', 'Giờ gửi': hn() + ' 06:40:00', 'Khóa': 'Không', 'Ảnh tập thể': G.ANH_MAU }, { 'Ngày': hn(), 'Buổi': 'Sáng', 'Đội': 'Đội khu vực', 'Người gửi': 'Phạm Nhật Trường', 'Giờ gửi': hn() + ' 06:45:00', 'Khóa': 'Không' }, { 'Ngày': hn(), 'Buổi': 'Sáng', 'Đội': 'Quản lý nhà thầu', 'Người gửi': 'Mai Hòa Pháp', 'Giờ gửi': hn() + ' 07:05:00', 'Khóa': 'Không' }]));
     luu('KhuPhuTrach', [['Hotel', 'CN04'], ['Hotel', 'CN07'], ['Aura', 'CN09'], ['Residences', 'CN10'], ['Residences', 'CN11'], ['Villa 1 - 14', 'CN13'], ['Villa 1 - 14', 'CN14'], ['Villa 15 - 24', 'CN15'], ['Villa 15 - 24', 'CN18'], ['Villa 25 - 48', 'CN19'], ['Villa 25 - 48', 'CN20'], ['Villa 49 - 80', 'CN21'], ['Villa 49 - 80', 'CN23'], ['Villa 49 - 80', 'CN25'], ['Villa 49 - 80', 'CN26'], ['Islander', 'CN27'], ['Public', 'CN28']].map(([c, m]) => ({ 'Cụm': c, 'Mã CN': m, 'Người ghi': 'Lê Vũ' })));
     // phiếu, dịch hại, phát sinh, sự kiện, dự án, cây nội thất bất thường, nhắc nhở
     luu('Phieu', tb('Phieu').concat([

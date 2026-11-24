@@ -11,9 +11,9 @@
   const doiDV = (r) => { const dv = String(r['ĐVT'] || '').toLowerCase(); const n = +r['Tổng lượng'] || 0; if (dv === 'ml') return ['l', n / 1000]; if (dv === 'g') return ['kg', n / 1000]; if (dv === 'l' || dv === 'lít') return ['l', n]; if (dv === 'kg') return ['kg', n]; if (dv === 'bao') return ['kg', n * 25]; return [dv || 'kg', n]; };
   const huuCo = (ten) => /compost|hữu cơ|trùn|vi sinh/i.test(ten || '');
   G.BV = [
-    { k: 'compost', ten: 'Hữu cơ tuần hoàn', ic: 'compost', dv: 'kg', bang: 'PhanCompost', ngay: 'Ngày', gt: (r) => +r['Phân compost tuần hoàn (kg)'] || 0, cot: ['Ngày', 'Phân compost tuần hoàn (kg)', 'Ghi chú', 'Người ghi'] },
+    { k: 'compost', ten: 'Hữu cơ tuần hoàn', mo: 'kg rau củ từ bếp và bar làm compost', ic: 'compost', dv: 'kg', bang: 'RacHuuCo', ngay: 'Ngày', gt: (r) => +r['kg rác thu gom'] || 0, cot: ['Ngày', 'kg rác thu gom', 'Ghi chú', 'Người ghi'] },
     { k: 'muncua', ten: 'Chất cải tạo đất hữu cơ', ic: 'trong_cay', dv: 'bao', ghep: true },
-    { k: 'vigarden', ten: 'Thu hoạch Vị Garden', ic: 'thu_hoach', dv: 'kg', bang: 'ThuHoach', ngay: 'Ngày', gt: (r) => +r.kg || 0, cot: ['Ngày', 'Vườn', 'Tên cây', 'kg', 'Bếp nhận', 'Người ghi'] },
+    { k: 'vigarden', ten: 'Thu hoạch Vị Garden', ic: 'thu_hoach', dv: 'kg', bang: 'ThuHoach', ngay: 'Ngày', gt: (r) => +r.kg || 0, cot: ['Ngày', 'Vườn', 'Tên cây', 'kg', 'Bộ phận nhận', 'Ghi chú', 'Người ghi'] },
     { k: 'racbien', ten: 'Rác bãi biển', ic: 'bai_bien', dv: 'kg', bang: 'VeSinhBien', ngay: 'Ngày', gt: (r) => +r['kg rác'] || 0, cot: ['Ngày', 'Buổi', 'kg rác', 'Người ghi'] },
     { k: 'nuoc', ten: 'Nước tưới', ic: 'tuoi', dv: 'm³', ghep: true },
     { k: 'vuonuom', ten: 'Vườn ươm sân vườn', ic: 'vuon_uom', dv: 'cây', ghep: true },
@@ -24,7 +24,7 @@
   /* đọc mọi bảng cần cho [tu, den] (đồng hồ nước lấy thêm 1 ngày trước để tính chênh lệch) */
   G.taiBV = async (tu, den) => {
     const loc = { 'Ngày': { tu, den } };
-    const d = await G.docNhieu([{ bang: 'PhanCompost', loc }, { bang: 'ThuHoach', loc }, { bang: 'VeSinhBien', loc }, { bang: 'VanChuyen', loc }, { bang: 'VuonUom', loc },
+    const d = await G.docNhieu([{ bang: 'RacHuuCo', loc }, { bang: 'PhanCompost', loc }, { bang: 'ThuHoach', loc }, { bang: 'VeSinhBien', loc }, { bang: 'VanChuyen', loc }, { bang: 'VuonUom', loc },
       { bang: 'DongHoNuoc', loc: { 'Ngày': { tu: G.congNgay(tu, -3), den } } }, { bang: 'SoTrongCay', loc: { 'Thời gian': { tu, den: den + ' 99' } } }, { bang: 'DuAnTienDo', loc },
       { bang: 'NhatKyPhunBon', loc: { 'Ngày giờ': { tu, den: den + ' 99' } } }, { bang: 'NhatKyPhunBonChiTiet', gioiHan: 5000 }, { bang: 'PhunLai', loc: { 'Ngày': { tu, den } } }]);
     Object.keys(d).forEach((k) => { d[k] = d[k] || []; });
@@ -54,7 +54,9 @@
     // thuốc BVTV, phân vô cơ: tách lít / kg
     const nk = {}; (d.NhatKyPhunBon || []).forEach((r) => { if (trongKhoang(String(r['Ngày giờ']).slice(0, 10), tu, den)) nk[r['Mã NK']] = r; });
     const ct = (d.NhatKyPhunBonChiTiet || []).filter((r) => nk[r['Mã NK']]);
-    const nhom = (laThuoc) => { const ds = ct.filter((r) => { const l = nk[r['Mã NK']][LOAI_PB]; return laThuoc ? l === 'Phun thuốc' : (l !== 'Phun thuốc' && !huuCo(r['Sản phẩm'])); });
+    const spNhom = (ten) => { const t = (S.dm.thuoc || []).find((x) => x.ten === ten || x.tenNgan === ten || String(ten || '').startsWith(x.tenNgan || x.ten)); return t ? G.nhomThuoc(t) : null; };
+    const laBVTV = (r) => { const g = spNhom(r['Sản phẩm']); return g ? g === 'Thuốc bảo vệ thực vật' : nk[r['Mã NK']][LOAI_PB] === 'Phun thuốc'; };
+    const nhom = (laThuoc) => { const ds = ct.filter((r) => (laThuoc ? laBVTV(r) : (!laBVTV(r) && !huuCo(r['Sản phẩm']) && spNhom(r['Sản phẩm']) !== 'Phụ gia, khác')));
       const l = sum(ds, (r) => (doiDV(r)[0] === 'l' ? doiDV(r)[1] : 0)); const k = sum(ds, (r) => (doiDV(r)[0] === 'kg' ? doiDV(r)[1] : 0));
       return { so: l, kg: k, phu: `${so(l, 2)} lít · ${so(k, 2)} kg (không cộng chung)`, chuoi: chuoi(ds, (r) => nk[r['Mã NK']]['Ngày giờ'], (r) => doiDV(r)[1]),
         dong: ds.map((r) => ({ 'Ngày': String(nk[r['Mã NK']]['Ngày giờ']).slice(0, 10), 'Mã NK': r['Mã NK'], 'Loại': nk[r['Mã NK']][LOAI_PB], 'Sản phẩm': r['Sản phẩm'], 'Lượng': so(doiDV(r)[1], 3), 'Đơn vị': doiDV(r)[0] === 'l' ? 'lít' : 'kg', 'Vị trí': nk[r['Mã NK']]['Cụm'] || '', 'Người': nk[r['Mã NK']]['Người phun'] || '' })),
@@ -78,7 +80,7 @@
   };
   G.theBV = (bv, tu, den, nhan) => `<div class="bv-luoi">${G.BV.map((b) => { const x = bv[b.k]; return `<a class="bv-o" href="#/bv/${b.k}">
       <div class="t">${G.ic(b.ic, 26)}<span>${esc(b.ten)}</span></div><div class="so">${giaTri(b, x)}</div>
-      <div class="phu">${esc(x.phu || nhan || '')}</div>${sparkline(x.chuoi, tu, den)}</a>`; }).join('')}</div>`;
+      <div class="phu">${esc(x.phu || b.mo || nhan || '')}</div>${sparkline(x.chuoi, tu, den)}</a>`; }).join('')}</div>`;
 
   /* ---------- TỔNG QUAN ---------- */
   const st = { khoang: 'nam' };

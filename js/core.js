@@ -9,6 +9,7 @@
   G.q = (ph) => (G.S.u && G.S.u.quyen[ph]) || 0;
   G.ngayVN = (d) => { const p = String(d || '').split(' ')[0].split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : (d || ''); };
   G.gioVN = (v) => { const m = String(v || '').match(/^\d{4}-(\d{2})-(\d{2})[ T](\d{2}:\d{2})/); return m ? `${m[2]}/${m[1]} ${m[3]}` : (v || ''); };
+  G.thuNgan = (d) => ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][(d ? new Date(d) : new Date()).getDay()];
   G.thu = (d) => ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'][(d ? new Date(d) : new Date()).getDay()];
   G.so = (n, k) => Number(n || 0).toLocaleString('vi-VN', { maximumFractionDigits: k == null ? 1 : k });
   G.vt = (ma) => (G.S.dm.vitri.find((x) => x.ma === ma) || null);
@@ -91,7 +92,7 @@
   };
   G.chonLoi = () => G.chonHaiBuoc('Chọn lỗi', nhomTheo(G.S.dm.loi, (l) => l.nhom, (l) => ({ ten: l.ten, phu: 'Gợi ý: ' + l.muc, muc: l.muc, nhom: l.nhom })), { goiY: 'Tìm lỗi, ví dụ: béc, cỏ dại, cành gãy', choKhac: true });
   G.chonCay = (chiTrong) => G.chonHaiBuoc('Chọn cây', nhomTheo(G.S.dm.cay.filter((c) => !chiTrong || c.trong !== 'Không'), (c) => c.nhom, (c) => ({ ma: c.ma, ten: c.ten, phu: c.kh, nhom: c.nhom })), { goiY: 'Tìm cây, tên Việt hoặc tên khoa học', choKhac: true });
-  G.nhomThuoc = (t) => (/thuốc/i.test(t.nhom) && !/phân bón lá/i.test(t.nhom) ? 'Thuốc bảo vệ thực vật' : /lá/i.test(t.nhom) ? 'Phân bón lá, kích thích' : /phân/i.test(t.nhom) ? 'Phân bón gốc' : 'Phụ gia, khác');
+  G.nhomThuoc = (t) => (/^\s*PHÂN BÓN/i.test(t.nhom || '') ? (/lá|kích thích|sinh trưởng|điều hòa/i.test(t.nhom) ? 'Phân bón lá, kích thích' : 'Phân bón gốc') : /thuốc/i.test(t.nhom) && !/phân bón lá/i.test(t.nhom) ? 'Thuốc bảo vệ thực vật' : /lá/i.test(t.nhom) ? 'Phân bón lá, kích thích' : /phân/i.test(t.nhom) ? 'Phân bón gốc' : 'Phụ gia, khác');
   G.chonThuoc = () => G.chonHaiBuoc('Chọn thuốc / phân', nhomTheo(G.S.dm.thuoc.filter((t) => t.tt !== 'Ngưng dùng'), G.nhomThuoc, (t) => ({ ma: t.ma, ten: t.ten, phu: (t.tt === 'Chờ duyệt' ? 'Chờ duyệt · ' : '') + 'cách ly ' + t.cachLy + ' ngày', t })), { goiY: 'Tìm tên thuốc, phân' });
   G.chonDS = (tieuDe, ds) => G.chonHaiBuoc(tieuDe, [{ ten: tieuDe, ds: ds.map((x) => (typeof x === 'string' ? { ten: x } : x)) }]);
 

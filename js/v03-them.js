@@ -152,9 +152,9 @@
     const tuan = G.tuan(st.tu); const den = G.congNgay(st.tu, 6);
     const m = G.khung('Kế hoạch tuần', `${tuan} · ${G.ngayVN(st.tu).slice(0, 5)}–${G.ngayVN(den).slice(0, 5)}`);
     const can = (b) => q(API.BANG[b][0]) >= 1;
-    const d = await API.goi('docNhieu', { ds: [{ bang: 'KeHoachTuan', loc: { 'Tuần': tuan } }, { bang: 'KeHoachDinhKy', gioiHan: 2000 }].concat(can('Phieu') ? [{ bang: 'Phieu', gioiHan: 300 }] : []).concat(can('SuKien') ? [{ bang: 'SuKien', gioiHan: 100 }] : []) });
+    const d = await API.goi('docNhieu', { ds: [{ bang: 'KeHoachTuan', loc: { 'Tuần': [tuan, st.tu] } }, { bang: 'KeHoachDinhKy', gioiHan: 2000 }].concat(can('Phieu') ? [{ bang: 'Phieu', gioiHan: 300 }] : []).concat(can('SuKien') ? [{ bang: 'SuKien', gioiHan: 100 }] : []) });
     const A = d.KeHoachDinhKy.filter((x) => x['Từ ngày'] <= den && x['Đến ngày'] >= st.tu && (!st.doi || x['Đội'] === st.doi) && (!st.ngay || (x['Từ ngày'] <= st.ngay && x['Đến ngày'] >= st.ngay)));
-    const B = d.KeHoachTuan.filter((x) => (!st.doi || x['Đội/Người'] === st.doi) && (!st.ngay || (x['Từ ngày'] || st.tu) <= st.ngay && x['Hạn'] >= st.ngay));
+    const B = d.KeHoachTuan.filter((x) => !x['Mã việc'] && (!st.doi || x['Đội/Người'] === st.doi) && (!st.ngay || (x['Từ ngày'] || st.tu) <= st.ngay && x['Hạn'] >= st.ngay));
     const duyet = q('kehoach') >= 3; const MAU = { 'Đăng ký': 'cam', 'Đã giao': '', 'Xong': 'xanh', 'Trễ': 'do' };
     const goiY = [];
     (d.Phieu || []).filter((p) => p['Trạng thái'] !== 'Đã duyệt').forEach((p) => goiY.push({ dt: 'Sửa', nd: p['Loại lỗi'], vt: p['Mã vị trí'], han: ngayCua(p['Hạn']), muc: p['Mức độ'], nguon: 'Phiếu ' + p['Mã phiếu'] }));
@@ -162,7 +162,7 @@
     const ngays = []; for (let i = 0; i < 7; i++) ngays.push(G.congNgay(st.tu, i));
     const dongB = (x) => `${esc(x['Động từ'] || '')} ${esc(x['Đối tượng'] || x['Nội dung'])}`.trim();
     m.innerHTML = `<div class="nhom-nut" style="margin-bottom:10px"><button class="nut nho" id="truoc">‹ Tuần trước</button><button class="nut nho" id="zalo">📤 Gửi Zalo</button><button class="nut nho" id="sau">Tuần sau ›</button></div>
-      <div class="chon boc"><button data-ng="" class="${!st.ngay ? 'dang' : ''}">Cả tuần</button>${ngays.map((n) => `<button data-ng="${n}" class="${st.ngay === n ? 'dang' : ''}">${G.thu(n).replace('Thứ ', 'T').replace('Chủ nhật', 'CN')} ${G.ngayVN(n).slice(0, 5)}</button>`).join('')}</div>
+      <div class="chon boc"><button data-ng="" class="${!st.ngay ? 'dang' : ''}">Cả tuần</button>${ngays.map((n) => `<button data-ng="${n}" class="${st.ngay === n ? 'dang' : ''}">${G.thuNgan(n)} ${G.ngayVN(n).slice(0, 5)}</button>`).join('')}</div>
       <div class="chon"><button data-doi="" class="${!st.doi ? 'dang' : ''}">Mọi đội</button>${['Đội khu vực', 'Đội cơ động', 'Nhân viên nội bộ'].map((x) => `<button data-doi="${x}" class="${st.doi === x ? 'dang' : ''}">${x}</button>`).join('')}</div>
       <h3 class="tieu-nhom">A. Việc định kỳ (${A.length})</h3><div class="ds">${A.map((x) => `<div class="muc"><div class="gian"><b>${esc(G.dvTen(x['Mã việc']))}</b><div class="mo">${esc(x['Cụm'])}${x['Khu vực'] ? ' · ' + esc(x['Khu vực']) : ''} · ${esc(x['Đội'])} · ${G.ngayVN(x['Từ ngày']).slice(0, 5)}–${G.ngayVN(x['Đến ngày']).slice(0, 5)}</div></div><span class="chip">${x['Trạng thái duyệt'] === 'Đã duyệt' ? 'Đã duyệt' : 'Chờ'}</span></div>`).join('') || '<div class="muc mo">Không có kế hoạch định kỳ trong tuần (lập ở Kế hoạch định kỳ tháng)</div>'}</div>
       <h3 class="tieu-nhom">B. Việc khác (${B.length})</h3>${q('kehoach') >= 2 ? '<button class="nut chinh rong" id="moi" style="margin-bottom:8px">＋ Thêm việc: động từ → đối tượng → vị trí → người → hạn</button>' : ''}
@@ -178,11 +178,11 @@
       const lay = G.form(o.querySelector('#f'), [{ k: 'dt', nhan: '1. Động từ', loai: 'chips', ds: DONG_TU, bb: true, gt: gt && gt.dt }, { k: 'nd', nhan: '2. Đối tượng (cây, hạng mục)', loai: 'chu', bb: true, gt: gt && gt.nd, goiY: 'Ví dụ: hàng rào hoa giấy, cỏ lá gừng' },
         { k: 'vt', nhan: '3. Vị trí', loai: 'vitri', gt: gt && gt.vt ? { ma: gt.vt, ten: G.tenVT(gt.vt) } : null }, { k: 'ng', nhan: '4. Người / đội làm', loai: 'chips', ds: G.GIAO_CHO(), bb: true, gt: S.u.doi || '' },
         { k: 'tu', nhan: 'Bắt đầu', loai: 'ngay', bb: true, gt: st.ngay || st.tu }, { k: 'han', nhan: '5. Hạn', loai: 'ngay', bb: true, gt: gt && gt.han && gt.han <= den ? gt.han : den }, { k: 'muc', nhan: 'Mức độ', loai: 'chips', ds: G.MUC, gt: gt ? gt.muc : 'Trung bình' }]);
-      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); if (v.han < v.tu) throw new Error('Hạn trước ngày bắt đầu'); await API.goi('ghi', { bang: 'KeHoachTuan', dong: { 'Mã KHT': '', 'Tuần': tuan, 'Động từ': v.dt, 'Đối tượng': v.nd, 'Nội dung': v.dt + ' ' + v.nd, 'Mã vị trí': v.vt ? v.vt.ma || v.vt.ten : '', 'Đội/Người': v.ng, 'Từ ngày': v.tu, 'Hạn': v.han, 'Mức độ': v.muc, 'Nguồn': gt ? gt.nguon : 'Đăng ký', 'Trạng thái': duyet ? 'Đã giao' : 'Đăng ký' } }); dong(); G.taiLai(); }, e.target);
+      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); if (v.han < v.tu) throw new Error('Hạn trước ngày bắt đầu'); await API.goi('ghi', { bang: 'KeHoachTuan', dong: { 'Mã KHT': '', 'Tuần': st.tu, 'Động từ': v.dt, 'Đối tượng': v.nd, 'Nội dung': v.dt + ' ' + v.nd, 'Mã vị trí': v.vt ? v.vt.ma || v.vt.ten : '', 'Đội/Người': v.ng, 'Từ ngày': v.tu, 'Hạn': v.han, 'Mức độ': v.muc, 'Nguồn': gt ? gt.nguon : 'Đăng ký', 'Trạng thái': duyet ? 'Đã giao' : 'Đăng ký' } }); dong(); G.taiLai(); }, e.target);
     });
     const moi = m.querySelector('#moi'); if (moi) moi.onclick = () => them();
     m.querySelectorAll('[data-g]').forEach((b) => { b.onclick = () => them(goiY[+b.dataset.g]); });
-    const gh = m.querySelector('#giaoHet'); if (gh) gh.onclick = () => chay(async () => { await API.goi('sua', { bang: 'KeHoachTuan', khoa: { 'Tuần': tuan, 'Trạng thái': 'Đăng ký' }, doi: { 'Trạng thái': 'Đã giao' } }); bao('Đã giao việc'); G.taiLai(); }, gh);
+    const gh = m.querySelector('#giaoHet'); if (gh) gh.onclick = () => chay(async () => { await API.goi('sua', { bang: 'KeHoachTuan', khoa: { 'Tuần': st.tu, 'Trạng thái': 'Đăng ký' }, doi: { 'Trạng thái': 'Đã giao' } }); bao('Đã giao việc'); G.taiLai(); }, gh);
     m.querySelectorAll('[data-i]').forEach((r) => { r.onclick = async () => { const x = d.KeHoachTuan.find((y) => y['Mã KHT'] === r.dataset.i); if (q('kehoach') < 2) return;
       const c = await G.chonDS('Cập nhật: ' + (x['Đối tượng'] || x['Nội dung']), ['Xong', 'Trễ'].concat(duyet ? ['Đã giao', 'Xóa khỏi kế hoạch'] : [])); if (!c) return;
       chay(async () => { if (c.ten === 'Xóa khỏi kế hoạch') await API.goi('xoa', { bang: 'KeHoachTuan', khoa: { 'Mã KHT': x['Mã KHT'] } }); else { const ly = c.ten === 'Trễ' ? await G.hoi('Lý do trễ') : ''; await API.goi('sua', { bang: 'KeHoachTuan', khoa: { 'Mã KHT': x['Mã KHT'] }, doi: { 'Trạng thái': c.ten, 'Lý do trễ': ly || '' } }); } G.taiLai(); }); }; });

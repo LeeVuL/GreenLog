@@ -345,9 +345,15 @@ function ddDuyet_(u, r) {
   return voiKhoa_(function () {
     const vh = vh_(); const now = bayGio_();
     const dk = function (x) { return x['Ngày'] === r.ngay && x['Buổi'] === r.buoi && (!r.doi || x['Đội'] === r.doi); };
-    capNhat_(vh.getSheetByName('DuyetCong'), dk, { 'Người duyệt': u.ten, 'Giờ duyệt': now, 'Khóa': 'Có' });
-    capNhat_(vh.getSheetByName('DiemDanh'), dk, { 'Trạng thái duyệt': 'Đã duyệt' });
-    return { ok: true };
+    const coAnh = function (x) { return x['Đội'] === 'Quản lý nhà thầu' || !!String(x['Ảnh tập thể'] || '').trim(); };
+    const chon = bang_(vh, 'DuyetCong').filter(function (x) { return dk(x) && x['Khóa'] !== 'Có'; });
+    if (!chon.length) throw new Error(r.doi ? 'Chưa có điểm danh của ' + r.doi + ' buổi này' : 'Không có buổi nào chờ duyệt');
+    const duoc = chon.filter(coAnh).map(function (x) { return x['Đội']; }); const bo = chon.filter(function (x) { return !coAnh(x); }).map(function (x) { return x['Đội']; });
+    if (!duoc.length) throw new Error('Chưa có ảnh tập thể, chưa duyệt được: ' + bo.join(', '));
+    const dk2 = function (x) { return dk(x) && duoc.indexOf(x['Đội']) >= 0; };
+    capNhat_(vh.getSheetByName('DuyetCong'), dk2, { 'Người duyệt': u.ten, 'Giờ duyệt': now, 'Khóa': 'Có' });
+    capNhat_(vh.getSheetByName('DiemDanh'), dk2, { 'Trạng thái duyệt': 'Đã duyệt' });
+    return { ok: true, doi: duoc, boQua: bo };
   });
 }
 

@@ -144,7 +144,8 @@
       const trong = ds.filter((v) => v.cum === st.cum);
       const villa = trong.length && trong.every((v) => G.laVilla(v));
       let html = `<div class="chon boc">${cums.map((c) => `<button type="button" data-cum="${esc(c)}" class="${st.cum === c ? 'dang' : ''}">${esc(c)}</button>`).join('')}</div>`;
-      if (opt.coMat && villa) html += `<div class="buoc-nho">Chọn mặt nhanh cho cả cụm</div><div class="chon">${['Cả 3', 'Trước', 'Hông', 'Sau'].map((x) => `<button type="button" data-mat="${x}" class="${(st.mat || 'Cả 3') === x ? 'dang' : ''}">${x}</button>`).join('')}</div>`;
+      const nhieuMat = villa && trong.length > new Set(trong.map((v) => v.kv)).size;
+      if (opt.coMat !== false && nhieuMat) html += `<div class="buoc-nho">Chọn mặt nhanh cho cả cụm</div><div class="chon">${['Cả 3', 'Trước', 'Hông', 'Sau'].map((x) => `<button type="button" data-mat="${x}" class="${(st.mat || 'Cả 3') === x ? 'dang' : ''}">${x}</button>`).join('')}</div>`;
       html += `<div class="nhom-nut" style="margin:4px 0 8px"><button type="button" class="nut nho" id="caCum">Chọn cả cụm</button><button type="button" class="nut nho" id="boCum">Bỏ chọn cụm</button></div>`;
       if (villa) {
         const nhom = {}; trong.forEach((v) => { (nhom[v.kv] = nhom[v.kv] || []).push(v); });

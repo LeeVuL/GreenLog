@@ -170,11 +170,12 @@
   /* ================= KỲ ĐỊNH KỲ: tự tạo ngày 20, kỳ cũ chờ anh duyệt kết thúc, giai đoạn làm quen (mục 28) ================= */
   const kyTruoc = () => API.ky(G.congNgay(S.dm.ky.tu, -1));
   const DV_KY = () => S.dm.dauviec.filter((v) => /^DV0[1-8]$/.test(v.ma) || v.ma === 'DV37' || v.ma === 'DV38');
-  G.kiemKy = async () => { // gọi khi mở app: nếu đã sang kỳ mới mà kỳ cũ chưa có dòng → tạo dòng "Chờ anh duyệt kết thúc"
+  G.kiemKy = () => (G._kiemKyP = G._kiemKyP || kiemKy1().finally(() => { setTimeout(() => { G._kiemKyP = null; }, 5000); }));
+  const kiemKy1 = async () => { // gọi khi mở app: nếu đã sang kỳ mới mà kỳ cũ chưa có dòng → tạo dòng "Chờ anh duyệt kết thúc"
     if (!G.laAnhVu()) return; const kt = kyTruoc(); const ds = await G.doc('KyDinhKy');
-    if (!ds.some((r) => r['Kỳ'] === S.dm.ky.ten)) await API.goi('ghi', { bang: 'KyDinhKy', dong: { 'Kỳ': S.dm.ky.ten, 'Từ': S.dm.ky.tu, 'Đến': S.dm.ky.den, 'Trạng thái': 'Đang chạy', 'Tạo lúc': API.bayGio(), 'Ghi chú': 'Tự tạo ngày 20 đủ việc định kỳ và vị trí' } }).catch(() => {});
-    if (!ds.some((r) => r['Kỳ'] === kt.ten)) await API.goi('ghi', { bang: 'KyDinhKy', dong: { 'Kỳ': kt.ten, 'Từ': kt.tu, 'Đến': kt.den, 'Trạng thái': 'Chờ anh duyệt kết thúc', 'Tạo lúc': API.bayGio() } }).catch(() => {});
-    else { const r = ds.find((x) => x['Kỳ'] === kt.ten); if (r['Trạng thái'] === 'Đang chạy') await API.goi('sua', { bang: 'KyDinhKy', khoa: { 'Kỳ': kt.ten }, doi: { 'Trạng thái': 'Chờ anh duyệt kết thúc' } }).catch(() => {}); }
+    if (!ds.some((r) => r['Kỳ'] === S.dm.ky.ten)) await API.goi('ghi', { imLang: true, bang: 'KyDinhKy', dong: { 'Kỳ': S.dm.ky.ten, 'Từ': S.dm.ky.tu, 'Đến': S.dm.ky.den, 'Trạng thái': 'Đang chạy', 'Tạo lúc': API.bayGio(), 'Ghi chú': 'Tự tạo ngày 20 đủ việc định kỳ và vị trí' } }).catch(() => {});
+    if (!ds.some((r) => r['Kỳ'] === kt.ten)) await API.goi('ghi', { imLang: true, bang: 'KyDinhKy', dong: { 'Kỳ': kt.ten, 'Từ': kt.tu, 'Đến': kt.den, 'Trạng thái': 'Chờ anh duyệt kết thúc', 'Tạo lúc': API.bayGio() } }).catch(() => {});
+    else { const r = ds.find((x) => x['Kỳ'] === kt.ten); if (r['Trạng thái'] === 'Đang chạy') await API.goi('sua', { imLang: true, bang: 'KyDinhKy', khoa: { 'Kỳ': kt.ten }, doi: { 'Trạng thái': 'Chờ anh duyệt kết thúc' } }).catch(() => {}); }
   };
   G.lamQuen = () => G.caiDat('Giai đoạn làm quen', 'Bật') === 'Bật';
   G.man.kydinhky = { ten: 'Kỳ định kỳ', ic: 'ke_hoach', bt: '📆', nhom: 'Kế hoạch', ph: 'homnay', cap: 3, fn: async () => {

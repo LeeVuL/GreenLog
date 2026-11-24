@@ -66,7 +66,7 @@
       if (j.loi === 'HET_PHIEN') { LS.del('token'); location.reload(); }
       throw new Error(j.loi || 'Lỗi không rõ');
     }
-    if (j.hoan) window.dispatchEvent(new CustomEvent('gl-hoan', { detail: j.hoan }));
+    if (j.hoan && !(body && body.imLang)) window.dispatchEvent(new CustomEvent('gl-hoan', { detail: j.hoan }));
     return j.data;
   }
 
@@ -267,9 +267,15 @@
     async 'diemDanh.duyet'(u, r) {
       can(u, 'diemdanh', 3);
       const loc = (x) => x['Ngày'] === r.ngay && x['Buổi'] === r.buoi && (!r.doi || x['Đội'] === r.doi);
-      const du = tb('DuyetCong'); du.forEach((x) => { if (loc(x)) Object.assign(x, { 'Người duyệt': u.ten, 'Giờ duyệt': bayGio(), 'Khóa': 'Có' }); }); luuTb('DuyetCong', du);
-      const dd = tb('DiemDanh'); dd.forEach((x) => { if (loc(x)) x['Trạng thái duyệt'] = 'Đã duyệt'; }); luuTb('DiemDanh', dd);
-      return { ok: true };
+      const coAnh = (x) => x['Đội'] === 'Quản lý nhà thầu' || !!String(x['Ảnh tập thể'] || '').trim();
+      const du = tb('DuyetCong'); const chon = du.filter((x) => loc(x) && x['Khóa'] !== 'Có');
+      if (!chon.length) throw new Error(r.doi ? 'Chưa có điểm danh của ' + r.doi + ' buổi này' : 'Không có buổi nào chờ duyệt');
+      const duoc = chon.filter(coAnh); const bo = chon.filter((x) => !coAnh(x));
+      if (!duoc.length) throw new Error('Chưa có ảnh tập thể, chưa duyệt được: ' + bo.map((x) => x['Đội']).join(', '));
+      const doiDuoc = duoc.map((x) => x['Đội']); const gio = bayGio();
+      duoc.forEach((x) => Object.assign(x, { 'Người duyệt': u.ten, 'Giờ duyệt': gio, 'Khóa': 'Có' })); luuTb('DuyetCong', du);
+      const dd = tb('DiemDanh'); dd.forEach((x) => { if (loc(x) && doiDuoc.includes(x['Đội'])) x['Trạng thái duyệt'] = 'Đã duyệt'; }); luuTb('DiemDanh', dd);
+      return { ok: true, doi: doiDuoc, boQua: bo.map((x) => x['Đội']) };
     },
     /* ---- định kỳ: lưu nhiều vị trí + ảnh một lần ---- */
     async 'dinhKy.luu'(u, r) {
@@ -394,7 +400,7 @@
         const u = Object.assign({}, NGUOI_THU[LS.get('thu_i', 0)]); u.quyen = quyenThu(u);
         if (u.nhom === 'Tổ trưởng') u.doi = u.doi; HOAN = null;
         const kq = JSON.parse(JSON.stringify(await fn(u, body || {})));
-        if (HOAN && action !== 'hoanTac') window.dispatchEvent(new CustomEvent('gl-hoan', { detail: HOAN }));
+        if (HOAN && action !== 'hoanTac' && !(body && body.imLang)) window.dispatchEvent(new CustomEvent('gl-hoan', { detail: HOAN }));
         return kq;
       }
       return goiThat(action, body);
@@ -417,6 +423,7 @@
     anhUrl(v) {
       v = String(v || '').trim(); if (!v) return '';
       if (v.startsWith('data:') || v.startsWith('http')) return v;
+      if (/^(img|icons)\//.test(v)) return v; // ảnh mẫu trong app
       return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(v) + '&sz=w800';
     },
     LS,

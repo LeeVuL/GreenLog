@@ -36,7 +36,7 @@
     if (q('noibo')) {
       html += `<h2 class="tieu-nhom">${q('dinhky') ? 'D. ' : 'A. '}Việc nội bộ</h2><div class="luoi-viec">`
         + [['bai_bien', 'Vệ sinh bãi biển', 'nb/bien'], ['tuan_tra', 'Kiểm tra bãi biển', 'nb/ktbien'], ['may_sang', 'Máy sàng cát', 'nb/may'], ['vuon_rau', 'Vườn rau', 'nb/vuonrau'], ['thu_hoach', 'Thu hoạch', 'nb/thuhoach'],
-          ['noi_that', 'Cây nội thất', 'nb/noithat'], ['vuon_uom', 'Vườn ươm nội thất', 'nb/vuonuomnt'], ['rac_huu_co', 'Rác hữu cơ', 'nb/rac'], ['compost', 'Phân compost', 'nb/compost'], ['phat_sinh', 'Việc phát sinh', 'phatsinh']]
+          ['noi_that', 'Cây nội thất', 'nb/noithat'], ['vuon_uom_nt', 'Vườn ươm nội thất', 'nb/vuonuomnt'], ['rac_huu_co', 'Thu gom rau củ làm compost', 'nb/rac'], ['compost', 'Phân compost', 'nb/compost'], ['phat_sinh', 'Việc phát sinh', 'phatsinh']]
           .filter((x) => q('dinhky') ? x[2] !== 'phatsinh' : true).map((x) => o_(x[0], x[1], x[2])).join('') + '</div>';
       if (!q('dinhky')) html += `<h2 class="tieu-nhom">B. Ghi chép</h2><div class="luoi-viec">${o_('dich_hai', 'Dịch hại', 'dichhai')}${q('phunbon') ? o_('phun_bon', 'Phun, bón', 'phunbon') : ''}${o_('trong_cay', 'Trồng cây', 'sotrongcay')}${o_('phieu', 'Phiếu', 'phieu')}</div>`;
     }
