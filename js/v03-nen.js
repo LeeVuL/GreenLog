@@ -128,7 +128,9 @@
 
   /* ---------- chọn nhiều vị trí: cụm → villa (mặt) / vị trí ---------- */
   G.dsVT = (maViec) => {
-    if (maViec === 'DV37') return (S.dm.hangrao || []).map((x) => ({ ma: x.ma, cum: x.kv || 'Hàng rào', kv: x.ten, ten: x.cay || x.ten }));
+    // chưa có danh sách hàng rào riêng thì dùng chung vị trí cảnh quan (cụm → khu vực → vị trí)
+    const hr = (S.dm.hangrao || []).filter((x) => x.ma && !/\(mẫu\)/.test(x.ten || ''));
+    if (maViec === 'DV37' && hr.length) return hr.map((x) => ({ ma: x.ma, cum: x.kv || 'Hàng rào', kv: x.ten, ten: x.cay || x.ten }));
     if (maViec === 'DV38') return (S.dm.hothuysinh || []).map((x) => ({ ma: x.ma, cum: 'Hồ thủy sinh Villa 1–24', kv: x.kv, ten: x.ten }));
     return S.dm.vitri.filter((v) => v.ap === 'Có');
   };
