@@ -127,3 +127,10 @@ table.bang th, table.bang td { border-bottom: 1px solid var(--vien2); padding: 6
 .bv > .hang { display: block; } .bv > .hang .chon { margin-top: 10px !important; }
 @media (min-width: 960px) { .bv > .hang { display: flex; } .bv > .hang .chon { margin-top: 0 !important; } }
 a.the, a.the-viec { text-decoration: none; color: inherit; }
+/* mục 68: màn nhập việc trên điện thoại — ẩn menu dưới, nút Lưu sát đáy, tiêu đề 1 dòng */
+@media (max-width: 959px) {
+  body.nhap nav.duoi { display: none; }
+  body.nhap .thanh-duoi { bottom: 0; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  body.nhap #app { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+  .dau .tieude b, .dau .tieude small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}

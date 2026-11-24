@@ -6,7 +6,7 @@ const TRANG_04 = {
   KyDinhKy: ['Kỳ', 'Từ ngày', 'Đến ngày', 'Trạng thái'], NgayLe: ['Ngày', 'Tên'], NgayLamViec: ['Ngày', 'Đội', 'Loại', 'Giờ'],
   GiaoViecNgay: ['Mã', 'Ngày', 'Đội', 'Nội dung', 'Người', 'Trạng thái'], NghiemThu: ['Kỳ', 'Số hiệu', 'Trạng thái'], BaoCaoTuan: ['Mã', 'Tuần', 'Đội', 'Nội dung'],
   DaoTaoDiemDanh: ['Mã ĐT', 'Buổi', 'Người', 'Có mặt'], DaoTaoDeXuat: ['Mã', 'Mã ĐT', 'Nội dung', 'Trạng thái'], KetQuaThi: ['Mã ĐT', 'Mã SOP', 'Người', 'Điểm'],
-  SOPDoc: ['Mã SOP', 'Phiên bản', 'Người đọc', 'Giờ đọc'], TuiThuocDua: ['Đợt', 'Loại dòng', 'Mã cây', 'Số túi', 'Ảnh'], BaoTriMay: ['Ngày', 'Máy', 'Mốc', 'Đã làm', 'Ảnh'],
+  SOPDoc: ['Mã SOP', 'Phiên bản', 'Người đọc', 'Giờ đọc'], AnhDanhMuc: ['Loại', 'Tên', 'Ảnh', 'Người sửa', 'Giờ sửa'], TuiThuocDua: ['Đợt', 'Loại dòng', 'Mã cây', 'Số túi', 'Ảnh'], BaoTriMay: ['Ngày', 'Máy', 'Mốc', 'Đã làm', 'Ảnh'],
   DanhDauSlide: ['Mã', 'Bảng', 'Khóa', 'Tuần'], BaoCaoGM: ['Tháng', 'Chỉ số', 'Giá trị'], PhanQuyenViec: ['Áp cho', 'Mã việc', 'Mức'],
   KhuPhuTrach: ['Khu', 'Mã công nhân', 'Tối đa'], PhunLai: ['Mã', 'Mã NK', 'Ngày', 'Lý do'],
 };

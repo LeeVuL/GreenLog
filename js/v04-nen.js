@@ -10,7 +10,7 @@
     NgayLamViec: ['homnay', 2], GiaoViecNgay: ['homnay', 2], NghiemThu: ['homnay', 3], BaoCaoTuan: ['homnay', 2],
     DaoTaoDiemDanh: ['homnay', 2], DaoTaoDeXuat: ['homnay', 2], KetQuaThi: ['homnay', 2], SOPDoc: ['homnay', 2],
     TuiThuocDua: ['phunbon', 2], BaoTriMay: ['noibo', 2], DanhDauSlide: ['homnay', 2], BaoCaoGM: ['homnay', 3], PhanQuyenViec: ['danhmuc', 3],
-    KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2],
+    KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2], AnhDanhMuc: ['homnay', 2],
   });
   /* bảng anh Pháp được ghi dù Hôm nay chỉ Xem: báo cáo tuần, kế hoạch tuần */
   API.BANG.DaoTao = ['homnay', 2];
@@ -31,7 +31,7 @@
     DV18: [K, K, K, W], DV23: [K, K, K, W], DV19: [K, K, K, W], DV20: [K, K, K, W], DV31: [K, K, K, W], DV21: [K, K, K, W], DV22: [K, K, K, W], DV24: [K, K, K, W], DV25: [K, K, K, W], DV26: [K, K, K, W], DV30: [K, K, K, W],
     DV27: [K, K, K, K], DV28: [X, X, X, K], DV29: [K, K, X, K], DV33: [W, W, X, W], DV36: [K, K, K, K], DV32: [W, W, X, K], DV34: [X, X, X, X], DV35: [W, W, X, K],
     CN01: [W, W, W, K], CN02: [X, X, W, K], CN03: [K, K, X, K], CN04: [W, W, X, K], CN05: [W, W, W, W], CN06: [W, W, X, W], CN07: [W, W, X, W], CN08: [W, W, X, W], CN09: [W, W, X, W],
-    CN10: [K, K, K, W], CN11: [W, W, X, W], CN12: [W, W, X, W],
+    CN10: [K, K, K, W], CN11: [W, W, X, W], CN12: [W, W, X, W], CN13: [K, K, K, K],
   };
   G.QV = QV;
   const CAP = { [K]: 0, [X]: 1, [W]: 2, 'Duyệt': 3 };
@@ -290,7 +290,7 @@
   G.man.quyenviec = { ten: 'Phân quyền theo đầu việc', ic: 'phan_quyen', bt: '🔐', nhom: 'Quản trị', ph: 'danhmuc', cap: 3, fn: async () => {
     const m = G.khung('Phân quyền theo đầu việc', 'GreenLog_PhanQuyen · anh luôn thấy và duyệt tất cả', '#/them');
     const rieng = await G.doc('PhanQuyenViec');
-    const ten = (ma) => (S.dm.dauviec.find((v) => v.ma === ma) || {}).ten || { CN01: 'Điểm danh, duyệt công', CN02: 'Danh sách công nhân', CN03: 'Bảng công tháng', CN04: 'Vận chuyển', CN05: 'Phiếu giao việc / phiếu yêu cầu', CN06: 'Việc phát sinh', CN07: 'Phun thuốc, bón phân', CN08: 'Dịch hại', CN09: 'Sổ trồng cây', CN10: 'Bất thường cây nội thất', CN11: 'Dự án', CN12: 'Sự kiện' }[ma] || ma;
+    const ten = (ma) => (S.dm.dauviec.find((v) => v.ma === ma) || {}).ten || { CN01: 'Điểm danh, duyệt công', CN02: 'Danh sách công nhân', CN03: 'Bảng công tháng', CN04: 'Vận chuyển', CN05: 'Phiếu giao việc / phiếu yêu cầu', CN06: 'Việc phát sinh', CN07: 'Phun thuốc, bón phân', CN08: 'Dịch hại', CN09: 'Sổ trồng cây', CN10: 'Bất thường cây nội thất', CN11: 'Dự án', CN12: 'Sự kiện', CN13: 'Cập nhật ảnh danh mục cây, thuốc' }[ma] || ma;
     const gt = (ma, c) => { const r = rieng.find((x) => x['Mã'] === ma && x['Cột'] === String(c)); return r ? r['Cấp'] : QV[ma][c]; };
     m.innerHTML = `<p class="mo">"Không thấy" = ẩn hẳn ở menu, Hôm nay, Lịch, tìm kiếm, tin nhắc, báo cáo; máy chủ cũng chặn. Chạm ô để đổi.</p><div class="the cuon-ngang"><table class="bang matran-quyen"><tr><th>Mã</th><th>Đầu việc</th>${G.QV_COT.map((c) => `<th>${esc(c)}</th>`).join('')}</tr>
       ${Object.keys(QV).map((ma) => `<tr><td>${ma}</td><td>${esc(ten(ma))}</td>${[0, 1, 2, 3].map((c) => `<td><select data-ma="${ma}" data-c="${c}">${[K, X, W].map((v) => `<option ${gt(ma, c) === v ? 'selected' : ''}>${v}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</table></div>`;

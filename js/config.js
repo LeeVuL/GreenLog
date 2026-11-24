@@ -3,5 +3,5 @@
 window.GL_CONFIG = {
   API_URL: '',     // https://script.google.com/macros/s/..../exec
   CLIENT_ID: '',   // ....apps.googleusercontent.com
-  PHIEN_BAN: '0.4.0',
+  PHIEN_BAN: '0.4.1',
 };

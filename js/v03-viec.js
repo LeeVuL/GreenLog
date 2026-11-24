@@ -74,7 +74,7 @@
         <div id="luoi"></div><div style="height:90px"></div>
         ${ghi ? `<div class="thanh-duoi"><button class="nut chinh" id="tiep" ${st.chon.size ? '' : 'disabled'}>${st.chon.size ? `Tiếp: chụp ảnh và lưu · ${st.chon.size} vị trí →` : 'Chạm vào vị trí để chọn'}</button></div>` : ''}`;
       m.querySelectorAll('[data-tt]').forEach((b) => { b.onclick = () => { st.tt = b.dataset.tt; ve(); }; });
-      G.luoiVT(m.querySelector('#luoi'), { ds: dsVT, st, trangThai, coMat: MAT_VIEC.includes(maViec), hoiLyDo: st.tt === 'Xong', doi: () => { const t = m.querySelector('#tiep'); if (t) { t.disabled = !st.chon.size; t.textContent = st.chon.size ? `Tiếp: chụp ảnh và lưu · ${st.chon.size} vị trí →` : 'Chạm vào vị trí để chọn'; } } });
+      G.luoiVT(m.querySelector('#luoi'), { ds: dsVT, st, trangThai, coMat: true, hoiLyDo: st.tt === 'Xong', doi: () => { const t = m.querySelector('#tiep'); if (t) { t.disabled = !st.chon.size; t.textContent = st.chon.size ? `Tiếp: chụp ảnh và lưu · ${st.chon.size} vị trí →` : 'Chạm vào vị trí để chọn'; } } });
       const tiep = m.querySelector('#tiep'); if (tiep) tiep.onclick = buocLuu;
     };
     const buocLuu = () => {

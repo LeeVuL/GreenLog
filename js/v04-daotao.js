@@ -75,15 +75,20 @@
       const lan = (l) => dd.filter((r) => String(r['Lần'] || '1') === String(l));
       html += buoc(4, `Điểm danh${hai ? ' (2 lần)' : ''}`, lan(1).length > 0, `<div class="mo">${lan(1).length} người${hai ? ` · lần 2: ${lan(2).length}` : ''} · mở trong lúc học đến 15 phút sau Kết thúc · không ký tên</div>${lan(1).map((r) => `<span class="chip" style="margin:2px">${esc(r['Họ tên'])}</span>`).join('')}
         ${moDD && laGV && !khoa ? `<div class="nhom-nut" style="margin-top:8px"><button class="nut chinh" data-dd="1">Điểm danh${hai ? ' lần 1' : ''}</button>${hai ? '<button class="nut" data-dd="2">Lần 2</button>' : ''}</div>` : ''}`);
-      html += buoc(5, 'Ghi chú + ảnh lớp (camera trong app)', !!x['Ảnh lớp'], `${x['Ảnh lớp'] ? G.xemAnh(x['Ảnh lớp']) + `<div class="mo">Chụp ${esc(x['Giờ chụp'] || '')}${x['GPS'] ? ' · ' + esc(x['GPS']) : ''}</div>` : ''}${x['Ghi chú'] ? `<p>${esc(x['Ghi chú'])}</p>` : ''}
+      // mục 70: kiểm tra là 1 bước rõ ràng ngay sau điểm danh, luôn hiện
+      const daBD = [TT.dang, TT.ket, TT.choHT, TT.ht].includes(t);
+      const soCau = sopMa.reduce((a, s2) => a + json((sop.find((y) => y['Mã SOP'] === s2) || {})['Câu hỏi'], []).length, 0);
+      let kt = '';
+      if (!sopMa.length) kt = `<div class="canh-bao">Lớp này chưa gắn tài liệu SOP nên chưa có câu hỏi.</div>${laGV && !khoa ? '<button class="nut chinh rong" id="ganSOP">📎 Gắn tài liệu SOP cho lớp</button>' : ''}`;
+      else if (!soCau) kt = `<div class="canh-bao">Tài liệu chưa có ngân hàng câu hỏi.${anh() ? ` <a href="#/sop/${encodeURIComponent(sopMa[0])}/sua">Thêm câu hỏi</a>` : ' Anh Vũ thêm ở Thư viện SOP.'}</div>`;
+      else if (!daBD) kt = `<div class="mo">${soCau} câu hỏi sẵn sàng. Mở sau khi bấm ▶ Bắt đầu.</div>`;
+      else kt = `<div class="mo" style="margin-bottom:8px">${soCau} câu trong ngân hàng · xáo trộn mỗi lần</div>
+        ${laGV ? `<button class="nut rong" id="hoiNhanh" style="margin-bottom:8px">🎲 Câu hỏi ngẫu nhiên: bốc người + câu (hỏi miệng, không chấm)</button>
+        ${sopMa.map((s2) => `<a class="nut chinh rong" href="#/thi/${encodeURIComponent(ma)}/${encodeURIComponent(s2)}" style="margin-bottom:6px">📝 Bài kiểm tra 10 câu · ${esc(tenSOP(sop, s2))}</a>`).join('')}` : ''}
+        ${kq.length ? `<table class="bang" style="margin-top:8px"><tr><th>Ai làm</th><th>Bài</th><th>Kết quả</th></tr>${kq.map((r) => `<tr><td>${esc(r['Họ tên'])}</td><td>${esc(tenSOP(sop, r['Mã SOP']))}</td><td><b>${esc(r['Điểm'])}</b> · ${esc(r['Mức hiểu'])}</td></tr>`).join('')}</table>` : ''}`;
+      html += buoc(5, 'Kiểm tra: câu hỏi ngẫu nhiên, bài kiểm tra', kq.length > 0, kt);
+      html += buoc(6, 'Ghi chú + ảnh lớp (camera trong app)', !!x['Ảnh lớp'], `${x['Ảnh lớp'] ? G.xemAnh(x['Ảnh lớp']) + `<div class="mo">Chụp ${esc(x['Giờ chụp'] || '')}${x['GPS'] ? ' · ' + esc(x['GPS']) : ''}</div>` : ''}${x['Ghi chú'] ? `<p>${esc(x['Ghi chú'])}</p>` : ''}
         ${laGV && [TT.dang, TT.ket].includes(t) ? '<button class="nut rong" id="anhLop">📷 Chụp ảnh lớp, ghi chú, gửi duyệt</button>' : ''}`);
-      // câu hỏi nhanh + đề thi nhanh
-      if ([TT.dang, TT.ket, TT.choHT, TT.ht].includes(t) && sopMa.length) {
-        html += `<div class="the"><b>Câu hỏi nhanh (hỏi miệng, không chấm)</b><p class="mo" style="margin:4px 0 8px">Giảng viên tự chọn ngẫu nhiên người trả lời từ danh sách điểm danh.</p>${laGV ? '<button class="nut" id="hoiNhanh">🎲 Bốc người + câu hỏi</button>' : ''}</div>
-          <div class="the"><b>Đề thi nhanh 10 câu (tùy chọn)</b><p class="mo" style="margin:4px 0 8px">Xáo trộn mỗi lần, có kết quả ngay. Giảng viên quyết định ai làm (xung phong hay cả lớp), làm trên máy giảng viên hoặc máy học viên qua link.</p>
-          ${laGV ? sopMa.map((s) => `<a class="nut nho" href="#/thi/${encodeURIComponent(ma)}/${encodeURIComponent(s)}" style="margin:2px">📝 ${esc(tenSOP(sop, s))}</a>`).join('') : ''}
-          ${kq.length ? `<table class="bang" style="margin-top:8px"><tr><th>Ai làm</th><th>Bài</th><th>Kết quả</th></tr>${kq.map((r) => `<tr><td>${esc(r['Họ tên'])}</td><td>${esc(tenSOP(sop, r['Mã SOP']))}</td><td><b>${esc(r['Điểm'])}</b> · ${esc(r['Mức hiểu'])}</td></tr>`).join('')}</table>` : ''}</div>`;
-      }
       if (t === TT.choHT && anh()) html += `<div class="the the-mo"><b>Anh đối chiếu số người trong ảnh với điểm danh (${lan(1).length} người)</b><div class="nhom-nut" style="margin-top:8px"><button class="nut" id="traLai">Trả lại</button><button class="nut chinh" id="duyetHT">Duyệt Hoàn thành</button></div></div>`;
     }
     if (laGV && [TT.cho, TT.duyet].includes(t)) html += '<div class="nhom-nut" style="margin:6px 0 30px"><button class="nut" id="deXuat">Đề xuất thay đổi / Hoãn / Hủy</button></div>';
@@ -94,6 +99,9 @@
     on('duyetKH', () => chay(async () => { await sua({ 'Trạng thái': TT.duyet, 'Người duyệt KH': S.u.ten }); G.taiLai(); }));
     on('tuChoi', async () => { const l = await G.hoi('Lý do không duyệt'); if (l != null) chay(async () => { await sua({ 'Trạng thái': TT.huy, 'Ghi chú': 'Không duyệt: ' + l }); G.taiLai(); }); });
     on('bd', async () => { let tre = ''; if ((x['Ngày KH'] || hn()) < hn()) { tre = await G.hoi('Lý do bắt đầu trễ so với kế hoạch'); if (!tre) return; } chay(async () => { await sua({ 'Bắt đầu': gio(), 'Ngày': hn(), 'Thứ': THU(hn()), 'Trạng thái': TT.dang, 'Lý do trễ': tre }); G.taiLai(); }); });
+    on('ganSOP', () => hop('Gắn tài liệu SOP', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
+      const lay = G.form(o.querySelector('#f'), [{ k: 'sop', nhan: 'Tài liệu SOP', loai: 'nhieu', bb: true, ds: sop.filter((y) => y['Trạng thái'] !== 'Nháp').map((y) => y['Mã SOP'] + ' · ' + y['Tên tài liệu']) }]);
+      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await sua({ 'Tài liệu': (v.sop || []).map((y) => y.split(' · ')[0]).join(' | ') }); dong(); G.taiLai(); }, e.target); }));
     on('kt', () => chay(async () => { const k = gio(); await sua({ 'Kết thúc': k, 'Tổng thời lượng': hhmm(phut(x['Bắt đầu'], k)), 'Trạng thái': TT.ket }); bao('Đã kết thúc · điểm danh trong 15 phút'); G.taiLai(); }));
     on('suaGio', () => hop('Sửa giờ học', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => { const lay = G.form(o.querySelector('#f'), [{ k: 'bd', nhan: 'Bắt đầu', loai: 'gio', gt: x['Bắt đầu'], bb: true }, { k: 'kt', nhan: 'Kết thúc', loai: 'gio', gt: x['Kết thúc'] }, { k: 'ly', nhan: 'Lý do sửa (anh Vũ thấy khi duyệt)', loai: 'chu', bb: true }]);
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await sua({ 'Bắt đầu': v.bd, 'Kết thúc': v.kt || x['Kết thúc'], 'Tổng thời lượng': v.kt ? hhmm(phut(v.bd, v.kt)) : x['Tổng thời lượng'], 'Sửa giờ': `${x['Bắt đầu']}–${x['Kết thúc'] || ''} → ${v.bd}–${v.kt || ''}: ${v.ly}` }); dong(); G.taiLai(); }, e.target); }));
@@ -153,10 +161,10 @@
   G.man.thi = { an: true, fn: async (maDT, maSOP) => {
     const sop = (await sopDs()).find((x) => x['Mã SOP'] === maSOP); const en = G.lang() === 'en';
     const bank = json(sop && (en && sop['Câu hỏi EN'] ? sop['Câu hỏi EN'] : sop['Câu hỏi']), []);
-    const m = G.khung('Đề thi nhanh', sop ? sop['Tên tài liệu'] : '', '#/daotao/' + encodeURIComponent(maDT));
+    const m = G.khung('Bài kiểm tra', sop ? sop['Tên tài liệu'] : '', maDT === '-' ? '#/sop/' + encodeURIComponent(maSOP) : '#/daotao/' + encodeURIComponent(maDT));
     if (bank.length < 1) { m.innerHTML = G.trong('Bài này chưa có ngân hàng câu hỏi. Anh Vũ thêm ở Thư viện SOP.'); return; }
     const de = xao(bank).slice(0, 10).map((c) => { const thu = xao(c.d.map((t, i) => ({ t, dung: i === c.dung }))); return { c: c.c, d: thu }; });
-    const dd = await G.doc('DaoTaoDiemDanh', { 'Mã ĐT': maDT }); const ng = [...new Set(dd.map((r) => r['Họ tên']))];
+    const dd = maDT === '-' ? [] : await G.doc('DaoTaoDiemDanh', { 'Mã ĐT': maDT }); const ng = dd.length ? [...new Set(dd.map((r) => r['Họ tên']))] : [S.u.ten].concat((S.dm.congnhan || []).map((c) => c.ten || c['Họ tên']).filter(Boolean)).filter((v, i, a) => v && a.indexOf(v) === i);
     m.innerHTML = `<div class="the"><label class="o"><span>Người làm bài</span><select id="ai"><option value="">— Chọn tên —</option>${ng.map((t) => `<option>${esc(t)}</option>`).join('')}<option value="khac">Người khác…</option></select></label></div>
       ${de.map((x, i) => `<div class="cau-thi"><b>${i + 1}. ${esc(x.c)}</b>${x.d.map((d, j) => `<label data-q="${i}" data-j="${j}"><input type="radio" name="q${i}" value="${j}">${esc(d.t)}</label>`).join('')}</div>`).join('')}
       <button class="nut chinh rong" id="gui" style="margin-bottom:30px">Gửi bài</button><div id="kq"></div>`;
@@ -201,7 +209,12 @@
       <div class="nhom-nut" style="margin-bottom:10px;flex-wrap:wrap"><button class="nut" id="nghe">🔊 Nghe</button>${x['Slide'] ? `<a class="nut" href="${esc(x['Slide'])}" target="_blank">🖥 Slide</a>` : ''}${x['Video giải thích'] ? `<a class="nut" href="${esc(x['Video giải thích'])}" target="_blank">▶ Video giải thích</a>` : ''}${x['Video tóm tắt'] ? `<a class="nut" href="${esc(x['Video tóm tắt'])}" target="_blank">▶ Video tóm tắt</a>` : ''}${x['Link'] ? `<a class="nut" href="${esc(x['Link'])}" target="_blank">📄 Tài liệu gốc</a>` : ''}</div>
       ${buoi.length ? `<div class="the"><b>Chia ${buoi.length} buổi 45–60 phút</b>${buoi.map((b, i) => `<div class="mo">Buổi ${i + 1}: ${esc(b.ten || b)}${b.phut ? ' · ' + esc(b.phut) + ' phút' : ''}</div>`).join('')}</div>` : ''}
       <div class="the sop-doc" id="vb">${vb(nd) || '<p class="mo">Chưa có văn bản.</p>'}</div>
+      ${json(x['Câu hỏi'], []).length ? `<div class="the"><b>Kiểm tra hiểu bài</b><div class="mo" style="margin:4px 0 8px">${json(x['Câu hỏi'], []).length} câu trong ngân hàng · xáo trộn mỗi lần</div><div class="nhom-nut" style="flex-wrap:wrap"><button class="nut" id="cauNN">🎲 Câu hỏi ngẫu nhiên</button><a class="nut chinh" href="#/thi/-/${encodeURIComponent(ma)}">📝 Làm bài kiểm tra 10 câu</a></div></div>` : ''}
       <div class="nhom-nut" style="margin-bottom:30px">${!daDoc ? '<button class="nut chinh" id="daDoc">✓ Đã đọc</button>' : ''}${anh() ? `<a class="nut" href="#/sop/${encodeURIComponent(ma)}/sua">Sửa / phiên bản mới</a>` : ''}</div>`;
+    const cauNN = m.querySelector('#cauNN'); if (cauNN) cauNN.onclick = () => { const ds = json(en && x['Câu hỏi EN'] ? x['Câu hỏi EN'] : x['Câu hỏi'], []); let c = ds[Math.floor(Math.random() * ds.length)];
+      hop('Câu hỏi ngẫu nhiên', '<div id="v"></div><div class="nhom-nut" style="margin-top:10px"><button class="nut" id="lai">🎲 Câu khác</button><button class="nut" id="da">Xem đáp án</button><button class="nut chinh" id="ok">Xong</button></div>', (o, dong) => {
+        const ve = (moDA) => { o.querySelector('#v').innerHTML = `<div class="the"><b style="font-size:18px">${esc(c.c)}</b>${moDA ? `<div class="mo" style="margin-top:8px">Đáp án: <b>${esc((c.d || [])[c.dung] || '')}</b></div>` : ''}</div>`; };
+        ve(false); o.querySelector('#lai').onclick = () => { c = ds[Math.floor(Math.random() * ds.length)]; ve(false); }; o.querySelector('#da').onclick = () => ve(true); o.querySelector('#ok').onclick = dong; }); };
     m.querySelector('#nghe').onclick = (e) => { if (!window.speechSynthesis) return bao('Máy này không hỗ trợ đọc', true); if (speechSynthesis.speaking) { speechSynthesis.cancel(); e.target.textContent = '🔊 Nghe'; return; } const u = new SpeechSynthesisUtterance(m.querySelector('#vb').innerText); u.lang = en ? 'en-US' : 'vi-VN'; u.rate = 0.9; speechSynthesis.speak(u); e.target.textContent = '⏸ Dừng'; };
     const dd = m.querySelector('#daDoc'); if (dd) dd.onclick = () => chay(async () => { await API.goi('ghi', { bang: 'SOPDoc', dong: { 'Mã SOP': ma, 'Phiên bản': String(x['Phiên bản'] || '1'), 'Người': S.u.ten, 'Giờ': API.bayGio() } }); G.taiLai(); });
   }

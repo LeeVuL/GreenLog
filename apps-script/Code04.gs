@@ -5,7 +5,7 @@ Object.assign(BANG, {
   NgayLamViec: ['homnay', 2], GiaoViecNgay: ['homnay', 2], NghiemThu: ['homnay', 3], BaoCaoTuan: ['homnay', 2],
   DaoTaoDiemDanh: ['homnay', 2], DaoTaoDeXuat: ['homnay', 2], KetQuaThi: ['homnay', 2], SOPDoc: ['homnay', 2],
   TuiThuocDua: ['phunbon', 2], BaoTriMay: ['noibo', 2], DanhDauSlide: ['homnay', 2], BaoCaoGM: ['homnay', 3], PhanQuyenViec: ['danhmuc', 3],
-  KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2],
+  KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2], AnhDanhMuc: ['homnay', 2],
 });
 BANG.DaoTao = ['homnay', 2];
 /* anh Pháp được ghi các bảng này dù Hôm nay chỉ Xem */
