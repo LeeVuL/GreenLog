@@ -227,6 +227,7 @@ function khoiTao() {
 
   // 6b. GreenLog 0.3: thuốc 16L, dịch hại, hàng rào, hồ thủy sinh, DV37/DV38…
   khoiTao03_(nen, log);
+  khoiTao04().forEach(function (x) { log.push(x); });
 
   // 7. File dữ liệu vận hành
   const vhFile = timHoacTaoFile_(CFG.TEN_FILE_VANHANH, CFG.FOLDER_DULIEU);

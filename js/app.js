@@ -608,6 +608,6 @@
     m.querySelectorAll('.luoi-o a').forEach((a) => { const x = G.man[a.getAttribute('href').replace('#/', '')]; if (x && x.ic && G.ic) a.querySelector('.bt').innerHTML = G.ic(x.ic, 40); });
   }
 
-  G.batDau = batDau;
+  G.batDau = batDau; G.manHomNayGoc = manHomNay;
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

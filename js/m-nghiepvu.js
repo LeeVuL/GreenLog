@@ -59,8 +59,9 @@
       <h3 style="margin:12px 0 6px;font-size:14px">Diễn biến (${cn.length})</h3>
       ${cn.map((x) => `<div class="the" style="padding:10px"><b>${esc(G.gioVN(x['Thời điểm']))}</b> · ${esc(x['Người ghi'])}${x['Mức độ hiện tại'] ? ` · <span class="chip">${esc(x['Mức độ hiện tại'])}</span>` : ''}<div>${esc(x['Việc đã làm'])}${x['Ghi chú'] ? ' · ' + esc(x['Ghi chú']) : ''}</div>${x['Tính luôn định kỳ'] ? `<div class="mo">✓ Tính luôn ${esc(x['Tính luôn định kỳ'])}</div>` : ''}<div>${G.xemAnh(x['Ảnh'])}</div></div>`).join('') || '<p class="mo">Chưa cập nhật.</p>'}
       ${r['Ảnh xong'] ? `<div class="mo">Ảnh báo xong</div><div>${G.xemAnh(r['Ảnh xong'])}</div>` : ''}
-      <div id="hd" style="margin-top:12px"></div>`, (o, dong) => {
+      <div id="phacDo"></div><div id="hd" style="margin-top:12px"></div>`, (o, dong) => {
       const hd = o.querySelector('#hd');
+      if (G.phacDo) G.docNhieu([{ bang: 'NhatKyPhunBon', gioiHan: 1000 }, { bang: 'NhatKyPhunBonChiTiet', gioiHan: 3000 }, { bang: 'Phieu', gioiHan: 800 }]).then((x) => { const el = o.querySelector('#phacDo'); if (el) el.innerHTML = G.phacDo(r, cn, x.NhatKyPhunBon, x.NhatKyPhunBonChiTiet, x.Phieu); }).catch(() => {});
       const guiZ = () => G.guiZalo(`🐛 Dịch hại ${r['Mã DH']} · ${r['Mức độ']}\n${r['Loại dịch hại']} trên ${r['Tên cây']}\n📍 ${G.tenVT(r['Mã vị trí'], r['Vị trí chi tiết'] || r['Cụm'])} · ${r['Phạm vi (Vài cây/Một mảng/Cả khu vực)']}\nTrạng thái: ${tt}`, 'dichhai');
       setTimeout(() => { const z = G.h(G.nutZalo('zaloDH')); z.onclick = guiZ; hd.appendChild(z); });
       if (ghi && tt !== 'Báo xong' && tt !== 'Đã duyệt') {
@@ -70,7 +71,7 @@
       }
       if (duyet && tt === 'Báo xong') {
         hd.innerHTML = '<div class="nhom-nut"><button class="nut" id="tra">Trả lại</button><button class="nut chinh" id="ok">Duyệt</button></div>';
-        hd.querySelector('#ok').onclick = (e) => chay(async () => { await API.goi('sua', { bang: 'DichHai', khoa: { 'Mã DH': r['Mã DH'] }, doi: { [TT_DH]: 'Đã duyệt', 'Người duyệt': S.u.ten } }); dong(); bao('Đã duyệt'); manDichHai(); }, e.target);
+        hd.querySelector('#ok').onclick = (e) => chay(async () => { await API.goi('sua', { bang: 'DichHai', khoa: { 'Mã DH': r['Mã DH'] }, doi: { [TT_DH]: 'Đã duyệt', 'Người duyệt': S.u.ten } }); if (G.sauDuyetDH) await G.sauDuyetDH(r); dong(); bao('Đã duyệt'); manDichHai(); }, e.target);
         hd.querySelector('#tra').onclick = async (e) => { const g = await G.hoi('Lý do trả lại'); if (g === null) return; chay(async () => { await API.goi('sua', { bang: 'DichHai', khoa: { 'Mã DH': r['Mã DH'] }, doi: { [TT_DH]: 'Đang xử lý', 'Số lần trả lại': +r['Số lần trả lại'] + 1 }, lyDo: g }); await API.goi('ghi', { bang: 'DichHaiCapNhat', dong: { 'Mã DH': r['Mã DH'], 'Thời điểm': '', 'Việc đã làm': 'Anh Vũ trả lại: ' + g, 'Người ghi': '' } }); dong(); bao('Đã trả lại'); manDichHai(); }, e.target); };
       }
     }, true);

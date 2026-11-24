@@ -144,6 +144,7 @@ function quyenBang_(u, bang, cap, hd) {
   if (bang === 'VuonUom' && (u.quyen.noibo || 0) >= cap) return;
   if (bang === 'DuAnTienDo' && cap === 2 && (u.quyen.duan || 0) >= 2) return;
   if (bang === 'SuKien' && hd === 'sua' && cap === 2 && (u.quyen.sukien || 0) >= 2) return;
+  if (typeof laNhaThauGhi_ === 'function' && laNhaThauGhi_(u, bang, cap)) return;
   if (cap >= 2) cap = Math.max(cap, b[1]);
   can_(u, b[0], cap);
 }
@@ -249,11 +250,11 @@ function hoanTac_(u, r) {
   });
 }
 function ghiAPI_(u, r, noiBo) {
-  if (!noiBo) quyenBang_(u, r.bang, 2);
+  if (!noiBo) { quyenBang_(u, r.bang, 2); canAnh_(r.bang, [r.dong]); }
   return voiKhoa_(function () { const vh = vh_(); const d = dien_(u, r.bang, r.dong, vh); ghi_(vh, r.bang, d); sauGhi_(u, r.bang, d); if (!noiBo) HOAN_ = { xoa: [{ bang: r.bang, khoa: d }] }; return d; });
 }
 function ghiNhieu_(u, r) {
-  quyenBang_(u, r.bang, 2);
+  quyenBang_(u, r.bang, 2); canAnh_(r.bang, r.dong);
   return voiKhoa_(function () {
     const vh = vh_(); const moi = r.dong.map(function (x) { return dien_(u, r.bang, x, vh); });
     const trung = function (o) { return moi.some(function (n) { return r.thay.every(function (k) { return o[k] === n[k]; }); }); };
@@ -369,9 +370,11 @@ function dkLuu_(u, r) {
         hoan.khoi.push({ bang: 'TickDinhKy', khoa: { 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Bắt đầu': mo['Bắt đầu'], 'Ngày xong': hn }, cu: { 'Trạng thái': 'Đang làm', 'Ngày xong': '', 'Số ngày': '', 'Kỳ': mo['Kỳ'], 'Người tick': mo['Người tick'], 'Giờ tick': mo['Giờ tick'] } });
         return;
       }
-      const truoc = t.filter(function (y) { return y['Mã vị trí'] === x.vt && (y['Trạng thái'] || 'Xong') === 'Xong'; }).length;
+      const xong = function (y, ky) { return y['Kỳ'] === ky && y['Mã vị trí'] === x.vt && (y['Trạng thái'] || 'Xong') === 'Xong'; };
+      const kx = r.kyBu && (r.kyBu.ds || []).indexOf(x.vt) >= 0 && !tat.some(function (y) { return xong(y, r.kyBu.ten); }) ? r.kyBu.ten : k; // làm dồn: tính cho kỳ cũ trước
+      const truoc = tat.filter(function (y) { return xong(y, kx); }).length;
       if (truoc && !x.lyDo) throw new Error('Vị trí ' + x.vt + ' đã làm trong kỳ. Chọn lý do làm thêm.');
-      rows.push({ 'Ngày': hn, 'Kỳ': k, 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Lần': truoc + 1, 'Lý do làm thêm': x.lyDo || '', 'Mã dịch hại': r.maDH || '', 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': r.ghiChu || '',
+      rows.push({ 'Ngày': hn, 'Kỳ': kx, 'Làm dồn': kx !== k ? 'Có' : '', 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Lần': truoc + 1, 'Lý do làm thêm': x.lyDo || '', 'Mã dịch hại': r.maDH || '', 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': r.ghiChu || '',
         'Trạng thái': tt, 'Bắt đầu': hn, 'Ngày xong': tt === 'Xong' ? hn : '', 'Số ngày': tt === 'Xong' ? 1 : '', 'Mã NK': r.maNK || '' });
     });
     if (rows.length) { ghiLo_(vh, 'TickDinhKy', rows); hoan.xoa.push({ bang: 'TickDinhKy', khoa: { 'Mã việc': r.viec, 'Giờ tick': gio, 'Người tick': u.ten, 'Bắt đầu': hn, 'Trạng thái': tt } }); }
@@ -398,7 +401,7 @@ function vcGui_(u, r) {
     if (cu.length && !anhVu) throw new Error('Hôm nay ' + doi + ' đã gửi lúc ' + String(cu[0]['Giờ ghi']).slice(11, 16) + '. Cần sửa thì báo anh Vũ.');
     if (anh.length < 2 && !anhVu) throw new Error('Cần ít nhất 2 ảnh của vài chuyến trong ngày');
     xoaDong_(vh.getSheetByName('VanChuyen'), function (x) { return x['Ngày'] === hn && x['Đội'] === doi; });
-    const rows = r.ds.filter(function (x) { return +x.n > 0; }).map(function (x, i) { return { 'Ngày': hn, 'Đội': doi, 'Loại hàng': x.loai, 'Nhóm': /rác cắt tỉa/i.test(x.loai) ? 'Rác cắt tỉa' : 'Khác', 'Số chuyến': x.n, 'Ghi chú': r.ghiChu || '', 'Ảnh': i === 0 ? anh.join(' | ') : '', 'Người ghi': u.ten, 'Giờ ghi': gio }; });
+    const rows = r.ds.filter(function (x) { return +x.n > 0; }).map(function (x, i) { return { 'Ngày': hn, 'Đội': doi, 'Loại hàng': x.loai, 'Nhóm': /rác cắt tỉa/i.test(x.loai) ? 'Rác cắt tỉa' : 'Khác', 'Số chuyến': x.n, 'Mã DA': r.maDA || '', 'Ghi chú': r.ghiChu || '', 'Ảnh': i === 0 ? anh.join(' | ') : '', 'Người ghi': u.ten, 'Giờ ghi': gio }; });
     ghiLo_(vh, 'VanChuyen', rows); return { n: rows.length };
   });
 }

@@ -89,7 +89,7 @@
   };
   const moHinh = (v) => (/Thanh/.test(v.ten) ? 'Thủy canh' : /Nấm/.test(v.ten) ? 'Nấm' : 'Đất');
   async function manVuonRau() {
-    const m = G.khung('Chăm sóc vườn rau', G.ngayVN(API.ngay()), '#/viec');
+    const m = G.khung('Chăm sóc Vị Garden', G.ngayVN(API.ngay()), '#/viec');
     const ds = (await API.goi('docNhieu', { ds: [{ bang: 'VuonRau', loc: { 'Ngày': API.ngay() } }] })).VuonRau;
     const ghi = q('noibo') >= 2;
     m.innerHTML = `<div class="ds">${diem('Vườn rau').map((v) => {
@@ -102,7 +102,7 @@
         const tr = [{ k: 'viec', nhan: 'Việc đã làm', loai: 'nhieu', ds: ['Tưới nước'].concat(mh === 'Thủy canh' ? [] : ['Cải tạo đất']).concat(['Gieo trồng']) },
           { k: 'cay', nhan: 'Cây gieo trồng (nếu có)', loai: 'chips', ds: S.dm.caytrong }]
           .concat(TRUONG_VR[mh].map((t) => ({ k: t, nhan: t + ' (khi đo)', loai: 'so', phu: NGUONG[t] ? `Ngưỡng báo động: ${NGUONG[t][0] != null ? 'dưới ' + NGUONG[t][0] : ''}${NGUONG[t][0] != null && NGUONG[t][1] != null ? ', ' : ''}${NGUONG[t][1] != null ? 'trên ' + NGUONG[t][1] : ''}` : '' })))
-          .concat([{ k: 'khac', nhan: 'Khác', loai: 'mota' }]);
+          .concat([{ k: 'khac', nhan: 'Khác', loai: 'mota' }, { k: 'anh', nhan: 'Ảnh vườn (không bắt buộc)', loai: 'anh', toiDa: 3, tuyChon: true }]);
         G.hop(v.ten, '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
           const lay = G.form(o.querySelector('#f'), tr);
           o.querySelector('#l').onclick = (e) => G.chay(async () => {
@@ -111,6 +111,7 @@
             TRUONG_VR[mh].forEach((t) => { if (x[t] !== '') { const n = +x[t]; const g = NGUONG[t]; dong_.push({ 'Trường': t, 'Giá trị': x[t], 'Ngoài ngưỡng': g && ((g[0] != null && n < g[0]) || (g[1] != null && n > g[1])) ? 'Có' : '' }); } });
             if (x.khac) dong_.push({ 'Trường': 'Khác', 'Giá trị': x.khac });
             if (!dong_.length) throw new Error('Chưa có gì để lưu');
+            if ((x.anh || []).length) dong_[0]['Ảnh'] = x.anh;
             await API.goi('ghiNhieu', { bang: 'VuonRau', dong: dong_.map((r) => Object.assign({ 'Ngày': '', 'Mã vườn': v.ma, 'Người ghi': '', 'Ngoài ngưỡng': '' }, r)) });
             dong(); G.bao(dong_.some((r) => r['Ngoài ngưỡng'] === 'Có') ? 'Đã lưu · có chỉ số ngoài ngưỡng, anh Vũ sẽ được báo' : 'Đã lưu'); manVuonRau();
           }, e.target);

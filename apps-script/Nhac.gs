@@ -87,6 +87,7 @@ function moiPhut() {
     if (luc(8, 30) && ngay === 18 && motLan_('dongKy')) guiNhom_('Trưởng bộ phận', '📅 Mai (19) chốt kỳ. Xem báo cáo, bảng công, bảng điểm nhà thầu.\n' + link_('baocao'));
     if (luc(7, 30) && motLan_('suKien')) nhacSuKien_();
     if (luc(9, 0) && motLan_('dichHai')) nhacDichHai_();
+    moiPhut04_(luc, thu);
   } catch (e) { console.error(e); }
 }
 

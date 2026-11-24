@@ -44,7 +44,7 @@
 
   /* ---------- Chế độ thật ---------- */
   /* Mất sóng vẫn lưu: lệnh ghi được xếp hàng trên máy (mỗi lệnh một mã), tự gửi lại khi có mạng; máy chủ bỏ qua mã đã nhận */
-  const GHI = ['ghi', 'ghiNhieu', 'sua', 'dinhKy.luu', 'phieu.tao', 'phieu.chuyen', 'diemDanh.gui', 'diemDanh.tuDiem', 'vanChuyen.gui'];
+  const GHI = ['ghi', 'ghiNhieu', 'thayNhom', 'sua', 'dinhKy.luu', 'phieu.tao', 'phieu.chuyen', 'diemDanh.gui', 'diemDanh.tuDiem', 'vanChuyen.gui'];
   const hang = () => LS.get('hang', []);
   async function guiMot(action, body, cid) {
     const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -76,7 +76,7 @@
     homnay: ['Ghi', 'Xem', 'Ghi', 'Duyệt'], diemdanh: ['Ghi', 'Ghi', 'Không thấy', 'Duyệt'], congnhan: ['Xem', 'Ghi', 'Không thấy', 'Duyệt'],
     dinhky: ['Ghi', 'Xem', 'Không thấy', 'Duyệt'], noibo: ['Không thấy', 'Không thấy', 'Ghi', 'Duyệt'],
     vuonuom: ['Ghi|Xem', 'Xem', 'Không thấy', 'Duyệt'], donghonuoc: ['Ghi|Không thấy', 'Xem', 'Không thấy', 'Duyệt'],
-    phieu: ['Ghi', 'Xem', 'Ghi', 'Duyệt'], phunbon: ['Ghi', 'Ghi', 'Ghi', 'Duyệt'], duan: ['Ghi', 'Xem', 'Ghi', 'Duyệt'],
+    phieu: ['Ghi', 'Ghi', 'Ghi', 'Duyệt'], phunbon: ['Ghi', 'Ghi', 'Ghi', 'Duyệt'], duan: ['Ghi', 'Xem', 'Ghi', 'Duyệt'],
     sukien: ['Ghi', 'Xem', 'Ghi', 'Duyệt'], kehoach: ['Ghi', 'Ghi', 'Ghi', 'Duyệt'], tuantra: ['Xem', 'Không thấy', 'Không thấy', 'Duyệt'],
     ai: ['Ghi', 'Không thấy', 'Ghi', 'Duyệt'], baocao: ['Không thấy', 'Xem', 'Không thấy', 'Duyệt'], danhmuc: ['Không thấy', 'Không thấy', 'Không thấy', 'Duyệt'],
   };
@@ -121,8 +121,17 @@
     if (bang === 'VuonUom' && (u.quyen.noibo || 0) >= cap) return; // vườn ươm nội thất do nội bộ ghi
     if (bang === 'DuAnTienDo' && cap === 2 && (u.quyen.duan || 0) >= 2) return; // ghi tiến độ
     if (bang === 'SuKien' && hd === 'sua' && cap === 2 && (u.quyen.sukien || 0) >= 2) return; // thêm ảnh sự kiện
+    if (cap >= 2 && u.nhom === 'Quản lý nhà thầu' && (API.NHA_THAU_GHI || []).includes(bang)) return; // anh Pháp cập nhật báo cáo tuần, kế hoạch tuần
     if (cap >= 2) cap = Math.max(cap, b[1]); // ghi: theo mức tối thiểu của bảng
     can(u, b[0], cap);
+  }
+  /* ảnh bắt buộc cho mọi đầu việc (mục 18) – máy chủ cũng chặn; ngoại lệ: checklist Vị Garden (VuonRau) */
+  const COT_ANH = { Tuoi: 'Ảnh', ViecHangNgay: 'Ảnh', VeSinhBien: 'Ảnh', KiemTraBien: 'Ảnh', CayNoiThat: 'Ảnh', PhanCompost: 'Ảnh', VuonUom: 'Ảnh', DongHoNuoc: 'Ảnh', ThuHoach: 'Ảnh cân', NhatKyPhunBon: 'Ảnh', SoTrongCay: 'Ảnh', TuiThuocDua: 'Ảnh', BaoTriMay: 'Ảnh', DichHai: 'Ảnh', BatThuong: 'Ảnh' };
+  function canAnh(bang, dong) {
+    const c = COT_ANH[bang]; if (!c || !dong.length) return;
+    if (bang === 'TuiThuocDua' && dong.every((x) => x['Loại dòng'] === 'Cây')) return;
+    const co = (x) => { const v = x[c] != null ? x[c] : x['Ảnh']; return Array.isArray(v) ? v.length > 0 : !!String(v || '').trim(); };
+    if (!dong.some(co)) throw new Error('Cần ít nhất 1 ảnh hiện trường cho việc này');
   }
   function maMoi(bang) {
     const m = MA_SO[bang]; if (!m) return null;
@@ -167,7 +176,7 @@
       if (cu.length && (u.quyen.homnay || 0) < 3) throw new Error('Hôm nay ' + doi + ' đã gửi lúc ' + cu[0]['Giờ ghi'].slice(11, 16) + '. Cần sửa thì báo anh Vũ.');
       if ((r.anh || []).length < 2 && (u.quyen.homnay || 0) < 3) throw new Error('Cần ít nhất 2 ảnh của vài chuyến trong ngày');
       const gio = bayGio(); const ds = tb('VanChuyen').filter((x) => !(x['Ngày'] === hn && x['Đội'] === doi));
-      const moi = r.ds.filter((x) => +x.n > 0).map((x, i) => ({ 'Ngày': hn, 'Đội': doi, 'Loại hàng': x.loai, 'Nhóm': /rác cắt tỉa/i.test(x.loai) ? 'Rác cắt tỉa' : 'Khác', 'Số chuyến': String(x.n), 'Ghi chú': r.ghiChu || '', 'Ảnh': i === 0 ? (r.anh || []).join(' | ') : '', 'Người ghi': u.ten, 'Giờ ghi': gio }));
+      const moi = r.ds.filter((x) => +x.n > 0).map((x, i) => ({ 'Ngày': hn, 'Đội': doi, 'Loại hàng': x.loai, 'Nhóm': /rác cắt tỉa/i.test(x.loai) ? 'Rác cắt tỉa' : 'Khác', 'Số chuyến': String(x.n), 'Mã DA': r.maDA || '', 'Ghi chú': r.ghiChu || '', 'Ảnh': i === 0 ? (r.anh || []).join(' | ') : '', 'Người ghi': u.ten, 'Giờ ghi': gio }));
       luuTb('VanChuyen', ds.concat(moi)); return { n: moi.length };
     },
     async 'congNhan.sua'(u, r) {
@@ -209,13 +218,18 @@
       r.ds.forEach((x) => { quyenBang(u, x.bang, 1); let rows = tb(x.bang).filter((y) => khop(y, x.loc)); if (x.gioiHan) rows = rows.slice(-x.gioiHan); out[x.ten || x.bang] = rows; });
       return out;
     },
+    async thayNhom(u, r) { // thay toàn bộ nhóm dòng khớp khóa (vd: người của một khu phụ trách)
+      quyenBang(u, r.bang, 3); const ds = tb(r.bang).filter((x) => !khop(x, r.khoa)); const moi = r.dong.map((x) => dien(u, r.bang, x));
+      luuTb(r.bang, ds.concat(moi)); return { n: moi.length };
+    },
     async ghi(u, r, noiBo) {
       if (!noiBo) quyenBang(u, r.bang, 2);
+      if (!noiBo) canAnh(r.bang, [r.dong]);
       const ds = tb(r.bang); const dong = dien(u, r.bang, r.dong); ds.push(dong); luuTb(r.bang, ds);
       if (!noiBo) nhoHoan(u, { xoa: [{ bang: r.bang, khoa: dong }] }); return dong;
     },
     async ghiNhieu(u, r) { // ghi nhiều dòng; r.thay = các cột khóa → xóa dòng cũ trùng khóa trước khi ghi
-      quyenBang(u, r.bang, 2);
+      quyenBang(u, r.bang, 2); canAnh(r.bang, r.dong);
       let ds = tb(r.bang); const moi = r.dong.map((x) => dien(u, r.bang, x));
       const bo = r.thay ? ds.filter((o) => moi.some((n) => r.thay.every((k) => o[k] === n[k]))) : [];
       if (r.thay) ds = ds.filter((o) => !bo.includes(o));
@@ -272,9 +286,10 @@
           Object.assign(mo, { 'Trạng thái': 'Xong', 'Ngày xong': hn, 'Kỳ': k, 'Số ngày': String(Math.round((new Date(hn) - new Date(mo['Bắt đầu'])) / 864e5) + 1), 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': [mo['Ghi chú'], r.ghiChu].filter(Boolean).join(' · ') });
           return void khoa;
         }
-        const truoc = t.filter((y) => y['Kỳ'] === k && y['Mã việc'] === r.viec && y['Mã vị trí'] === x.vt && DOI_TT(y) === 'Xong').length;
+        const kx = r.kyBu && (r.kyBu.ds || []).includes(x.vt) && !t.some((y) => y['Kỳ'] === r.kyBu.ten && y['Mã việc'] === r.viec && y['Mã vị trí'] === x.vt && DOI_TT(y) === 'Xong') ? r.kyBu.ten : k; // làm dồn: tính cho kỳ cũ trước
+        const truoc = t.filter((y) => y['Kỳ'] === kx && y['Mã việc'] === r.viec && y['Mã vị trí'] === x.vt && DOI_TT(y) === 'Xong').length;
         if (truoc && !x.lyDo) throw new Error('Vị trí ' + x.vt + ' đã làm trong kỳ. Chọn lý do làm thêm.');
-        t.push({ 'Ngày': hn, 'Kỳ': k, 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Mã KH': '', 'Lần': String(truoc + 1), 'Lý do làm thêm': x.lyDo || '', 'Mã dịch hại': r.maDH || '', 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': r.ghiChu || '',
+        t.push({ 'Ngày': hn, 'Kỳ': kx, 'Làm dồn': kx !== k ? 'Có' : '', 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Mã KH': '', 'Lần': String(truoc + 1), 'Lý do làm thêm': x.lyDo || '', 'Mã dịch hại': r.maDH || '', 'Người tick': u.ten, 'Giờ tick': gio, 'Ghi chú': r.ghiChu || '',
           'Trạng thái': tt, 'Bắt đầu': hn, 'Ngày xong': tt === 'Xong' ? hn : '', 'Số ngày': tt === 'Xong' ? '1' : '', 'Mã NK': r.maNK || '' });
         hoan.xoa.push({ bang: 'TickDinhKy', khoa: { 'Mã việc': r.viec, 'Mã vị trí': x.vt, 'Giờ tick': gio } });
       });
