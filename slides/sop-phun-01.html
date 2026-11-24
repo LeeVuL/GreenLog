@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOP-PHUN-01 · Pha và phun thuốc BVTV an toàn</title>
+<style>
+  :root { --rung: #123524; --rung2: #1F4D2B; --chanh: #C9E265; --kem: #F4F6EE; --cam: #E07A2E; --do: #C0392B; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #0c2418; font-family: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  .khung { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .slide { display: none; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; background: var(--kem); color: var(--rung); padding: 4.5% 6%; position: relative; overflow: hidden; }
+  .slide.dang { display: flex; flex-direction: column; }
+  .slide.toi { background: var(--rung); color: #fff; }
+  .slide h1 { font-size: clamp(22px, 4.6vw, 64px); margin: 0 0 .3em; line-height: 1.1; }
+  .slide h2 { font-size: clamp(18px, 3.2vw, 44px); margin: 0 0 .5em; line-height: 1.15; }
+  .slide p, .slide li { font-size: clamp(13px, 1.9vw, 27px); line-height: 1.45; }
+  .slide ul, .slide ol { margin: 0; padding-left: 1.2em; }
+  .slide li { margin: .25em 0; }
+  .nhan { display: inline-block; background: var(--chanh); color: var(--rung); font-weight: 700; border-radius: 99px; padding: .2em .8em; font-size: clamp(11px, 1.4vw, 20px); margin-bottom: 1em; }
+  .so { position: absolute; right: 3%; bottom: 3%; font-size: clamp(10px, 1.2vw, 16px); opacity: .6; }
+  .chan { position: absolute; left: 6%; bottom: 3%; font-size: clamp(10px, 1.2vw, 16px); opacity: .6; }
+  .luoi { display: grid; grid-template-columns: repeat(var(--c, 2), 1fr); gap: 3%; flex: 1; align-content: start; }
+  .the { background: #fff; border-radius: 18px; padding: 5% 6%; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+  .toi .the { background: var(--rung2); }
+  .the b { display: block; font-size: clamp(14px, 2.1vw, 30px); margin-bottom: .2em; }
+  .the span { font-size: clamp(12px, 1.6vw, 22px); opacity: .85; }
+  .buoc { display: flex; gap: 2%; align-items: stretch; margin: 2% 0; }
+  .buoc > div { flex: 1; background: #fff; border-radius: 16px; padding: 3% 2%; text-align: center; border-top: 8px solid var(--chanh); }
+  .buoc i { display: block; font-style: normal; font-size: clamp(22px, 4vw, 56px); font-weight: 800; color: var(--rung2); }
+  .buoc span { font-size: clamp(11px, 1.5vw, 21px); }
+  .canh { background: #FDECEA; border-left: 8px solid var(--do); border-radius: 12px; padding: 2% 3%; margin-top: 2%; }
+  .canh p { margin: 0; }
+  .nut { position: fixed; bottom: 14px; display: flex; gap: 8px; right: 14px; z-index: 5; }
+  .nut button { border: 0; border-radius: 99px; padding: 10px 16px; font: inherit; font-weight: 700; background: var(--chanh); color: var(--rung); cursor: pointer; }
+  .nut button.phu { background: #fff; }
+  [data-en] { display: none; }
+  body.en [data-vi] { display: none; }
+  body.en [data-en] { display: revert; }
+  @media print { .nut { display: none; } .slide { display: flex !important; page-break-after: always; width: 100vw; } .khung { position: static; display: block; } }
+</style>
+</head>
+<body>
+<div class="khung" id="khung">
+
+<section class="slide toi">
+  <span class="nhan">SOP-PHUN-01 · <span data-vi>Bản 1</span><span data-en>Version 1</span></span>
+  <h1 data-vi>Pha và phun thuốc BVTV an toàn bằng bình điện 16 lít</h1>
+  <h1 data-en>Safe mixing and spraying with the 16-litre electric sprayer</h1>
+  <p data-vi>Bộ phận Cảnh quan · Mövenpick Resort Waverly Phu Quoc<br>2 buổi × 50 phút</p>
+  <p data-en>Landscape Department · Mövenpick Resort Waverly Phu Quoc<br>2 sessions × 50 minutes</p>
+  <div class="chan">GreenLog</div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Vì sao phải làm đúng?</h2><h2 data-en>Why it matters</h2>
+  <div class="luoi" style="--c:3">
+    <div class="the"><b data-vi>Sức khỏe của mình</b><b data-en>Your health</b><span data-vi>Thuốc ngấm qua da, mắt, đường thở.</span><span data-en>Products enter through skin, eyes and lungs.</span></div>
+    <div class="the"><b data-vi>An toàn cho khách</b><b data-en>Guest safety</b><span data-vi>Resort 5 sao: khách đi bộ, trẻ em chơi trên cỏ.</span><span data-en>5-star resort: guests walk and children play on the lawns.</span></div>
+    <div class="the"><b data-vi>Môi trường</b><b data-en>Environment</b><span data-vi>Hồ cá, biển, Vị Garden cung cấp rau cho bếp.</span><span data-en>Fish ponds, the sea, and Vị Garden supplying the kitchen.</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <span class="nhan" data-vi>Buổi 1</span><span class="nhan" data-en>Session 1</span>
+  <h2 data-vi>Nguyên tắc 4 ĐÚNG</h2><h2 data-en>The 4 RIGHTS</h2>
+  <div class="luoi" style="--c:2">
+    <div class="the"><b data-vi>Đúng thuốc</b><b data-en>Right product</b><span data-vi>Chỉ dùng thuốc trong danh mục app. Thuốc lạ phải chờ anh Vũ duyệt.</span><span data-en>Only products in the app catalogue. New ones wait for Mr Vu's approval.</span></div>
+    <div class="the"><b data-vi>Đúng liều</b><b data-en>Right dose</b><span data-vi>Theo liều bình 16 lít trên app. Không tự tăng liều.</span><span data-en>The 16-litre dose in the app. Never increase it.</span></div>
+    <div class="the"><b data-vi>Đúng lúc</b><b data-en>Right time</b><span data-vi>Dịch hại mới chớm · trước 9h hoặc sau 16h · không mưa, gió nhẹ.</span><span data-en>Pests just starting · before 9:00 or after 16:00 · no rain, light wind.</span></div>
+    <div class="the"><b data-vi>Đúng cách</b><b data-en>Right way</b><span data-vi>Ướt đều tán, cả mặt dưới lá, không để chảy giọt xuống đất.</span><span data-en>Wet the whole canopy incl. undersides, no dripping.</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Trước khi pha: 5 việc kiểm tra</h2><h2 data-en>Before mixing: 5 checks</h2>
+  <ol data-vi>
+    <li><b>Đọc nhãn</b>: tên thuốc, hoạt chất, liều, cách ly, cảnh báo.</li>
+    <li><b>Bảo hộ</b>: khẩu trang, găng tay, kính, áo dài tay, ủng.</li>
+    <li><b>Bình</b>: không rò rỉ, béc thông, pin đủ.</li>
+    <li><b>Khu vực</b>: khách, hồ cá, hồ thủy sinh, Vị Garden ở gần?</li>
+    <li><b>App</b>: Phun thuốc → vị trí → loại cây → dịch hại → app gợi ý công thức, báo pha kỵ.</li>
+  </ol>
+  <ol data-en>
+    <li><b>Read the label</b>: product, active ingredient, dose, re-entry, warnings.</li>
+    <li><b>Protection</b>: mask, gloves, glasses, long sleeves, boots.</li>
+    <li><b>Sprayer</b>: no leaks, nozzle clear, battery charged.</li>
+    <li><b>Area</b>: guests, fish ponds, aquatic ponds, Vị Garden nearby?</li>
+    <li><b>App</b>: Spray → position → plant type → pest → app suggests the formula and flags incompatible mixes.</li>
+  </ol>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Thứ tự pha trong bình 16 lít</h2><h2 data-en>Mixing order in the 16-litre tank</h2>
+  <div class="buoc">
+    <div><i>1</i><span data-vi>Nửa bình nước sạch</span><span data-en>Half tank of clean water</span></div>
+    <div><i>2</i><span data-vi>Bột, hạt (WG, WP)</span><span data-en>Powders, granules (WG, WP)</span></div>
+    <div><i>3</i><span data-vi>Dạng nước, dầu (SC, OD, EC)</span><span data-en>Liquids, oils (SC, OD, EC)</span></div>
+    <div><i>4</i><span data-vi>Phân bón lá</span><span data-en>Foliar fertiliser</span></div>
+    <div><i>5</i><span data-vi>Bám dính (Thần Hổ) · đủ 16 lít</span><span data-en>Sticker (Than Ho) · top up to 16 L</span></div>
+  </div>
+  <div class="canh"><p data-vi>⚠ App báo <b>pha kỵ</b> thì không pha chung. Ví dụ: Movento không pha với phân bón lá, chlorothalonil.</p><p data-en>⚠ If the app flags an <b>incompatible mix</b>, do not mix. E.g. Movento must not be mixed with foliar fertiliser or chlorothalonil.</p></div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Liều thường dùng · bình 16 lít</h2><h2 data-en>Common doses · 16-litre tank</h2>
+  <div class="luoi" style="--c:3">
+    <div class="the"><b>Movento 150OD</b><span data-vi>16 ml · rệp sáp, rệp muội</span><span data-en>16 ml · mealybug, aphids</span></div>
+    <div class="the"><b>Radiant 60SC</b><span data-vi>15 ml (1 gói) · bọ trĩ</span><span data-en>15 ml (1 sachet) · thrips</span></div>
+    <div class="the"><b>Prevathon 5SC</b><span data-vi>15 ml · sâu ăn lá</span><span data-en>15 ml · caterpillars</span></div>
+    <div class="the"><b>Aliette 800WG</b><span data-vi>40 g · thối rễ</span><span data-en>40 g · root rot</span></div>
+    <div class="the"><b>Paramax 400SC</b><span data-vi>16 ml · đốm lá, thán thư</span><span data-en>16 ml · leaf spot, anthracnose</span></div>
+    <div class="the"><b>Thần Hổ</b><span data-vi>5 ml · cho vào sau cùng</span><span data-en>5 ml · add last</span></div>
+  </div>
+  <p style="margin-top:2%;opacity:.7" data-vi>Luôn kiểm tra lại liều trên app trước khi pha. Liều trên app lấy từ nhãn thuốc.</p>
+  <p style="margin-top:2%;opacity:.7" data-en>Always check the dose in the app before mixing. App doses come from the product labels.</p>
+</section>
+
+<section class="slide toi">
+  <span class="nhan" data-vi>Buổi 2</span><span class="nhan" data-en>Session 2</span>
+  <h2 data-vi>Khi phun</h2><h2 data-en>While spraying</h2>
+  <ul data-vi>
+    <li>Đặt biển "Đang phun thuốc" ở lối đi.</li>
+    <li>Đứng <b>đầu gió</b>, phun từ trên xuống, đi lùi.</li>
+    <li>Khách đi tới, gió mạnh, trời mưa → <b>dừng ngay</b>.</li>
+    <li>Không ăn, uống, hút thuốc khi pha và phun.</li>
+    <li><b>Decis</b>: không dùng gần hồ cá, hồ thủy sinh.</li>
+    <li>Gần Vị Garden: báo anh Vũ trước. App khóa thu hoạch đến hết cách ly.</li>
+  </ul>
+  <ul data-en>
+    <li>Place a "Spraying in progress" sign on paths.</li>
+    <li>Stand <b>upwind</b>, spray top to bottom, walk backwards.</li>
+    <li>Guests approach, strong wind, rain → <b>stop at once</b>.</li>
+    <li>No eating, drinking or smoking while mixing or spraying.</li>
+    <li><b>Decis</b>: never near fish or aquatic ponds.</li>
+    <li>Near Vị Garden: tell Mr Vu first. The app blocks harvest until re-entry ends.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Sau khi phun</h2><h2 data-en>After spraying</h2>
+  <div class="luoi" style="--c:2">
+    <div class="the"><b data-vi>Rửa bình 3 lần</b><b data-en>Rinse the tank 3 times</b><span data-vi>Nước rửa phun lại lên khu vừa phun. Không đổ cống, hồ, biển.</span><span data-en>Spray rinse water back on the treated area. Never into drains, ponds or the sea.</span></div>
+    <div class="the"><b data-vi>Vỏ chai, gói</b><b data-en>Empty packaging</b><span data-vi>Bỏ vào thùng bao bì thuốc BVTV ở kho. Không đốt, không vứt rác chung.</span><span data-en>Into the pesticide packaging bin in the store. Never burn or bin with general waste.</span></div>
+    <div class="the"><b data-vi>Vệ sinh cá nhân</b><b data-en>Personal hygiene</b><span data-vi>Tắm, thay đồ, giặt riêng quần áo phun.</span><span data-en>Shower, change, wash spraying clothes separately.</span></div>
+    <div class="the"><b data-vi>Ghi trên app ngay</b><b data-en>Record in the app now</b><span data-vi>Số bình, vị trí, ảnh. Mưa sau khi phun → "☔ Bị mưa rửa trôi".</span><span data-en>Tanks, positions, photo. Rain afterwards → "☔ Washed off by rain".</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Khi bị nhiễm thuốc</h2><h2 data-en>If contaminated</h2>
+  <div class="luoi" style="--c:2">
+    <div class="the"><b data-vi>Dính da</b><b data-en>On skin</b><span data-vi>Cởi đồ dính thuốc, rửa xà phòng và nhiều nước.</span><span data-en>Remove clothing, wash with soap and plenty of water.</span></div>
+    <div class="the"><b data-vi>Vào mắt</b><b data-en>In the eyes</b><span data-vi>Rửa nước sạch liên tục ít nhất 15 phút.</span><span data-en>Rinse with clean running water for at least 15 minutes.</span></div>
+    <div class="the"><b data-vi>Hít phải</b><b data-en>Inhaled</b><span data-vi>Ra chỗ thoáng, ngồi nghỉ, báo tổ trưởng.</span><span data-en>Move to fresh air, sit down, tell the team leader.</span></div>
+    <div class="the"><b data-vi>Nuốt phải</b><b data-en>Swallowed</b><span data-vi>Không tự gây nôn nếu nhãn không hướng dẫn. Gọi 115, mang theo chai hoặc ảnh nhãn.</span><span data-en>Do not induce vomiting unless the label says so. Call 115, bring the bottle or a label photo.</span></div>
+  </div>
+  <div class="canh"><p data-vi>Mọi trường hợp: báo tổ trưởng và anh Vũ ngay, ghi bằng nút ⚠ Báo khó khăn.</p><p data-en>Always tell the team leader and Mr Vu at once and record it with ⚠ Report challenge.</p></div>
+</section>
+
+<section class="slide toi">
+  <h2 data-vi>Kiểm tra cuối lớp</h2><h2 data-en>End-of-class check</h2>
+  <ul data-vi>
+    <li>Câu hỏi nhanh: giảng viên bốc ngẫu nhiên người trả lời (không chấm điểm).</li>
+    <li>Đề thi nhanh 10 câu (tùy chọn) trên app.</li>
+    <li>Thực hành: mỗi người pha đúng 1 bình theo công thức app, tổ trưởng kiểm tra.</li>
+    <li>7 ngày sau: tổ trưởng chấm điểm hiện trường theo SOP này.</li>
+  </ul>
+  <ul data-en>
+    <li>Quick questions: the trainer picks people at random (not graded).</li>
+    <li>Optional 10-question quick quiz in the app.</li>
+    <li>Practice: each trainee mixes one tank from the app formula, checked by the team leader.</li>
+    <li>7 days later: the team leader scores the site against this SOP.</li>
+  </ul>
+  <div class="chan">GreenLog · SOP-PHUN-01</div>
+</section>
+
+</div>
+<div class="nut"><button class="phu" id="ngonngu">EN</button><button class="phu" id="lui">‹</button><button id="toi">›</button></div>
+<script>
+  const ds = [...document.querySelectorAll('.slide')]; let i = 0;
+  const q = new URLSearchParams(location.search); if (q.get('lang') === 'en') document.body.classList.add('en');
+  try { if (!q.get('lang') && localStorage.getItem('gl_lang') === '"en"') document.body.classList.add('en'); } catch (e) {}
+  const nn = document.getElementById('ngonngu');
+  const ve = () => { ds.forEach((s, k) => { s.classList.toggle('dang', k === i); let so = s.querySelector('.so'); if (!so) { so = document.createElement('div'); so.className = 'so'; s.appendChild(so); } so.textContent = (k + 1) + ' / ' + ds.length; }); nn.textContent = document.body.classList.contains('en') ? 'VI' : 'EN'; };
+  const di = (d) => { i = Math.max(0, Math.min(ds.length - 1, i + d)); ve(); };
+  document.getElementById('toi').onclick = () => di(1); document.getElementById('lui').onclick = () => di(-1);
+  nn.onclick = () => { document.body.classList.toggle('en'); ve(); };
+  document.addEventListener('keydown', (e) => { if (['ArrowRight', 'PageDown', ' '].includes(e.key)) di(1); if (['ArrowLeft', 'PageUp'].includes(e.key)) di(-1); });
+  let x0 = null; document.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }); document.addEventListener('touchend', (e) => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 40) di(dx < 0 ? 1 : -1); x0 = null; });
+  document.getElementById('khung').addEventListener('click', (e) => { if (e.clientX > innerWidth / 2) di(1); else di(-1); });
+  ve();
+</script>
+</body>
+</html>

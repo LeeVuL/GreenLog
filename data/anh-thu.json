@@ -1,0 +1,35 @@
+{
+  "_ghiChu": "Ảnh thử mục 54/56 (25/11/2026). Ảnh cây từ Pl@ntNet, giấy phép CC-BY-SA: hiện ghi nguồn + tác giả dưới ảnh. Ảnh thuốc từ trang chính thức của hãng tại Việt Nam.",
+  "cay": {
+    "Phượng Vĩ": { "kh": "Delonix regia", "nguon": "https://identify.plantnet.org/aft/species/Delonix%20regia%20(Bojer%20ex%20Hook.)%20Raf./data", "anh": [
+      { "goc": "toan_cay", "url": "https://bs.plantnet.org/image/o/ec91e11cc3a2578e50f1302ef9312dc0898742dd", "tacGia": "jean Van Bogaert" },
+      { "goc": "la", "url": "https://bs.plantnet.org/image/o/2534767abdf7f23aa25145e247d8675a64375d6e" },
+      { "goc": "than", "url": "https://bs.plantnet.org/image/o/8c1f1ac939799d05566a2fddfe096a129d26754b" },
+      { "goc": "hoa", "url": "https://bs.plantnet.org/image/o/c0c78ddb1a1eac4da8a2def494c53a7361af24b2", "tacGia": "Blue Bottle" },
+      { "goc": "qua", "url": "https://bs.plantnet.org/image/o/4ff106fcc7d9d7351089f9a6f79bbba1f8ece3f1" } ] },
+    "Dừa": { "kh": "Cocos nucifera", "nguon": "https://identify.plantnet.org/id/k-middle-atlantic-ocean/species/Cocos%20nucifera%20L./data", "anh": [
+      { "goc": "toan_cay", "url": "https://bs.plantnet.org/image/o/03635f958cb6a42e03e046720badf1e733963739", "tacGia": "Gaya Mercè" },
+      { "goc": "la", "url": "https://bs.plantnet.org/image/o/a650a550c3759d92b824e2cda09635ebdfb8cf51" },
+      { "goc": "than", "url": "https://bs.plantnet.org/image/o/6ff015e8434ad2462c4dd3cdfa9f0bd6e4713868" },
+      { "goc": "qua", "url": "https://bs.plantnet.org/image/o/bf5599c2c9984802d2b9a72f17fea884dc16d52d", "tacGia": "Heleen Zuidam" },
+      { "goc": "khac", "url": "https://bs.plantnet.org/image/o/1d375b76b300a4e4504f75679d9e66fee0c49780" } ] },
+    "Hoa Giấy": { "kh": "Bougainvillea spectabilis", "nguon": "https://identify.plantnet.org/species/the-plant-list/Bougainvillea%20spectabilis%20Willd.", "anh": [
+      { "goc": "toan_cay", "url": "https://bs.plantnet.org/image/o/d4e7fab6d0374e3feacc6a9d99d7d5c5a3e59d8c", "tacGia": "Fernando da Luz Schmidt" },
+      { "goc": "la", "url": "https://bs.plantnet.org/image/o/346a9622932e4b38f2d2bff1132ce2c2f1733cf2" },
+      { "goc": "than", "url": "https://bs.plantnet.org/image/o/a5b12575f697fd232b1dcca7634830bdf0260750" },
+      { "goc": "hoa", "url": "https://bs.plantnet.org/image/o/e93a13c56e01b32942fdfcb2acdfb2634652d588", "tacGia": "Dieter Wagner" } ] },
+    "Lưỡi Hổ": { "kh": "Dracaena trifasciata (Sansevieria trifasciata)", "nguon": "https://identify.plantnet.org/useful/species/Sansevieria%20trifasciata%20Prain/data", "anh": [
+      { "goc": "toan_cay", "url": "https://bs.plantnet.org/image/o/9caac5cac6f54eb1d6874d22a6f57ded75ddd5e9" },
+      { "goc": "la", "url": "https://bs.plantnet.org/image/o/ef4fe6720a18afe3a54a92bf2f59e0627f75f9c4", "tacGia": "Djilali LEBID" },
+      { "goc": "goc", "url": "https://bs.plantnet.org/image/o/d8be4d668b0b9b9bb90a2d2566c4c3b80d4b4121" } ] },
+    "Huỳnh Anh Vàng": { "kh": "Allamanda cathartica", "nguon": "https://identify.plantnet.org/useful/species/Allamanda%20cathartica%20L./data", "anh": [
+      { "goc": "toan_cay", "url": "https://bs.plantnet.org/image/o/053bb6c0f758891851969e7a1cc11985ebe5dead", "tacGia": "Gérard Foucher" },
+      { "goc": "la", "url": "https://bs.plantnet.org/image/o/d76568d34490617049881fbf1e9f9c23fefb02c5", "tacGia": "Daniel M'BYLA" },
+      { "goc": "than", "url": "https://bs.plantnet.org/image/o/3dcbd0c935bb0c77afae028db2b546b643369944" },
+      { "goc": "hoa", "url": "https://bs.plantnet.org/image/o/3ffbde9de66c8f7990d7888e5f3b4bdb13624b4a" } ] }
+  },
+  "thuoc": {
+    "Radiant 60SC": { "nguon": "https://www.corteva.com/vn/san-pham-va-giai-phap/tra-cuu-thong-tin-san-pham/Radiant60SC.html", "anh": [
+      { "goc": "bao_bi", "url": "https://assets.corteva.com/is/image/Corteva/CTV_Website_Radiant_V3-01?ts=1699583085431", "ghiChu": "Corteva Việt Nam: gói 15 ml và chai 30 ml nắp xanh (bao bì mới từ 11/2023)" } ] }
+  }
+}

@@ -1,6 +1,6 @@
 /* GreenLog service worker: giữ vỏ app để mở nhanh, dữ liệu luôn lấy mới */
 const BAN = 'greenlog-v0.4.0';
-const VO = ['./', 'index.html', 'css/app.css', 'js/config.js', 'js/api.js', 'js/core.js', 'js/icons.js', 'js/v03-nen.js', 'js/app.js', 'js/m-noibo.js', 'js/m-nghiepvu.js', 'js/m-kehoach.js', 'js/m-quanly.js', 'js/v03-viec.js', 'js/v03-them.js', 'js/menu.js', 'css/v04.css', 'js/v04-nen.js', 'js/v04-tongquan.js', 'js/v04-viec.js', 'js/v04-cay.js', 'js/v04-hop.js', 'js/v04-ngay.js', 'js/v04-hoso.js', 'js/v04-daotao.js', 'js/lib/jszip.min.js', 'js/v04-baocao.js', 'js/i18n-en.js', 'img/hoso/mvp.svg', 'img/hoso/pqc.svg', 'js/demo-data.json',
+const VO = ['./', 'index.html', 'css/app.css', 'js/config.js', 'js/api.js', 'js/core.js', 'js/icons.js', 'js/v03-nen.js', 'js/app.js', 'js/m-noibo.js', 'js/m-nghiepvu.js', 'js/m-kehoach.js', 'js/m-quanly.js', 'js/v03-viec.js', 'js/v03-them.js', 'js/menu.js', 'css/v04.css', 'js/v04-nen.js', 'js/v04-tongquan.js', 'js/v04-viec.js', 'js/v04-cay.js', 'js/v04-hop.js', 'js/v04-ngay.js', 'js/v04-hoso.js', 'js/v04-daotao.js', 'js/v04-sopmau.js', 'slides/sop-phun-01.html', 'js/lib/jszip.min.js', 'js/v04-baocao.js', 'js/i18n-en.js', 'img/hoso/mvp.svg', 'img/hoso/pqc.svg', 'js/demo-data.json',
   'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/GreenLog_Logo_Ngang.svg'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(BAN).then((c) => c.addAll(VO))); self.skipWaiting(); });
 self.addEventListener('activate', (e) => {
