@@ -154,7 +154,8 @@
     const can = (b) => q(API.BANG[b][0]) >= 1;
     const d = await API.goi('docNhieu', { ds: [{ bang: 'KeHoachTuan', loc: { 'Tuần': [tuan, st.tu] } }, { bang: 'KeHoachDinhKy', gioiHan: 2000 }].concat(can('Phieu') ? [{ bang: 'Phieu', gioiHan: 300 }] : []).concat(can('SuKien') ? [{ bang: 'SuKien', gioiHan: 100 }] : []) });
     const A = d.KeHoachDinhKy.filter((x) => x['Từ ngày'] <= den && x['Đến ngày'] >= st.tu && (!st.doi || x['Đội'] === st.doi) && (!st.ngay || (x['Từ ngày'] <= st.ngay && x['Đến ngày'] >= st.ngay)));
-    const B = d.KeHoachTuan.filter((x) => !x['Mã việc'] && (!st.doi || x['Đội/Người'] === st.doi) && (!st.ngay || (x['Từ ngày'] || st.tu) <= st.ngay && x['Hạn'] >= st.ngay));
+    const anNB = S.u.nhom === 'Quản lý nhà thầu'; // mục 92: Pháp không thấy việc nội bộ
+    const B = d.KeHoachTuan.filter((x) => !x['Mã việc'] && !(anNB && /nội bộ|Hiệp|Nghị/i.test(x['Đội/Người'] || '')) && (!st.doi || x['Đội/Người'] === st.doi) && (!st.ngay || (x['Từ ngày'] || st.tu) <= st.ngay && x['Hạn'] >= st.ngay));
     const duyet = q('kehoach') >= 3; const MAU = { 'Đăng ký': 'cam', 'Đã giao': '', 'Xong': 'xanh', 'Trễ': 'do' };
     const goiY = [];
     (d.Phieu || []).filter((p) => p['Trạng thái'] !== 'Đã duyệt').forEach((p) => goiY.push({ dt: 'Sửa', nd: p['Loại lỗi'], vt: p['Mã vị trí'], han: ngayCua(p['Hạn']), muc: p['Mức độ'], nguon: 'Phiếu ' + p['Mã phiếu'] }));
@@ -163,7 +164,7 @@
     const dongB = (x) => `${esc(x['Động từ'] || '')} ${esc(x['Đối tượng'] || x['Nội dung'])}`.trim();
     m.innerHTML = `<div class="nhom-nut" style="margin-bottom:10px"><button class="nut nho" id="truoc">‹ Tuần trước</button><button class="nut nho" id="zalo">📤 Gửi Zalo</button><button class="nut nho" id="sau">Tuần sau ›</button></div>
       <div class="chon boc"><button data-ng="" class="${!st.ngay ? 'dang' : ''}">Cả tuần</button>${ngays.map((n) => `<button data-ng="${n}" class="${st.ngay === n ? 'dang' : ''}">${G.thuNgan(n)} ${G.ngayVN(n).slice(0, 5)}</button>`).join('')}</div>
-      <div class="chon"><button data-doi="" class="${!st.doi ? 'dang' : ''}">Mọi đội</button>${['Đội khu vực', 'Đội cơ động', 'Nhân viên nội bộ'].map((x) => `<button data-doi="${x}" class="${st.doi === x ? 'dang' : ''}">${x}</button>`).join('')}</div>
+      <div class="chon"><button data-doi="" class="${!st.doi ? 'dang' : ''}">Mọi đội</button>${['Đội khu vực', 'Đội cơ động'].concat(anNB ? [] : ['Nhân viên nội bộ']).map((x) => `<button data-doi="${x}" class="${st.doi === x ? 'dang' : ''}">${x}</button>`).join('')}</div>
       <h3 class="tieu-nhom">A. Việc định kỳ (${A.length})</h3><div class="ds">${A.map((x) => `<div class="muc"><div class="gian"><b>${esc(G.dvTen(x['Mã việc']))}</b><div class="mo">${esc(x['Cụm'])}${x['Khu vực'] ? ' · ' + esc(x['Khu vực']) : ''} · ${esc(x['Đội'])} · ${G.ngayVN(x['Từ ngày']).slice(0, 5)}–${G.ngayVN(x['Đến ngày']).slice(0, 5)}</div></div><span class="chip">${x['Trạng thái duyệt'] === 'Đã duyệt' ? 'Đã duyệt' : 'Chờ'}</span></div>`).join('') || '<div class="muc mo">Không có kế hoạch định kỳ trong tuần (lập ở Kế hoạch định kỳ tháng)</div>'}</div>
       <h3 class="tieu-nhom">B. Việc khác (${B.length})</h3>${q('kehoach') >= 2 ? '<button class="nut chinh rong" id="moi" style="margin-bottom:8px">＋ Thêm việc: động từ → đối tượng → vị trí → người → hạn</button>' : ''}
       ${duyet && B.some((x) => x['Trạng thái'] === 'Đăng ký') ? '<button class="nut rong" id="giaoHet" style="margin-bottom:8px">Giao việc: chốt tất cả mục đã đăng ký</button>' : ''}

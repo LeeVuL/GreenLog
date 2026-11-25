@@ -129,7 +129,7 @@
   function canAnh(bang, dong) {
     const c = COT_ANH[bang]; if (!c || !dong.length) return;
     if (bang === 'TuiThuocDua' && dong.every((x) => x['Loại dòng'] === 'Cây')) return;
-    if (bang === 'MaySangCat' && dong.every((x) => x['Loại'] === 'Không sàng' || x['Bảo trì'] === 'Đọc đồng hồ giờ')) return; // mục 73
+    if (bang === 'MaySangCat' && dong.every((x) => x['Loại'] === 'Không sàng' || x['Bảo trì'] === 'Đọc đồng hồ giờ' || x['Bảo trì'] === 'Đổ xăng')) return; // mục 73
     const co = (x) => { const v = x[c] != null ? x[c] : x['Ảnh']; return Array.isArray(v) ? v.length > 0 : !!String(v || '').trim(); };
     if (!dong.some(co)) throw new Error('Cần ít nhất 1 ảnh hiện trường cho việc này');
   }
@@ -280,7 +280,8 @@
     /* ---- định kỳ: lưu nhiều vị trí + ảnh một lần ---- */
     async 'dinhKy.luu'(u, r) {
       can(u, 'dinhky', 2);
-      if (!r.anh || !r.anh.length) throw new Error('Cần ít nhất 1 ảnh hiện trường');
+      if ((!r.anh || !r.anh.length) && !(r.trangThai === 'Đang làm' && r.tuKeHoach)) throw new Error('Cần ít nhất 1 ảnh hiện trường'); // mục 86: giao việc sáng → Đang làm, ảnh chụp lúc xong
+      r.anh = r.anh || [];
       const tt = r.trangThai === 'Đang làm' ? 'Đang làm' : 'Xong';
       const t = tb('TickDinhKy'); const hn = ngay(); const k = ky(hn).ten; const gio = bayGio(); const hoan = { xoa: [], khoi: [] };
       r.ds.forEach((x) => {
@@ -322,7 +323,7 @@
       if (!p) throw new Error('Không tìm thấy phiếu');
       const now = bayGio();
       if (r.hd === 'nhan') Object.assign(p, { 'Người nhận': u.ten, 'Giờ nhận': now, 'Trạng thái': 'Đang xử lý' });
-      if (r.hd === 'xong') { if (!(r.anh && r.anh.length)) throw new Error('Cần ảnh sau khi xử lý'); if (p['Chi tiết trồng'] && !(r.anhTrong && r.anhTrong.length)) throw new Error('Phiếu trồng cây cần ảnh trong khi trồng'); Object.assign(p, { 'Ảnh sau': r.anh.join(' | '), 'Ảnh trong': (r.anhTrong || []).join(' | '), 'Giờ xong': now, 'Trạng thái': 'Báo xong' }); }
+      if (r.hd === 'xong') { if (!(r.anh && r.anh.length)) throw new Error('Cần ảnh sau khi xử lý'); if (p['Chi tiết trồng'] && !(r.anhTrong && r.anhTrong.length)) throw new Error('Phiếu trồng cây cần ảnh trong khi trồng'); Object.assign(p, { 'Ảnh sau': r.anh.join(' | '), 'Ảnh trong': (r.anhTrong || []).join(' | '), 'Giờ xong': now, 'Trạng thái': p['Loại'] === 'Chăm sóc cây trong villa' ? 'Đã duyệt' : 'Báo xong' }); } // mục 91: phiếu ghi nhận cây trong villa đóng luôn
       if (r.hd === 'duyet') { Object.assign(p, { 'Giờ duyệt': now, 'Trạng thái': 'Đã duyệt' }); if (p['Chi tiết trồng']) ghiTrong(u, p); }
       if (r.hd === 'traLai') Object.assign(p, { 'Trạng thái': 'Bị trả lại', 'Số lần trả lại': String(+p['Số lần trả lại'] + 1) });
       luuTb('Phieu', ds);

@@ -39,4 +39,18 @@
   const chuong = G.dsChuong;
   G.dsChuong = async () => { const out = await chuong(); try { if (!(S.u.nhom === 'Nhân viên nội bộ' || G.laAnhVu())) return out; const n = await G.ngayChuaSang();
     if (n >= NGAY_NHAC) out.push({ ten: `🏖 Đã ${n > 14 ? 'hơn 14' : n} ngày chưa sàng cát`, phu: 'Chạy máy hoặc ghi lý do không sàng được', link: 'nb/may' }); } catch (e) { /* bỏ qua */ } return out; };
+
+  /* 0.4.3: thẻ Sand Man dùng lại phần "Hôm nay không sàng được" */
+  G.ganKhongSang = async (el, ghi) => {
+    if (!el) return; const nay = await G.doc('MaySangCat', { 'Ngày': hn() }); const khong = nay.find((x) => x['Loại'] === 'Không sàng'); const nChua = await G.ngayChuaSang();
+    el.innerHTML = khong ? `<div class="the the-mo" style="margin:0 0 8px"><b>⛔ Hôm nay không sàng: ${esc(khong['Lý do'] || '')}</b>${khong['Ghi chú'] ? `<div class="mo">${esc(khong['Ghi chú'])}</div>` : ''}${ghi || G.laAnhVu() ? '<button class="nut nho" id="boKS" style="margin-top:6px">Ghi nhầm · bỏ</button>' : ''}</div>`
+      : (nChua >= NGAY_NHAC && ghi ? `<div class="the the-mo" style="margin:0 0 8px"><b>⚠ Đã ${nChua > 14 ? 'hơn 14' : nChua} ngày chưa sàng cát</b><div class="mo">Chạy máy hôm nay hoặc ghi lý do không sàng được.</div></div>` : '') + (ghi ? '<button class="nut rong" id="khongSang" style="margin:0 0 8px">⛔ Hôm nay không sàng được</button>' : '');
+    const ks = el.querySelector('#khongSang'); if (ks) ks.onclick = () => G.hop('⛔ Hôm nay không sàng được', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
+      const lay = G.form(o.querySelector('#f'), [{ k: 'ly', nhan: 'Lý do', loai: 'chips', ds: LY_DO, bb: true, gt: 'Trời mưa, cát ướt' }, { k: 'khac', nhan: 'Ghi lý do', loai: 'mota', bb: true, khi: (v) => v.ly === 'Lý do khác' },
+        { k: 'gc', nhan: 'Ghi chú', loai: 'mota', khi: (v) => v.ly !== 'Lý do khác' }, { k: 'anh', nhan: 'Ảnh (không bắt buộc)', loai: 'anh', toiDa: 2, tuyChon: true }]);
+      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay();
+        await API.goi('ghi', { bang: 'MaySangCat', dong: { 'Ngày': '', 'Máy': 'Sand Man', 'Loại': 'Không sàng', 'Lý do': v.ly === 'Lý do khác' ? v.khac : v.ly, 'Ghi chú': v.gc || '', 'Ảnh': v.anh, 'Người ghi': '' } });
+        dong(); bao('Đã ghi: hôm nay không sàng'); G.taiLai(); }, e.target); });
+    const bo = el.querySelector('#boKS'); if (bo) bo.onclick = () => chay(async () => { await API.goi('xoa', { bang: 'MaySangCat', khoa: { 'Ngày': hn(), 'Loại': 'Không sàng', 'Lý do': khong['Lý do'] } }); bao('Đã bỏ'); G.taiLai(); }, bo);
+  };
 })();

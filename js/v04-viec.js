@@ -28,13 +28,13 @@
   /* ================= MỘT KIỂU CHỌN KHU VỰC (mục 6): cụm → mặt nhanh → Chọn/Bỏ cả cụm → ô villa ================= */
   G.chonViTri = (opt) => new Promise((ok) => {
     opt = opt || {}; let xong = false;
-    const goc = S.dm.vitri.filter((v) => !opt.chiApDung || v.ap === 'Có');
-    const st = { cum: '', mat: 'Cả 3', chon: new Set() };
+    const goc = (opt.ds || S.dm.vitri).filter((v) => !opt.chiApDung || v.ap === 'Có');
+    const st = { cum: '', mat: 'Cả 3', chon: new Set(opt.chon || []) };
     G.hop('Chọn vị trí', `<input type="search" class="tim" placeholder="Tìm nhanh, ví dụ: Villa 32" style="margin-bottom:8px"><div id="lv"></div>
       <div class="thanh-duoi" style="position:sticky;bottom:0;left:0;padding:10px 0 0"><div class="nhom-nut"><button type="button" class="nut" id="khac">Vị trí khác…</button><button type="button" class="nut chinh" id="xong" disabled>Chọn</button></div></div>`, (o, dong) => {
       const tim = o.querySelector('.tim'); const nut = o.querySelector('#xong');
-      const doi = () => { nut.disabled = !st.chon.size; nut.textContent = st.chon.size ? `Chọn ${st.chon.size === 1 ? '' : st.chon.size + ' vị trí'}`.trim() : 'Chọn'; };
-      const ve = () => { const t = tim.value.trim().toLowerCase(); const ds = t ? goc.filter((v) => (v.ten + ' ' + v.kv + ' ' + v.cum).toLowerCase().includes(t)) : goc; G.luoiVT(o.querySelector('#lv'), { ds: ds.length ? ds : goc, st, trangThai: () => ({ cls: '' }), coMat: true, doi }); doi(); };
+      const doi = () => { nut.disabled = !st.chon.size && !opt.choRong; nut.textContent = st.chon.size ? `Chọn ${st.chon.size === 1 ? '' : st.chon.size + ' vị trí'}`.trim() : 'Chọn'; };
+      const ve = () => { const t = tim.value.trim().toLowerCase(); const ds = t ? goc.filter((v) => (v.ten + ' ' + v.kv + ' ' + v.cum).toLowerCase().includes(t)) : goc; G.luoiVT(o.querySelector('#lv'), { ds: ds.length ? ds : goc, st, trangThai: opt.trangThai || (() => ({ cls: '' })), coMat: opt.coMat !== false, doi }); doi(); };
       tim.oninput = ve; ve();
       nut.onclick = () => {
         const ma = [...st.chon]; const v0 = G.vt(ma[0]) || {}; xong = true; dong();

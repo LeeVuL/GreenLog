@@ -102,13 +102,13 @@
     const st = G.manHomNayMoi.loc || 'chua';
     // danh sách việc: tổ trưởng = việc giao trong ngày; nội bộ = việc nội bộ theo lịch; Pháp = xem
     let viec = [];
-    if (laTT) viec = gv.map((g) => ({ ten: g['Nội dung'], phu: g['Người'], tt: g['Trạng thái'] === 'Xong' ? 'xong' : g['Trạng thái'] === 'Đang làm' ? 'dang' : 'chua', ma: g['Mã'] }));
+    if (laTT) viec = gv.map((g) => ({ ten: g['Nội dung'], phu: [g['Vị trí'], String(g['Người'] || '').split(', ').filter(Boolean).length + ' người'].filter(Boolean).join(' · '), tt: g['Trạng thái'] === 'Xong' ? 'xong' : g['Trạng thái'] === 'Đang làm' ? 'dang' : 'chua', ma: g['Mã'] }));
     const laNB = S.u.nhom === 'Nhân viên nội bộ'; let kca = null;
     if (laNB) { viec = await G.viecNoiBo(hn(), tt); kca = (await G.doc('NgayLamViec', { 'Ngày': hn(), 'Loại': 'Kết thúc ca' })).find((x) => x['Người'] === S.u.ten); }
     const n = { chua: viec.filter((x) => x.tt === 'chua').length, dang: viec.filter((x) => x.tt === 'dang').length, xong: viec.filter((x) => x.tt === 'xong').length };
     const p = viec.length ? Math.round(n.xong / viec.length * 100) : 0;
-    const nn = (d.NhacNho || []).filter((x) => !/Đã xong|Bỏ/.test(x['Trạng thái']) && (x['Giao đội'] === doi || x['Giao đội'] === S.u.ten || (S.u.nhom === 'Nhân viên nội bộ' && x['Giao đội'] === 'Nội bộ') || S.u.nhom === 'Quản lý nhà thầu'));
-    const bt = S.u.nhom === 'Nhân viên nội bộ' ? (d.BatThuong || []).filter((x) => x['Trạng thái'] !== 'Đã đóng' && x['Mã điểm']) : [];
+    const nn = (d.NhacNho || []).filter((x) => !/Đã xong|Bỏ/.test(x['Trạng thái']) && (x['Giao đội'] === doi || x['Giao đội'] === S.u.ten || (S.u.nhom === 'Nhân viên nội bộ' && x['Giao đội'] === 'Nội bộ') || (S.u.nhom === 'Quản lý nhà thầu' && !/Nội bộ|Hiệp|Nghị/.test(x['Giao đội'] || ''))));
+    const bt = []; // mục 88: cây bất thường xử lý qua phiếu, không treo việc
     const su = S.u.nhom === 'Nhân viên nội bộ' ? (d.Phieu || []).filter((x) => x['Loại'] === 'Setup cây nội thất' && !/Đã duyệt|Báo xong/.test(x['Trạng thái'])) : [];
     const bd = nlv.find((x) => x['Loại'] === 'Bắt đầu ngày'); const ch = nlv.find((x) => x['Loại'] === 'Chốt ngày');
     let html = `<div class="chao"><div style="opacity:.8">${G.thu()}, ${G.ngayVN(hn())}</div><h1>Chào ${esc(G.laAnhVu() ? 'Trưởng bộ phận' : S.u.ten.split(' ').slice(-1)[0])},<em>${laTT ? 'việc ' + esc(doi.toLowerCase()) + ' hôm nay' : 'việc hôm nay'}</em></h1>
@@ -123,7 +123,7 @@
     if (viec.length) {
       html += `<div class="loc-tt">${[['chua', 'Chưa làm'], ['dang', 'Đang làm'], ['xong', 'Xong']].map(([k, t]) => `<button data-loc="${k}" class="${st === k ? 'dang' : ''}">${t} (${n[k]})</button>`).join('')}</div>`;
       html += viec.filter((x) => x.tt === st).map((x) => (x.link ? `<div class="the-viec"><a href="#/${x.link}" style="display:flex;gap:10px;align-items:center;flex:1;color:inherit;text-decoration:none"><span class="bt">${x.tt === 'xong' ? '✅' : x.tt === 'dang' ? '◐' : '⬜'}</span><span class="gian"><b>${esc(x.ten)}</b><span class="mo">${esc(x.phu)}</span></span></a>${laNB && x.tt === 'chua' ? `<button class="nut nho" data-bd="${esc(x.link)}" data-ten="${esc(x.ten)}">▶ Bắt đầu</button>` : '›'}</div>`
-        : `<div class="the-viec"><button class="tick-gv" data-gv="${esc(x.ma)}" style="background:none;border:0;font-size:24px">${x.tt === 'xong' ? '✅' : x.tt === 'dang' ? '◐' : '⬜'}</button><span class="gian"><b>${esc(x.ten)}</b><span class="mo">${esc(x.phu)}</span></span><button class="nut nho" data-ps="1">＋ Phát sinh</button></div>`)).join('') || G.trong('Không có việc ở mục này.');
+        : `<div class="the-viec"><button class="tick-gv" data-gv="${esc(x.ma)}" style="background:none;border:0;font-size:24px">${x.tt === 'xong' ? '✅' : x.tt === 'dang' ? '◐' : '⬜'}</button><span class="gian" data-ctgv="${esc(x.ma)}" style="cursor:pointer"><b>${esc(x.ten)}</b><span class="mo">${esc(x.phu)}</span></span><button class="nut nho" data-ps="1">＋ Phát sinh</button></div>`)).join('') || G.trong('Không có việc ở mục này.');
     }
     m.innerHTML = html;
     m.querySelectorAll('[data-loc]').forEach((b) => { b.onclick = () => { G.manHomNayMoi.loc = b.dataset.loc; G.taiLai(); }; });
@@ -131,6 +131,8 @@
     m.querySelectorAll('[data-gv]').forEach((b) => { b.onclick = () => chay(async () => { const g = gv.find((x) => x['Mã'] === b.dataset.gv); const moi = g['Trạng thái'] === 'Xong' ? 'Chưa làm' : g['Trạng thái'] === 'Đang làm' ? 'Xong' : 'Đang làm';
       await API.goi('sua', { bang: 'GiaoViecNgay', khoa: { 'Mã': g['Mã'] }, doi: { 'Trạng thái': moi, 'Giờ cập nhật': API.bayGio() } }); G.taiLai(); }); });
     m.querySelectorAll('[data-ps]').forEach((b) => { b.onclick = () => { location.hash = '#/phatsinh'; }; });
+    m.querySelectorAll('[data-ctgv]').forEach((b) => { b.onclick = () => { const g = gv.find((x) => x['Mã'] === b.dataset.ctgv); if (!g) return; const ng = String(g['Người'] || '').split(', ').filter(Boolean); // mục 85: chạm để xem chi tiết
+      hop(g['Nội dung'], `<div class="mo">${esc(g['Nguồn'] || '')} · ${esc(g['Trạng thái'] || '')}</div>${g['Vị trí'] ? `<p><b>📍 Vị trí:</b> ${esc(g['Vị trí'])}</p>` : ''}<p><b>👥 Người (${ng.length}):</b></p><div class="chon boc">${ng.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>`); }; });
     m.querySelectorAll('[data-buoi]').forEach((b) => { b.onclick = () => chay(async () => { await API.goi('diemDanh.tuDiem', { buoi: b.dataset.buoi }); bao('Đã ghi có mặt buổi ' + b.dataset.buoi.toLowerCase()); }, b); });
   };
 
@@ -154,7 +156,7 @@
     const cot = (doi) => { const gv = d.GiaoViecNgay.filter((x) => x['Đội'] === doi); const ch = d.NgayLamViec.find((x) => x['Đội'] === doi && x['Loại'] === 'Chốt ngày'); const bd = d.NgayLamViec.find((x) => x['Đội'] === doi && x['Loại'] === 'Bắt đầu ngày');
       return `<div class="the"><div class="hang"><h2 class="gian" style="margin:0">${esc(doi)}</h2><span class="chip">${sang.filter((r) => r['Đội'] === doi && /Có mặt/.test(r[TT_DD])).length} có mặt</span></div>
         <div class="mo" style="margin:4px 0 8px">Kế hoạch: ${bd ? '✓ ' + String(bd['Giờ']).slice(11, 16) + (bd['Đúng hạn'] === 'Trễ' ? ' (trễ)' : '') : '—'} · Chốt: ${ch ? esc(ch['Trạng thái']) + ' ' + String(ch['Giờ']).slice(11, 16) : '—'}</div>
-        <table class="bang-tq"><tr><th>Ai</th><th>Làm gì · ở đâu</th><th></th></tr>${gv.map((x) => `<tr><td>${esc(String(x['Người']).split(', ').map((n) => n.split(' ').pop()).join(', '))}</td><td>${esc(x['Nội dung'])}${x['Vị trí'] ? '<div class="mo">' + esc(x['Vị trí']) + '</div>' : ''}</td><td><span class="chip ${x['Trạng thái'] === 'Xong' ? 'xanh' : x['Trạng thái'] === 'Chưa làm' ? '' : 'cam'}">${esc(x['Trạng thái'])}</span></td></tr>`).join('') || '<tr><td colspan="3" class="mo">Chưa có kế hoạch</td></tr>'}</table>
+        <table class="bang-tq"><tr><th>Người</th><th>Làm gì · ở đâu</th><th></th></tr>${gv.map((x) => `<tr><td data-ctgv="${esc(x['Mã'])}" style="cursor:pointer;white-space:nowrap">👥 ${String(x['Người'] || '').split(', ').filter(Boolean).length}</td><td>${esc(x['Nội dung'])}${x['Vị trí'] ? '<div class="mo">' + esc(x['Vị trí']) + '</div>' : ''}</td><td><span class="chip ${x['Trạng thái'] === 'Xong' ? 'xanh' : x['Trạng thái'] === 'Chưa làm' ? '' : 'cam'}">${esc(x['Trạng thái'])}</span></td></tr>`).join('') || '<tr><td colspan="3" class="mo">Chưa có kế hoạch</td></tr>'}</table>
         ${ch && ch['Trạng thái'] === 'Chờ anh chốt' && G.laAnhVu() ? `<button class="nut chinh rong" data-chot="${esc(doi)}" style="margin-top:8px">Chốt ngày ${esc(doi)}</button>` : ''}</div>`; };
     const nbCot = `<div class="the"><h2 style="margin:0 0 8px">Nội bộ (Hiệp, Nghị)</h2>${[['nb/bien', 'Vệ sinh bãi biển'], ['nb/ktbien', 'Kiểm tra bãi biển'], ['nb/vuonrau', 'Vị Garden'], ['nb/noithat', 'Cây nội thất'], ['nb/may', 'Máy sàng cát'], ['nb/compost', 'Compost']].map(([l, t]) => `<div class="hang" style="padding:4px 0"><span class="gian">${t}</span>${tt[l] ? `<span class="chip xanh">✓ ${esc(tt[l].gio)} ${esc(tt[l].ai)}</span>` : '<span class="chip">chưa</span>'}</div>`).join('')}</div>`;
     const cums = Object.keys(G.DINH_BIEN_KHU); const khu = S.dm.khu || [];
@@ -167,6 +169,8 @@
       <div class="the"><b>Sơ đồ cụm</b> <span class="mo">· xanh đủ người · vàng thiếu · đỏ trống</span><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-top:8px">${cums.map((c) => `<div style="background:${mau(c)};border-radius:10px;padding:8px;font-size:13px"><b>${esc(c)}</b><div class="mo">${khu.filter((r) => r['Cụm'] === c && coMat.has(r['Mã CN'])).length}/${G.DINH_BIEN_KHU[c] || '–'} người</div></div>`).join('')}</div></div>
       <div class="luoi-tq">${DOI2.map(cot).join('')}${nbCot}</div>
       ${d.ViecPhatSinh.length ? `<div class="the"><h2>Phát sinh</h2>${d.ViecPhatSinh.map((x) => `<div class="mo">• ${esc(x['Mô tả'])} · ${esc(x['Trạng thái'])}</div>`).join('')}</div>` : ''}`;
+    m.querySelectorAll('[data-ctgv]').forEach((b) => { b.onclick = () => { const g = d.GiaoViecNgay.find((x) => x['Mã'] === b.dataset.ctgv); if (!g) return; const ng = String(g['Người'] || '').split(', ').filter(Boolean);
+      hop(g['Nội dung'], `<div class="mo">${esc(g['Đội'])} · ${esc(g['Trạng thái'] || '')}</div>${g['Vị trí'] ? `<p><b>📍 Vị trí:</b> ${esc(g['Vị trí'])}</p>` : ''}<p><b>👥 Người (${ng.length}):</b></p><div class="chon boc">${ng.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>`); }; });
     m.querySelectorAll('[data-chot]').forEach((b) => { b.onclick = () => hop('Chốt ngày ' + b.dataset.chot, '<div id="f"></div><button class="nut chinh rong" id="l">Chốt, tạo trang nhật ký</button>', (o, dong) => {
       const lay = G.form(o.querySelector('#f'), [{ k: 'yk', nhan: 'Ý kiến giám sát (vào nhật ký thi công)', loai: 'mota' }]);
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await API.goi('sua', { bang: 'NgayLamViec', khoa: { 'Ngày': ngay, 'Đội': b.dataset.chot, 'Loại': 'Chốt ngày' }, doi: { 'Trạng thái': 'Đã chốt', 'Ý kiến giám sát': v.yk, 'Người duyệt': S.u.ten, 'Giờ duyệt': API.bayGio() } }); dong(); bao('Đã chốt ngày · trang nhật ký đã tạo'); G.taiLai(); }, e.target);

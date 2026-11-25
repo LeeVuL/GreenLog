@@ -159,3 +159,12 @@ header.dau .nut-hd { font-weight: 800; font-size: 18px; margin-right: 6px; }
 .vao-nhanh { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 12px 0; }
 .vao-nhanh .the { margin: 0; text-decoration: none; color: inherit; display: block; }
 .vao-nhanh .the .mo { display: block; }
+/* 0.4.3 – bắt đầu ngày gọn */
+.dn-phu{display:flex;align-items:center;gap:8px;margin:6px 0 0 26px;font-size:14px}
+.dn-phu .nut.nho{flex:none}
+.luoi-chuyen{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.o-chuyen{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px;border:1.5px solid var(--vien);border-radius:14px;background:#fff;font:inherit;text-align:left;cursor:pointer}
+.o-chuyen b{font-size:22px;min-width:28px;color:var(--xanh)}
+.o-chuyen:active{background:var(--chanh)}
+.may2 .may-the{margin:0}
+@media(max-width:700px){.may2{grid-template-columns:1fr}}
