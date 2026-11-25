@@ -39,7 +39,7 @@
       <div class="hop-vao">
         ${API.coThat() ? `<p class="mo">Đăng nhập bằng Gmail đã đăng ký với Trưởng bộ phận</p><div id="nutGoogle" style="display:flex;justify-content:center;margin-bottom:18px"></div><hr style="border:0;border-top:1px solid var(--vien2);margin:18px 0">` : ''}
         <p class="mo"><b>Chạy thử</b> với dữ liệu mẫu, chọn vai để xem mỗi người thấy gì:</p>
-        <div class="chon-nguoi">${API.nguoiThu.map((n, i) => `<button class="nut" data-i="${i}">👤 ${esc(n.ten)} <span class="mo" style="margin-left:auto">${esc(n.nhom)}</span></button>`).join('')}</div>
+        <div class="chon-nguoi" data-giu-ten>${API.nguoiThu.map((n, i) => `<button class="nut" data-i="${i}">👤 ${esc(n.ten)} <span class="mo" style="margin-left:auto">${esc(n.nhom)}</span></button>`).join('')}</div>
       </div></div>`;
     $app.querySelectorAll('[data-i]').forEach((b) => { b.onclick = async () => { await API.vaoThu(+b.dataset.i); history.replaceState(null, '', location.pathname); batDau(); }; });
     if (API.coThat()) {

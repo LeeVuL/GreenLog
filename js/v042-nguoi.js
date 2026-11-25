@@ -34,7 +34,7 @@
   /* màn Thêm: thẻ tài khoản; Trưởng bộ phận đổi ảnh cho mọi người */
   const theTK = async () => { const m = document.getElementById('noiDung'); if (!m || m.querySelector('.the-tk') || m.querySelector('.dang-tai')) return; await napAV(); if (m.querySelector('.the-tk')) return;
     const ds = G.laAnhVu() ? [...new Set([S.u.ten].concat((S.dm.nguoi || []).map((x) => x.ten)).concat((S.dm.congnhan || []).filter((x) => x.tt !== 'Đã nghỉ').map((x) => x.ten)).filter(Boolean))] : [S.u.ten];
-    m.insertAdjacentHTML('afterbegin', `<div class="the the-tk"><div style="display:flex;align-items:center;gap:12px">${G.avatar(S.u.ten, 56)}<div class="gian"><b>${esc(S.u.ten)}</b><div class="mo">${esc(S.u.vaiTro || S.u.nhom || '')}</div></div><button class="nut nho" data-av="${esc(S.u.ten)}">Đổi ảnh đại diện</button></div>
+    m.insertAdjacentHTML('afterbegin', `<div class="the the-tk" data-giu-ten><div style="display:flex;align-items:center;gap:12px">${G.avatar(S.u.ten, 56)}<div class="gian"><b>${esc(S.u.ten)}</b><div class="mo">${esc(S.u.vaiTro || S.u.nhom || '')}</div></div><button class="nut nho" data-av="${esc(S.u.ten)}">Đổi ảnh đại diện</button></div>
       ${ds.length > 1 ? `<details style="margin-top:10px"><summary class="mo">Ảnh đại diện của mọi người (${ds.length - 1})</summary><div class="ds">${ds.slice(1).map((t) => `<div class="muc" style="gap:10px">${G.avatar(t, 36)}<div class="gian">${esc(t)}</div><button class="nut nho" data-av="${esc(t)}">Đổi</button></div>`).join('')}</div></details>` : ''}</div>`);
     m.querySelectorAll('[data-av]').forEach((b) => { b.onclick = () => G.doiAnhDaiDien(b.dataset.av); });
   };
