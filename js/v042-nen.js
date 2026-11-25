@@ -13,6 +13,10 @@
         localStorage.setItem(k, v.replace(/Trả lời của anh Vũ/g, 'Trả lời của Trưởng bộ phận').replace(/[Aa]nh Vũ/g, 'Trưởng bộ phận').replace(/Chờ anh duyệt kết thúc/g, 'Chờ Trưởng bộ phận duyệt kết thúc')); });
       ['gl_dm', 'gl_dm_cache'].forEach((k) => { const v = localStorage.getItem(k); if (v && /[Aa]nh Vũ/.test(v)) localStorage.setItem(k, v.replace(/[Aa]nh Vũ/g, 'Trưởng bộ phận')); });
     }],
+    ['va_044_tencn', () => { // 25/11: sửa chính tả tên công nhân theo danh sách Trưởng bộ phận gửi
+      const D = [['Trần Thị Lel', 'Trần Thị Lệ'], ['Mờ Chiến', "M' Chiến"], ['Trần Xuân Hè', 'Trần Thị Xuân Hè'], ['Nguyễn Thị Mười Lâm', 'Nguyễn Thị Mười Lắm'], ['Lư Thị Bế', 'Lư Thị Bé'], ['Trần Công Thuận', 'Thân Công Thuận'], ['Trần Thị Hỏn', 'Trần Thị Hớn']];
+      Object.keys(localStorage).filter((k) => k.startsWith('gl_')).forEach((k) => { let v = localStorage.getItem(k); if (!v || !D.some(([a]) => v.includes(a))) return; D.forEach(([a, b]) => { v = v.split(a).join(b); }); localStorage.setItem(k, v); });
+    }],
   ];
   window.GL_CHUYEN042 = CHUYEN;
   const chay = () => CHUYEN.forEach(([co, fn]) => { if (localStorage.getItem(co)) return; try { fn(); localStorage.setItem(co, '1'); } catch (e) { console.warn(co, e); } });
