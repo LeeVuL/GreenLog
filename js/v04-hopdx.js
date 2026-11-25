@@ -84,7 +84,7 @@
         <div class="mo">${esc(G.gioVN(h['Bắt đầu']))} · ${esc(h['Địa điểm'] || '')} · ${esc(h['Trạng thái'])}</div></div>
         <p><b>Người dự (${ng.length}):</b> ${esc(ng.join(', '))}</p><table><tr><th>#</th><th>Nội dung</th><th>Xử lý</th></tr>${tr}</table>
         ${h['Ảnh'] ? `<div style="margin-top:10px">${API.dsAnh(h['Ảnh']).map((a) => `<img src="${esc(API.anhUrl(a))}" style="width:48%;margin:1%">`).join('')}</div>` : ''}
-        <p class="mo" style="margin-top:20px">Chủ trì: Lê Vũ – Trưởng bộ phận Cảnh Quan</p>`);
+        <p class="mo" style="margin-top:20px">Chủ trì: Trưởng bộ phận Cảnh Quan</p>`);
     });
   }
 

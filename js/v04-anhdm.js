@@ -15,6 +15,7 @@
     return DATA;
   };
   G.suaAnhDuoc = () => G.qv('CN13') >= 2;
+  G.anhThuocDong = (d, ten) => { const k = timThuoc(d, ten); return k ? (d.thuoc[k].anh || []) : []; };
   const timThuoc = (d, ten) => { const t = String(ten || '').trim().toLowerCase(); const ks = Object.keys(d.thuoc || {}); return ks.find((k) => k.toLowerCase() === t) || ks.find((k) => t.startsWith(k.toLowerCase().split(' ')[0])); };
   const the = (a, ten) => `<figure style="margin:0;width:150px"><img src="${esc(a.url)}" alt="${esc(ten)} · ${esc(GOC[a.goc] || a.goc)}" loading="lazy" referrerpolicy="no-referrer" style="width:150px;height:150px;object-fit:cover;border-radius:12px;background:#EEF2EE;cursor:zoom-in" onclick="GL.phongAnh && GL.phongAnh(this.src)"><figcaption class="mo" style="font-size:11px">${esc(GOC[a.goc] || a.goc)}${a.tacGia ? ' · © ' + esc(a.tacGia) : a.nguon ? ' · ' + esc(a.nguon) : ''}</figcaption></figure>`;
   G.boAnhCay = async (ten) => {

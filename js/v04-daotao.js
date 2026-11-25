@@ -1,4 +1,4 @@
-/* GreenLog 0.4 – đào tạo theo một luồng (Có kế hoạch / Đột xuất), mọi bước qua anh duyệt, điểm danh tick từng người, ảnh camera trong app,
+/* GreenLog 0.4 – đào tạo theo một luồng (Có kế hoạch / Đột xuất), mọi bước qua Trưởng bộ phận duyệt, điểm danh tick từng người, ảnh camera trong app,
    câu hỏi nhanh không chấm, đề thi nhanh 10 câu tùy chọn, ma trận người × SOP; thư viện SOP 4 dạng có phiên bản, nghe đọc, bản tiếng Anh */
 (function () {
   const API = window.GL_API; const G = window.GL; const S = G.S; const { esc, q, chay, bao } = G;
@@ -21,7 +21,7 @@
     if (ma === 'matran') return maTran();
     if (ma) return chiTiet(ma);
     const st = G.man.daotao.st || (G.man.daotao.st = { tab: 'sap' });
-    const m = G.khung('Đào tạo', 'Đăng ký → anh duyệt → Bắt đầu → Kết thúc → Điểm danh → Ảnh → anh duyệt Hoàn thành');
+    const m = G.khung('Đào tạo', 'Đăng ký → Trưởng bộ phận duyệt → Bắt đầu → Kết thúc → Điểm danh → Ảnh → anh duyệt Hoàn thành');
     const [ds, sop] = await Promise.all([G.doc('DaoTao', null, 800), sopDs()]);
     const TAB = { sap: [TT.cho, TT.duyet], dang: [TT.dang, TT.ket], cho: [TT.choHT], xong: [TT.ht, TT.hoan, TT.huy, ''] };
     const loc = ds.filter((x) => TAB[st.tab].includes(x['Trạng thái'] || '')).reverse();
@@ -48,10 +48,10 @@
       m.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); const ma = G.ma('DT');
         await API.goi('ghi', { bang: 'DaoTao', dong: { 'Mã ĐT': ma, 'Loại': dotXuat ? 'Đột xuất' : 'Có kế hoạch', 'Lý do đột xuất': v.ly || '', 'Nội dung': v.nd, 'Ngày KH': dotXuat ? hn() : v.ngay, 'Giờ KH': dotXuat ? gio() : v.gio, 'Địa điểm': v.dd, 'Giảng viên': v.gv,
           'Tài liệu': (v.sop || []).map((x) => x.split(' · ')[0]).join(' | '), 'Học viên dự kiến': v.hv || '', 'Trạng thái': dotXuat ? TT.dang : (anh() ? TT.duyet : TT.cho), 'Ngày': dotXuat ? hn() : v.ngay, 'Thứ': THU(dotXuat ? hn() : v.ngay), 'Bắt đầu': dotXuat ? gio() : '', 'Người lập': '' } });
-        bao(dotXuat ? 'Lớp đã bắt đầu · nhớ Kết thúc rồi điểm danh' : anh() ? 'Đã đăng ký và duyệt' : 'Đã đăng ký · chờ anh Vũ duyệt kế hoạch'); location.hash = '#/daotao/' + encodeURIComponent(ma); }, e.target);
+        bao(dotXuat ? 'Lớp đã bắt đầu · nhớ Kết thúc rồi điểm danh' : anh() ? 'Đã đăng ký và duyệt' : 'Đã đăng ký · chờ Trưởng bộ phận duyệt kế hoạch'); location.hash = '#/daotao/' + encodeURIComponent(ma); }, e.target);
     };
     if (dotXuat) return hop(tieuDe, '<div id="f"></div><button class="nut chinh rong" id="l">▶ Bắt đầu ngay</button>', (o) => show(o));
-    const m = G.khung(tieuDe, 'Anh Vũ duyệt kế hoạch · nhắc trước 1 ngày và đúng ngày', '#/daotao'); m.innerHTML = '<div class="the"><div id="f"></div><button class="nut chinh rong" id="l">Đăng ký</button></div>'; show(m);
+    const m = G.khung(tieuDe, 'Trưởng bộ phận duyệt kế hoạch · nhắc trước 1 ngày và đúng ngày', '#/daotao'); m.innerHTML = '<div class="the"><div id="f"></div><button class="nut chinh rong" id="l">Đăng ký</button></div>'; show(m);
   }
 
   /* ---------- chi tiết lớp: ② Bắt đầu ③ Kết thúc ④ Điểm danh ⑤ Ảnh + ghi chú ⑥ anh duyệt ---------- */
@@ -66,7 +66,7 @@
     const buoc = (n, ten, xong, html) => `<div class="the ${xong ? 'the-xanh' : ''}"><div class="buoc"><span>${n}</span>${ten}${xong ? ' ✓' : ''}</div>${html || ''}</div>`;
     let html = `<div class="the"><div class="hang"><div class="gian"><b>${esc(x['Nội dung'])}</b><div class="mo">KH: ${G.ngayVN(x['Ngày KH'] || x['Ngày'])} ${esc(x['Giờ KH'] || '')} · ${esc(x['Địa điểm'] || '')}${x['Lý do đột xuất'] ? ' · Đột xuất: ' + esc(x['Lý do đột xuất']) : ''}</div>
       ${sopMa.length ? `<div class="mo">Tài liệu: ${sopMa.map((s) => `<a href="#/sop/${encodeURIComponent(s)}">${esc(tenSOP(sop, s))}</a>`).join(', ')}</div>` : ''}</div><span class="chip ${t === TT.ht ? 'xanh' : 'cam'}">${esc(t)}</span></div></div>`;
-    if (t === TT.cho) html += anh() ? '<div class="nhom-nut" style="margin-bottom:12px"><button class="nut" id="tuChoi">Không duyệt</button><button class="nut chinh" id="duyetKH">Duyệt kế hoạch</button></div>' : '<div class="canh-bao">Chờ anh Vũ duyệt kế hoạch.</div>';
+    if (t === TT.cho) html += anh() ? '<div class="nhom-nut" style="margin-bottom:12px"><button class="nut" id="tuChoi">Không duyệt</button><button class="nut chinh" id="duyetKH">Duyệt kế hoạch</button></div>' : '<div class="canh-bao">Chờ Trưởng bộ phận duyệt kế hoạch.</div>';
     dx.filter((d) => d['Trạng thái'] === 'Chờ duyệt').forEach((d) => { html += `<div class="the the-mo"><b>Đề xuất thay đổi</b><div>${esc(d['Nội dung'])}</div><div class="mo">${esc(d['Người đề xuất'])} · ${esc(d['Lý do'])}</div>${anh() ? `<div class="nhom-nut" style="margin-top:6px"><button class="nut nho" data-kdx="${esc(d['Mã'])}">Không duyệt</button><button class="nut nho chinh" data-dx="${esc(d['Mã'])}">Duyệt thay đổi</button></div>` : ''}</div>`; });
     if ([TT.duyet, TT.dang, TT.ket, TT.choHT, TT.ht].includes(t)) {
       html += buoc(2, 'Bắt đầu', !!x['Bắt đầu'], x['Bắt đầu'] ? `<div class="mo">Thực tế ${esc(x['Bắt đầu'])}${x['Giờ KH'] ? ' · kế hoạch ' + esc(x['Giờ KH']) : ''}${x['Lý do trễ'] ? ' · trễ: ' + esc(x['Lý do trễ']) : ''}</div>` : laGV && t === TT.duyet ? '<button class="nut chinh rong" id="bd">▶ Bắt đầu lúc này</button>' : '');
@@ -80,7 +80,7 @@
       const soCau = sopMa.reduce((a, s2) => a + json((sop.find((y) => y['Mã SOP'] === s2) || {})['Câu hỏi'], []).length, 0);
       let kt = '';
       if (!sopMa.length) kt = `<div class="canh-bao">Lớp này chưa gắn tài liệu SOP nên chưa có câu hỏi.</div>${laGV && !khoa ? '<button class="nut chinh rong" id="ganSOP">📎 Gắn tài liệu SOP cho lớp</button>' : ''}`;
-      else if (!soCau) kt = `<div class="canh-bao">Tài liệu chưa có ngân hàng câu hỏi.${anh() ? ` <a href="#/sop/${encodeURIComponent(sopMa[0])}/sua">Thêm câu hỏi</a>` : ' Anh Vũ thêm ở Thư viện SOP.'}</div>`;
+      else if (!soCau) kt = `<div class="canh-bao">Tài liệu chưa có ngân hàng câu hỏi.${anh() ? ` <a href="#/sop/${encodeURIComponent(sopMa[0])}/sua">Thêm câu hỏi</a>` : ' Trưởng bộ phận thêm ở Thư viện SOP.'}</div>`;
       else if (!daBD) kt = `<div class="mo">${soCau} câu hỏi sẵn sàng. Mở sau khi bấm ▶ Bắt đầu.</div>`;
       else kt = `<div class="mo" style="margin-bottom:8px">${soCau} câu trong ngân hàng · xáo trộn mỗi lần</div>
         ${laGV ? `<button class="nut rong" id="hoiNhanh" style="margin-bottom:8px">🎲 Câu hỏi ngẫu nhiên: bốc người + câu (hỏi miệng, không chấm)</button>
@@ -103,21 +103,21 @@
       const lay = G.form(o.querySelector('#f'), [{ k: 'sop', nhan: 'Tài liệu SOP', loai: 'nhieu', bb: true, ds: sop.filter((y) => y['Trạng thái'] !== 'Nháp').map((y) => y['Mã SOP'] + ' · ' + y['Tên tài liệu']) }]);
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await sua({ 'Tài liệu': (v.sop || []).map((y) => y.split(' · ')[0]).join(' | ') }); dong(); G.taiLai(); }, e.target); }));
     on('kt', () => chay(async () => { const k = gio(); await sua({ 'Kết thúc': k, 'Tổng thời lượng': hhmm(phut(x['Bắt đầu'], k)), 'Trạng thái': TT.ket }); bao('Đã kết thúc · điểm danh trong 15 phút'); G.taiLai(); }));
-    on('suaGio', () => hop('Sửa giờ học', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => { const lay = G.form(o.querySelector('#f'), [{ k: 'bd', nhan: 'Bắt đầu', loai: 'gio', gt: x['Bắt đầu'], bb: true }, { k: 'kt', nhan: 'Kết thúc', loai: 'gio', gt: x['Kết thúc'] }, { k: 'ly', nhan: 'Lý do sửa (anh Vũ thấy khi duyệt)', loai: 'chu', bb: true }]);
+    on('suaGio', () => hop('Sửa giờ học', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => { const lay = G.form(o.querySelector('#f'), [{ k: 'bd', nhan: 'Bắt đầu', loai: 'gio', gt: x['Bắt đầu'], bb: true }, { k: 'kt', nhan: 'Kết thúc', loai: 'gio', gt: x['Kết thúc'] }, { k: 'ly', nhan: 'Lý do sửa (Trưởng bộ phận thấy khi duyệt)', loai: 'chu', bb: true }]);
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await sua({ 'Bắt đầu': v.bd, 'Kết thúc': v.kt || x['Kết thúc'], 'Tổng thời lượng': v.kt ? hhmm(phut(v.bd, v.kt)) : x['Tổng thời lượng'], 'Sửa giờ': `${x['Bắt đầu']}–${x['Kết thúc'] || ''} → ${v.bd}–${v.kt || ''}: ${v.ly}` }); dong(); G.taiLai(); }, e.target); }));
     m.querySelectorAll('[data-dd]').forEach((b) => { b.onclick = () => diemDanh(x, b.dataset.dd, dd); });
-    on('anhLop', () => hop('Ảnh lớp + ghi chú', '<p class="mo">Chụp bằng camera trong app (ghi ngày giờ, vị trí).</p><div id="anh"></div><div id="f"></div><button class="nut chinh rong" id="l">Lưu, gửi anh duyệt</button>', (o, dong) => {
+    on('anhLop', () => hop('Ảnh lớp + ghi chú', '<p class="mo">Chụp bằng camera trong app (ghi ngày giờ, vị trí).</p><div id="anh"></div><div id="f"></div><button class="nut chinh rong" id="l">Lưu, gửi Trưởng bộ phận duyệt</button>', (o, dong) => {
       const a = G.oAnh(o.querySelector('#anh'), { toiDa: 3 }); o.querySelectorAll('[data-a=thu], [data-a=dan]').forEach((b) => b.remove());
       const lay = G.form(o.querySelector('#f'), [{ k: 'gc', nhan: 'Ghi chú lớp', loai: 'mota' }]);
       let gps = ''; try { navigator.geolocation && navigator.geolocation.getCurrentPosition((p) => { gps = p.coords.latitude.toFixed(5) + ',' + p.coords.longitude.toFixed(5); }, () => {}, { timeout: 5000 }); } catch (e) { /* bỏ qua */ }
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); if (!a.ds().length) throw new Error('Cần ảnh lớp'); if (!dd.length) throw new Error('Chưa điểm danh');
-        await sua({ 'Ảnh lớp': a.ds().join(' | '), 'Giờ chụp': API.bayGio(), 'GPS': gps, 'Ghi chú': v.gc, 'Trạng thái': TT.choHT, 'Học viên': [...new Set(dd.map((r) => r['Họ tên']))].join(', '), 'Số học viên': new Set(dd.map((r) => r['Họ tên'])).size }); dong(); bao('Đã gửi anh Vũ duyệt hoàn thành'); G.taiLai(); }, e.target); }));
+        await sua({ 'Ảnh lớp': a.ds().join(' | '), 'Giờ chụp': API.bayGio(), 'GPS': gps, 'Ghi chú': v.gc, 'Trạng thái': TT.choHT, 'Học viên': [...new Set(dd.map((r) => r['Họ tên']))].join(', '), 'Số học viên': new Set(dd.map((r) => r['Họ tên'])).size }); dong(); bao('Đã gửi Trưởng bộ phận duyệt hoàn thành'); G.taiLai(); }, e.target); }));
     on('duyetHT', () => chay(async () => { await sua({ 'Trạng thái': TT.ht, 'Người duyệt': S.u.ten, 'Giờ duyệt': API.bayGio(), 'Nhắc chấm điểm': G.congNgay(hn(), 7) }); bao('Đã duyệt hoàn thành · khóa lớp'); G.taiLai(); }));
     on('traLai', async () => { const l = await G.hoi('Lý do trả lại'); if (l) chay(async () => { await sua({ 'Trạng thái': TT.ket, 'Ghi chú': (x['Ghi chú'] || '') + ' · Trả lại: ' + l }); G.taiLai(); }); });
-    on('deXuat', () => hop('Đề xuất thay đổi', '<div id="f"></div><button class="nut chinh rong" id="l">Gửi anh duyệt</button>', (o, dong) => {
+    on('deXuat', () => hop('Đề xuất thay đổi', '<div id="f"></div><button class="nut chinh rong" id="l">Gửi Trưởng bộ phận duyệt</button>', (o, dong) => {
       const lay = G.form(o.querySelector('#f'), [{ k: 'loai', nhan: 'Thay đổi', loai: 'chips', ds: ['Ngày, giờ', 'Nội dung', 'Giảng viên', 'Hoãn', 'Hủy'], bb: true }, { k: 'moi', nhan: 'Giá trị mới (ngày, giờ, nội dung, giảng viên)', loai: 'chu' }, { k: 'ngay', nhan: 'Ngày mới (nếu đổi ngày)', loai: 'ngay', gt: x['Ngày KH'] }, { k: 'gio', nhan: 'Giờ mới', loai: 'gio', gt: x['Giờ KH'] }, { k: 'ly', nhan: 'Lý do', loai: 'chu', bb: true }]);
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await API.goi('ghi', { bang: 'DaoTaoDeXuat', dong: { 'Mã': G.ma('DX'), 'Mã ĐT': ma, 'Loại': v.loai, 'Nội dung': v.loai === 'Ngày, giờ' ? `${G.ngayVN(v.ngay)} ${v.gio}` : v.loai === 'Hoãn' || v.loai === 'Hủy' ? v.loai : v.moi, 'Ngày': v.ngay, 'Giờ': v.gio, 'Giá trị': v.moi, 'Lý do': v.ly, 'Trạng thái': anh() ? 'Đã duyệt' : 'Chờ duyệt', 'Người đề xuất': S.u.ten } });
-        if (anh()) await apDung(ma, { 'Loại': v.loai, 'Ngày': v.ngay, 'Giờ': v.gio, 'Giá trị': v.moi, 'Lý do': v.ly }); dong(); bao(anh() ? 'Đã đổi' : 'Đã gửi đề xuất · chờ anh Vũ duyệt'); G.taiLai(); }, e.target); }));
+        if (anh()) await apDung(ma, { 'Loại': v.loai, 'Ngày': v.ngay, 'Giờ': v.gio, 'Giá trị': v.moi, 'Lý do': v.ly }); dong(); bao(anh() ? 'Đã đổi' : 'Đã gửi đề xuất · chờ Trưởng bộ phận duyệt'); G.taiLai(); }, e.target); }));
     m.querySelectorAll('[data-dx]').forEach((b) => { b.onclick = () => chay(async () => { const d = dx.find((y) => y['Mã'] === b.dataset.dx); await apDung(ma, d); await API.goi('sua', { bang: 'DaoTaoDeXuat', khoa: { 'Mã': d['Mã'] }, doi: { 'Trạng thái': 'Đã duyệt' } }); G.taiLai(); }); });
     m.querySelectorAll('[data-kdx]').forEach((b) => { b.onclick = () => chay(async () => { await API.goi('sua', { bang: 'DaoTaoDeXuat', khoa: { 'Mã': b.dataset.kdx }, doi: { 'Trạng thái': 'Không duyệt' } }); G.taiLai(); }); });
     on('hoiNhanh', () => hoiNhanh(x, dd, sop, sopMa));
@@ -162,7 +162,7 @@
     const sop = (await sopDs()).find((x) => x['Mã SOP'] === maSOP); const en = G.lang() === 'en';
     const bank = json(sop && (en && sop['Câu hỏi EN'] ? sop['Câu hỏi EN'] : sop['Câu hỏi']), []);
     const m = G.khung('Bài kiểm tra', sop ? sop['Tên tài liệu'] : '', maDT === '-' ? '#/sop/' + encodeURIComponent(maSOP) : '#/daotao/' + encodeURIComponent(maDT));
-    if (bank.length < 1) { m.innerHTML = G.trong('Bài này chưa có ngân hàng câu hỏi. Anh Vũ thêm ở Thư viện SOP.'); return; }
+    if (bank.length < 1) { m.innerHTML = G.trong('Bài này chưa có ngân hàng câu hỏi. Trưởng bộ phận thêm ở Thư viện SOP.'); return; }
     const de = xao(bank).slice(0, 10).map((c) => { const thu = xao(c.d.map((t, i) => ({ t, dung: i === c.dung }))); return { c: c.c, d: thu }; });
     const dd = maDT === '-' ? [] : await G.doc('DaoTaoDiemDanh', { 'Mã ĐT': maDT }); const ng = dd.length ? [...new Set(dd.map((r) => r['Họ tên']))] : [S.u.ten].concat((S.dm.congnhan || []).map((c) => c.ten || c['Họ tên']).filter(Boolean)).filter((v, i, a) => v && a.indexOf(v) === i);
     m.innerHTML = `<div class="the"><label class="o"><span>Người làm bài</span><select id="ai"><option value="">— Chọn tên —</option>${ng.map((t) => `<option>${esc(t)}</option>`).join('')}<option value="khac">Người khác…</option></select></label></div>
@@ -196,7 +196,7 @@
     if (ma) return docSOP(ma);
     const m = G.khung('Thư viện SOP', 'Văn bản · slide · 2 video · ngân hàng câu hỏi', '#/daotao');
     const ds = await sopDs(); const theo = {}; ds.forEach((x) => { (theo[x['Chủ đề'] || 'Khác'] = theo[x['Chủ đề'] || 'Khác'] || []).push(x); });
-    m.innerHTML = (anh() ? '<a class="nut chinh rong" href="#/sop/moi" style="margin-bottom:12px">＋ Thêm SOP</a>' : '') + (Object.keys(theo).map((c) => `<h3 class="tieu-nhom">${esc(c)}</h3><div class="ds">${theo[c].map((x) => `<a class="muc" href="#/sop/${encodeURIComponent(x['Mã SOP'])}" style="color:inherit"><div class="gian"><b>${esc(x['Tên tài liệu'])}</b><div class="mo">${esc(x['Mã SOP'])}${x['Phiên bản'] ? ' · bản ' + esc(x['Phiên bản']) : ''}${x['Ngày hiệu lực'] ? ' · hiệu lực ' + G.ngayVN(x['Ngày hiệu lực']) : ''} · ${json(x['Buổi'], []).length || 1} buổi · ${json(x['Câu hỏi'], []).length} câu hỏi</div></div>${x['Trạng thái'] === 'Nháp' ? '<span class="chip cam">Nháp</span>' : ''}›</a>`).join('')}</div>`).join('') || G.trong('Chưa có SOP. Anh Vũ bấm Thêm SOP.'));
+    m.innerHTML = (anh() ? '<a class="nut chinh rong" href="#/sop/moi" style="margin-bottom:12px">＋ Thêm SOP</a>' : '') + (Object.keys(theo).map((c) => `<h3 class="tieu-nhom">${esc(c)}</h3><div class="ds">${theo[c].map((x) => `<a class="muc" href="#/sop/${encodeURIComponent(x['Mã SOP'])}" style="color:inherit"><div class="gian"><b>${esc(x['Tên tài liệu'])}</b><div class="mo">${esc(x['Mã SOP'])}${x['Phiên bản'] ? ' · bản ' + esc(x['Phiên bản']) : ''}${x['Ngày hiệu lực'] ? ' · hiệu lực ' + G.ngayVN(x['Ngày hiệu lực']) : ''} · ${json(x['Buổi'], []).length || 1} buổi · ${json(x['Câu hỏi'], []).length} câu hỏi</div></div>${x['Trạng thái'] === 'Nháp' ? '<span class="chip cam">Nháp</span>' : ''}›</a>`).join('')}</div>`).join('') || G.trong('Chưa có SOP. Trưởng bộ phận bấm Thêm SOP.'));
   } });
   async function docSOP(ma) {
     const x = (await sopDs()).find((y) => y['Mã SOP'] === ma); if (!x) { location.hash = '#/sop'; return; }
@@ -220,7 +220,7 @@
   }
   async function suaSOP(ma) {
     const ds = await sopDs(); const x = ds.find((y) => y['Mã SOP'] === ma) || {};
-    const m = G.khung(ma ? 'Sửa SOP ' + ma : 'Thêm SOP', 'Chỉ anh Vũ sửa và duyệt · bản mới báo mọi người đọc lại', ma ? '#/sop/' + encodeURIComponent(ma) : '#/sop');
+    const m = G.khung(ma ? 'Sửa SOP ' + ma : 'Thêm SOP', 'Chỉ Trưởng bộ phận sửa và duyệt · bản mới báo mọi người đọc lại', ma ? '#/sop/' + encodeURIComponent(ma) : '#/sop');
     m.innerHTML = '<div class="the"><div id="f"></div></div><button class="nut chinh rong" id="l" style="margin-bottom:30px">Lưu</button>';
     const lay = G.form(m.querySelector('#f'), [{ k: 'ma', nhan: 'Mã SOP', loai: 'chu', bb: true, gt: x['Mã SOP'] || 'SOP-' + String(ds.length + 1).padStart(2, '0') }, { k: 'ten', nhan: 'Tên SOP', loai: 'chu', bb: true, gt: x['Tên tài liệu'] }, { k: 'cd', nhan: 'Chủ đề', loai: 'chips', ds: S.dm.chuDeSOP || [], gt: x['Chủ đề'] },
       { k: 'pb', nhan: 'Phiên bản', loai: 'chu', gt: x['Phiên bản'] ? String(+x['Phiên bản'] + 1) : '1' }, { k: 'hl', nhan: 'Ngày hiệu lực', loai: 'ngay', gt: hn() }, { k: 'tt', nhan: 'Trạng thái', loai: 'chips', ds: ['Nháp', 'Hiệu lực'], gt: x['Trạng thái'] || 'Nháp' },

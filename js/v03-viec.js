@@ -191,7 +191,7 @@
     const ve = () => {
       m.innerHTML = `${anh ? `<div class="chon">${['Đội khu vực', 'Đội cơ động'].map((x) => `<button data-doi="${x}" class="${st.doi === x ? 'dang' : ''}">${x}</button>`).join('')}</div>` : ''}
         <div class="luoi2" style="margin-bottom:12px"><div class="the so-the">${G.ic('tia_bui', 44)}<div><b>${kyN('Rác cắt tỉa')}</b><small>chuyến rác cắt tỉa trong kỳ</small></div></div><div class="the so-the">${G.ic('van_chuyen', 44)}<div><b>${kyN('Khác')}</b><small>chuyến khác trong kỳ</small></div></div></div>
-        ${daGui ? `<div class="canh-bao" style="background:var(--xanh-nhat);color:var(--xanh)">Đã gửi lúc ${esc(String(hom[0]['Giờ ghi']).slice(11, 16))} bởi ${esc(hom[0]['Người ghi'])}.${khoa ? ' Cần sửa thì báo anh Vũ.' : ' Anh sửa được.'}</div>` : ''}
+        ${daGui ? `<div class="canh-bao" style="background:var(--xanh-nhat);color:var(--xanh)">Đã gửi lúc ${esc(String(hom[0]['Giờ ghi']).slice(11, 16))} bởi ${esc(hom[0]['Người ghi'])}.${khoa ? ' Cần sửa thì báo Trưởng bộ phận.' : ' Anh sửa được.'}</div>` : ''}
         <div class="the"><b>Số chuyến hôm nay · ${esc(st.doi)}</b>${dong.map((x, i) => `<div class="dong-vc">${G.ic(icL(x.loai), 40)}<div class="gian"><b>${esc(x.loai)}</b></div>
           ${khoa || !ghi ? `<b class="so-vua">${x.n}</b>` : `<button type="button" class="tron" data-tru="${i}">−</button><b class="so-vua">${x.n}</b><button type="button" class="tron chinh" data-cong="${i}">＋</button>`}</div>`).join('')}
           ${khoa || !ghi ? '' : '<button type="button" class="nut nho" id="themDong" style="margin-top:8px">＋ Thêm loại hàng</button>'}</div>
@@ -206,7 +206,7 @@
       const g = m.querySelector('#gui');
       if (g) g.onclick = () => chay(async () => {
         const tong = dong.reduce((s, x) => s + x.n, 0); if (!tong) throw new Error('Chưa có chuyến nào');
-        if (!(await G.xacNhan(`Gửi ${tong} chuyến hôm nay của ${st.doi}? Gửi rồi chỉ anh Vũ sửa được.`, 'Gửi'))) return;
+        if (!(await G.xacNhan(`Gửi ${tong} chuyến hôm nay của ${st.doi}? Gửi rồi chỉ Trưởng bộ phận sửa được.`, 'Gửi'))) return;
         await API.goi('vanChuyen.gui', { doi: st.doi, ds: dong, anh: a ? a.ds() : [], ghiChu: (m.querySelector('#gc') || {}).value || '' });
         bao('Đã gửi số liệu vận chuyển'); G.taiLai();
       }, g);
@@ -265,37 +265,43 @@
       }); }; });
   }
 
-  /* cây nội thất: tưới / tưới phân / bón phân hạt / phun phân bón lá + báo bất thường, anh Vũ trả lời */
+  /* cây nội thất: tưới / tưới phân / bón phân hạt / phun phân bón lá + báo bất thường, Trưởng bộ phận trả lời */
   async function manNoiThat() {
     const m = G.khung('Cây nội thất', '10 điểm · tưới 2 ngày/lần', '#/viec');
     const d = await API.goi('docNhieu', { ds: [{ bang: 'CayNoiThat', loc: { 'Ngày': { tu: G.congNgay(hn(), -30) } } }, { bang: 'BatThuong', gioiHan: 300 }] });
     const ds = d.CayNoiThat; const bt = d.BatThuong.filter((x) => x['Mã điểm']).reverse(); const ghi = q('noibo') >= 2; const anh = q('homnay') >= 3;
     const cuoi = {}; ds.forEach((r) => { if (/Tưới nước/.test(r['Việc'] || 'Tưới nước') && (!cuoi[r['Mã điểm']] || r['Ngày'] >= cuoi[r['Mã điểm']]['Ngày'])) cuoi[r['Mã điểm']] = r; });
-    const cho = bt.filter((x) => !x['Trả lời của anh Vũ']);
-    m.innerHTML = (cho.length ? `<div class="the" style="border-left:4px solid var(--do)"><h2>🥀 Bất thường ${anh ? 'cần anh trả lời' : 'chờ anh Vũ trả lời'} (${cho.length})</h2>${cho.map((x) => `<div style="margin-top:8px"><b>${esc((diem('Cây nội thất').find((p) => p.ma === x['Mã điểm']) || {}).ten || x['Mã điểm'])}</b> · ${esc(x['Tên cây'])} · <span class="chip cam">${esc(x['Tình trạng'])}</span><div class="mo">${G.ngayVN(x['Ngày'])} · ${esc(x['Người báo'])} · ${esc(x['Ghi chú'])}</div>${G.xemAnh(x['Ảnh'])}${anh ? `<button class="nut nho" data-tl="${esc(x['Ngày'])}|${esc(x['Mã điểm'])}|${esc(x['Tên cây'])}">Trả lời cách xử lý</button>` : ''}</div>`).join('')}</div>` : '')
+    const cho = bt.filter((x) => !x['Trả lời của Trưởng bộ phận']);
+    m.innerHTML = (cho.length ? `<div class="the" style="border-left:4px solid var(--do)"><h2>🥀 Bất thường ${anh ? 'cần anh trả lời' : 'chờ Trưởng bộ phận trả lời'} (${cho.length})</h2>${cho.map((x) => `<div style="margin-top:8px"><b>${esc((diem('Cây nội thất').find((p) => p.ma === x['Mã điểm']) || {}).ten || x['Mã điểm'])}</b> · ${esc(x['Tên cây'])} · <span class="chip cam">${esc(x['Tình trạng'])}</span><div class="mo">${G.ngayVN(x['Ngày'])} · ${esc(x['Người báo'])} · ${esc(x['Ghi chú'])}</div>${G.xemAnh(x['Ảnh'])}${anh ? `<button class="nut nho" data-tl="${esc(x['Ngày'])}|${esc(x['Mã điểm'])}|${esc(x['Tên cây'])}">Trả lời cách xử lý</button>` : ''}</div>`).join('')}</div>` : '')
       + `<div class="ds">${diem('Cây nội thất').map((p) => {
         const c = cuoi[p.ma]; const songay = c ? Math.round((new Date(hn()) - new Date(c['Ngày'])) / 864e5) : 99;
         const gan = ds.filter((x) => x['Mã điểm'] === p.ma).slice(-1)[0];
         return `<div class="muc"><div class="gian"><b>${esc(p.ten)}</b><div class="mo">${c ? `Tưới ${G.ngayVN(c['Ngày']).slice(0, 5)} · ${esc(c['Số chậu tưới'])} chậu` : 'Chưa tưới'}${gan && gan !== c ? ` · ${esc(gan['Việc'])}${gan['Tên phân'] ? ' ' + esc(gan['Tên phân']) : ''} ${G.ngayVN(gan['Ngày']).slice(0, 5)}` : ''}</div></div>
           ${songay >= 2 ? '<span class="chip cam">Đến hạn</span>' : '<span class="chip xanh">Đã tưới</span>'}${ghi ? `<button class="nut nho" data-p="${p.ma}">Ghi</button>` : ''}</div>`;
       }).join('')}</div>`
-      + (bt.length ? `<h3 class="tieu-nhom">Bất thường đã xử lý</h3><div class="ds">${bt.filter((x) => x['Trả lời của anh Vũ']).slice(0, 30).map((x) => `<div class="muc"><div class="gian"><b>${esc((diem('Cây nội thất').find((p) => p.ma === x['Mã điểm']) || {}).ten || '')}</b> · ${esc(x['Tên cây'])} · ${esc(x['Tình trạng'])}<div class="mo">Anh Vũ: ${esc(x['Trả lời của anh Vũ'])}</div></div></div>`).join('')}</div>` : '');
+      + (bt.length ? `<h3 class="tieu-nhom">Bất thường đã xử lý</h3><div class="ds">${bt.filter((x) => x['Trả lời của Trưởng bộ phận']).slice(0, 30).map((x) => `<div class="muc"><div class="gian"><b>${esc((diem('Cây nội thất').find((p) => p.ma === x['Mã điểm']) || {}).ten || '')}</b> · ${esc(x['Tên cây'])} · ${esc(x['Tình trạng'])}<div class="mo">Trưởng bộ phận: ${esc(x['Trả lời của Trưởng bộ phận'])}</div></div></div>`).join('')}</div>` : '');
     const phanLa = S.dm.thuoc.filter((t) => /phân|kích|vitamin|atonik/i.test(t.nhom + ' ' + t.ten)).map((t) => t.tenNgan || t.ten);
     m.querySelectorAll('[data-p]').forEach((b) => { b.onclick = () => { const p = diem('Cây nội thất').find((x) => x.ma === b.dataset.p);
       hop(p.ten, '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
+        const viecDang = () => { const x = o.querySelector('[data-f="0"] .dang'); return x ? x.dataset.v || x.textContent.trim() : 'Tưới nước'; };
+        const LOC_PHAN = { 'Bón phân hạt': /hạt|npk|tan chậm|osmocote|hữu cơ/i, 'Tưới phân': /hòa tan|tan nhanh|npk|dạng lỏng|đạm|ure/i, 'Phun phân bón lá': /lá|kích|atonik|vitamin|vi lượng/i };
+        const dsPhan = () => { const re = LOC_PHAN[viecDang()]; const l = re ? S.dm.thuoc.filter((t) => /phân|kích|vitamin|atonik/i.test(t.nhom + ' ' + t.ten) && re.test(t.nhom + ' ' + t.ten + ' ' + (t.dang || ''))).map((t) => t.tenNgan || t.ten) : []; return l.length ? l : phanLa; };
         const lay = G.form(o.querySelector('#f'), [{ k: 'viec', nhan: 'Việc đã làm', loai: 'chips', ds: S.dm.viecNT, bb: true, gt: 'Tưới nước' }, { k: 'sc', nhan: 'Số chậu', loai: 'so', bb: true },
-          { k: 'phan', nhan: 'Tên phân (khi tưới phân, bón, phun)', loai: 'chonds', ds: phanLa }, { k: 'btv', nhan: 'Có cây bất thường?', loai: 'chips', ds: ['Không', 'Có'], gt: 'Không' },
-          { nhan: 'Nếu có: chọn cây, tình trạng và chụp ảnh. Anh Vũ nhận thông báo và trả lời cách xử lý.', loai: 'ghichu' }, { k: 'cay', nhan: 'Cây bất thường', loai: 'cay' }, { k: 'tt', nhan: 'Tình trạng', loai: 'chips', ds: S.dm.batthuong }, { k: 'anh', nhan: 'Ảnh cây bất thường', loai: 'anh', toiDa: 3 }, { k: 'gc', nhan: 'Ghi chú', loai: 'mota' }]);
+          { k: 'phan', nhan: 'Tên phân', loai: 'chonds', get ds() { return dsPhan(); }, bb: true, khi: (v) => v.viec && v.viec !== 'Tưới nước' },
+          { k: 'anhHT', nhan: 'Ảnh hiện trường', loai: 'anh', toiDa: 3, khi: (v) => v.btv !== 'Có' },
+          { k: 'btv', nhan: 'Có cây bất thường?', loai: 'chips', ds: ['Không', 'Có'], gt: 'Không' },
+          { nhan: 'Chọn cây, tình trạng và chụp ảnh. Trưởng bộ phận nhận thông báo và trả lời cách xử lý.', loai: 'ghichu', khi: (v) => v.btv === 'Có' },
+          { k: 'cay', nhan: 'Cây bất thường', loai: 'cay', bb: true, khi: (v) => v.btv === 'Có' }, { k: 'tt', nhan: 'Tình trạng', loai: 'chips', ds: S.dm.batthuong, bb: true, khi: (v) => v.btv === 'Có' },
+          { k: 'anh', nhan: 'Ảnh cây bất thường (dùng luôn làm ảnh hiện trường)', loai: 'anh', toiDa: 3, khi: (v) => v.btv === 'Có' }, { k: 'gc', nhan: 'Ghi chú', loai: 'mota' }]);
         o.querySelector('#l').onclick = (e) => chay(async () => {
-          const v = lay(); if (v.viec !== 'Tưới nước' && !v.phan) throw new Error('Chọn tên phân');
-          if (v.btv === 'Có' && (!v.cay || !v.tt || !v.anh.length)) throw new Error('Cây bất thường cần cây, tình trạng và ảnh');
-          await API.goi('ghi', { bang: 'CayNoiThat', dong: { 'Ngày': '', 'Mã điểm': p.ma, 'Việc': v.viec, 'Tên phân': v.phan ? v.phan.ten || v.phan : '', 'Số chậu tưới': v.sc, 'Bất thường': v.btv === 'Có' ? 'Có' : '', 'Người ghi': '' } });
-          if (v.btv === 'Có') await API.goi('ghi', { bang: 'BatThuong', dong: { 'Ngày': '', 'Mã điểm': p.ma, 'Mã vị trí': p.ma, 'Tên cây': v.cay.ten, 'Tình trạng': v.tt, 'Ảnh': v.anh, 'Ghi chú': v.gc, 'Người báo': '', 'Trả lời của anh Vũ': '' } });
-          dong(); bao(v.btv === 'Có' ? 'Đã lưu · anh Vũ được báo cây bất thường' : 'Đã lưu'); G.taiLai();
+          const v = lay(); const anhHT = v.btv === 'Có' ? v.anh : v.anhHT;
+          await API.goi('ghi', { bang: 'CayNoiThat', dong: { 'Ngày': '', 'Mã điểm': p.ma, 'Việc': v.viec, 'Tên phân': v.phan ? v.phan.ten || v.phan : '', 'Số chậu tưới': v.sc, 'Bất thường': v.btv === 'Có' ? 'Có' : '', 'Ảnh': anhHT, 'Ghi chú': v.gc, 'Người ghi': '' } });
+          if (v.btv === 'Có') await API.goi('ghi', { bang: 'BatThuong', dong: { 'Ngày': '', 'Mã điểm': p.ma, 'Mã vị trí': p.ma, 'Tên cây': v.cay.ten, 'Tình trạng': v.tt, 'Ảnh': v.anh, 'Ghi chú': v.gc, 'Người báo': '', 'Trả lời của Trưởng bộ phận': '' } });
+          dong(); bao(v.btv === 'Có' ? 'Đã lưu · Trưởng bộ phận được báo cây bất thường' : 'Đã lưu'); G.taiLai();
         }, e.target);
       }); }; });
     m.querySelectorAll('[data-tl]').forEach((b) => { b.onclick = async () => { const [ng, ma, cay] = b.dataset.tl.split('|'); const t = await G.hoi('Cách xử lý'); if (!t) return;
-      chay(async () => { await API.goi('sua', { bang: 'BatThuong', khoa: { 'Ngày': ng, 'Mã điểm': ma, 'Tên cây': cay }, doi: { 'Trả lời của anh Vũ': t, 'Giờ trả lời': API.bayGio() } }); bao('Đã trả lời, nhân viên nội bộ được báo'); G.taiLai(); }); }; });
+      chay(async () => { await API.goi('sua', { bang: 'BatThuong', khoa: { 'Ngày': ng, 'Mã điểm': ma, 'Tên cây': cay }, doi: { 'Trả lời của Trưởng bộ phận': t, 'Giờ trả lời': API.bayGio() } }); bao('Đã trả lời, nhân viên nội bộ được báo'); G.taiLai(); }); }; });
   }
   G.man.batthuong = Object.assign(G.man.batthuong || {}, { an: true, thay: true, fn: () => { location.hash = '#/nb/noithat'; } });
 
@@ -303,7 +309,7 @@
   async function manVuonUom(ten) {
     const noiThat = ten === 'Vườn ươm cây nội thất';
     const m = G.khung(ten, noiThat ? 'Nguyễn Tấn Hiệp phụ trách' : 'Phạm Nhật Trường phụ trách', '#/viec');
-    const ds = (await API.goi('docNhieu', { ds: [{ bang: 'VuonUom', loc: { 'Vườn ươm': ten } }] })).VuonUom;
+    const BANG = noiThat ? 'VuonUomNoiThat' : 'VuonUom'; const ds = (await API.goi('docNhieu', { ds: [{ bang: BANG, loc: { 'Vườn ươm': ten } }] }))[BANG] || [];
     const ghi = noiThat ? q('noibo') >= 2 : q('vuonuom') >= 2;
     const ton = {}; ds.forEach((r) => { const c = r['Tên cây']; if (!c) return; const sl = +r['Số lượng'] || 0; const t = (ton[c] = ton[c] || { vao: 0, ra: 0, dvt: r['ĐVT'] });
       if (r['Loại ghi'] === 'Xuất vườn' || /Xuất cây/.test(r['Việc'])) t.ra += sl; else if (r['Loại ghi'] === 'Ươm vào' || /Ươm mới/.test(r['Việc'])) t.vao += sl; });
@@ -319,10 +325,10 @@
           .concat([{ k: 'Ảnh', nhan: 'Ảnh', loai: 'anh', bb: true, toiDa: 3 }, { k: 'Mô tả', nhan: 'Ghi chú', loai: 'mota' }]);
       hop(({ 'Ươm vào': 'Đã ươm', 'Xuất vườn': 'Đã xuất' }[l] || l) + ' · ' + ten, '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
         const lay = G.form(o.querySelector('#f'), tr);
-        o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await API.goi('ghi', { bang: 'VuonUom', dong: Object.assign({ 'Ngày': '', 'Vườn ươm': ten, 'Loại ghi': l, 'Việc': l === 'Chăm sóc' ? v['Việc'] : l, 'Người ghi': '' }, v, { 'Tên cây': v['Tên cây'] ? v['Tên cây'].ten || v['Tên cây'] : '', 'Xuất đi': v['Xuất đi'] ? G.tenVT(v['Xuất đi'].ma, v['Xuất đi'].ten) : '' }) }); dong(); bao('Đã lưu'); G.taiLai(); }, e.target);
+        o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await API.goi('ghi', { bang: BANG, dong: Object.assign({ 'Ngày': '', 'Vườn ươm': ten, 'Loại ghi': l, 'Việc': l === 'Chăm sóc' ? v['Việc'] : l, 'Người ghi': '' }, v, { 'Tên cây': v['Tên cây'] ? v['Tên cây'].ten || v['Tên cây'] : '', 'Xuất đi': v['Xuất đi'] ? G.tenVT(v['Xuất đi'].ma, v['Xuất đi'].ten) : '' }) }); dong(); bao('Đã lưu'); G.taiLai(); }, e.target);
       }); }; });
   }
-  G.man.vuonuom = Object.assign(G.man.vuonuom, { ic: 'vuon_uom', fn: () => manVuonUom('Vườn ươm sân vườn') });
+  G.man.vuonuom = Object.assign(G.man.vuonuom, { ic: 'vuon_uom', fn: () => manVuonUom('Vườn ươm cây bụi') });
 
   /* ================= THẺ HÔM NAY ================= */
   G.theAnh = (d) => {

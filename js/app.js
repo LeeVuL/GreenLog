@@ -37,7 +37,7 @@
     window.onhashchange = null;
     $app.innerHTML = `<div class="vao"><img class="logo" src="icons/GreenLog_Logo_Ngang.svg" alt="GreenLog">
       <div class="hop-vao">
-        ${API.coThat() ? `<p class="mo">Đăng nhập bằng Gmail đã đăng ký với anh Vũ</p><div id="nutGoogle" style="display:flex;justify-content:center;margin-bottom:18px"></div><hr style="border:0;border-top:1px solid var(--vien2);margin:18px 0">` : ''}
+        ${API.coThat() ? `<p class="mo">Đăng nhập bằng Gmail đã đăng ký với Trưởng bộ phận</p><div id="nutGoogle" style="display:flex;justify-content:center;margin-bottom:18px"></div><hr style="border:0;border-top:1px solid var(--vien2);margin:18px 0">` : ''}
         <p class="mo"><b>Chạy thử</b> với dữ liệu mẫu, chọn vai để xem mỗi người thấy gì:</p>
         <div class="chon-nguoi">${API.nguoiThu.map((n, i) => `<button class="nut" data-i="${i}">👤 ${esc(n.ten)} <span class="mo" style="margin-left:auto">${esc(n.nhom)}</span></button>`).join('')}</div>
       </div></div>`;
@@ -104,7 +104,7 @@
     them('phieu', 'Phieu', null, 400);
     them('dd', 'DuyetCong', { 'Ngày': hn });
     them('dh', 'DongHoNuoc', { 'Ngày': hn });
-    them('vu', 'VuonUom', { 'Ngày': hn });
+    them('vu', 'VuonUom', { 'Ngày': hn }); them('vunt', 'VuonUomNoiThat', { 'Ngày': hn });
     them('sk', 'SuKien', null, 100);
     them('ll', 'ViecLapLai', { 'Đang chạy': 'Có' });
     them('pb', 'NhatKyPhunBon', { 'Hết cách ly': { tu: hn } });
@@ -134,8 +134,8 @@
       const dhCho = (d.dichhai || []).filter((x) => /Báo xong/.test(x['Trạng thái (Phát hiện/Đang xử lý/Báo xong/Đã duyệt)'])).length; if (dhCho) cho.push([dhCho + ' hồ sơ dịch hại', 'dichhai']);
       if ((d.cn || []).length) cho.push([d.cn.length + ' đăng ký công nhân', 'congnhan']);
       if ((d.dx || []).length) cho.push([d.dx.length + ' đề xuất thuốc mới', 'thuoc']);
-      const btCho = (d.bt || []).filter((x) => x['Mã điểm'] && !x['Trả lời của anh Vũ']).length; if (btCho) cho.push([btCho + ' cây nội thất bất thường cần anh trả lời', 'nb/noithat']);
-      html += `<div class="the"><h2>Chờ anh duyệt</h2>${cho.length ? cho.map((c) => `<a href="#/${c[1]}" class="chip cam" style="margin:0 6px 6px 0;text-decoration:none">${esc(c[0])} ›</a>`).join('') : '<p class="mo" style="margin:0">Không có việc chờ duyệt.</p>'}</div>`;
+      const btCho = (d.bt || []).filter((x) => x['Mã điểm'] && !x['Trả lời của Trưởng bộ phận']).length; if (btCho) cho.push([btCho + ' cây nội thất bất thường cần anh trả lời', 'nb/noithat']);
+      html += `<div class="the"><h2>Chờ duyệt</h2>${cho.length ? cho.map((c) => `<a href="#/${c[1]}" class="chip cam" style="margin:0 6px 6px 0;text-decoration:none">${esc(c[0])} ›</a>`).join('') : '<p class="mo" style="margin:0">Không có việc chờ duyệt.</p>'}</div>`;
     }
 
     // việc hằng ngày
@@ -149,7 +149,7 @@
       viec.push(tt(t.length >= nVT, 'Tưới nước sân vườn', `${t.length}/${nVT} vị trí đã ghi · ${t.filter((x) => x['Trạng thái'] === 'Chưa tưới được').length} chưa tưới được`, 'tuoi'));
       ['DV10', 'DV11'].forEach((ma) => { const xong = new Set((d.cum || []).filter((x) => x['Mã việc'] === ma).map((x) => x['Cụm'])); viec.push(tt(xong.size >= CUM().length, dvTen(ma), `${xong.size}/${CUM().length} cụm`, 'cum/' + ma)); });
       if (q('donghonuoc')) { const n = new Set((d.dh || []).map((x) => x['Mã đồng hồ'])).size; viec.push(tt(n >= 2, 'Đọc 2 đồng hồ nước', `${n}/2 đồng hồ`, 'donghonuoc')); }
-      if (q('vuonuom')) { const x = (d.vu || []).some((y) => y['Vườn ươm'] === 'Vườn ươm sân vườn'); viec.push(tt(x, 'Vườn ươm sân vườn', x ? 'Đã ghi hôm nay' : 'Chưa ghi', 'vuonuom')); }
+      if (q('vuonuom')) { const x = (d.vu || []).some((y) => y['Vườn ươm'] === 'Vườn ươm cây bụi'); viec.push(tt(x, 'Vườn ươm cây bụi', x ? 'Đã ghi hôm nay' : 'Chưa ghi', 'vuonuom')); }
     }
     if (q('noibo')) {
       const vs = d.biens || []; const co = (b) => vs.some((x) => x['Buổi'] === b);
@@ -158,7 +158,7 @@
       const vr = new Set((d.vr || []).map((x) => x['Mã vườn'])).size; viec.push(tt(vr >= 7, 'Chăm sóc vườn rau', `${vr}/7 vườn`, 'nb/vuonrau'));
       const nt = new Set((d.nt || []).map((x) => x['Mã điểm'])).size; viec.push(tt(nt >= 10, 'Tưới cây nội thất (2 ngày/lần)', `${nt}/10 điểm trong 2 ngày`, 'nb/noithat'));
       viec.push(tt((d.rac || []).length > 0, 'Thu gom rác hữu cơ', (d.rac || []).length ? G.so(d.rac.reduce((a, x) => a + +x['kg rác thu gom'], 0)) + ' kg hôm nay' : 'Chưa ghi', 'nb/rac'));
-      const vuNT = (d.vu || []).some((y) => y['Vườn ươm'] === 'Vườn ươm cây nội thất'); viec.push(tt(vuNT, 'Vườn ươm cây nội thất', vuNT ? 'Đã ghi' : 'Chưa ghi', 'nb/vuonuomnt'));
+      const vuNT = (d.vunt || []).length > 0; viec.push(tt(vuNT, 'Vườn ươm cây nội thất', vuNT ? 'Đã ghi' : 'Chưa ghi', 'nb/vuonuomnt'));
       lichNoiBo(new Date()).forEach((x) => viec.push(tt('🗓️', x[1], 'Hôm nay theo lịch', x[0] === 'DV24' ? 'nb/hangrao' : 'nb/may')));
     }
     (d.ll || []).filter((x) => G.denHanLapLai && G.denHanLapLai(x, new Date())).forEach((x) => viec.push(tt('🔁', x['Nội dung'], (x['Người phụ trách'] || '') + ' · ' + G.tenVT(x['Mã vị trí']), 'laplai')));
@@ -215,7 +215,7 @@
         <a class="the-viec" href="#/cum/DV10"><span class="bt">🧹</span><span class="gian"><b>Vệ sinh, thu gom rác sân vườn và lối đi</b><span class="mo">Theo cụm</span></span>›</a>
         <a class="the-viec" href="#/cum/DV11"><span class="bt">🌿</span><span class="gian"><b>Nhổ cỏ dại</b><span class="mo">Theo cụm</span></span>›</a>
         ${q('donghonuoc') ? '<a class="the-viec" href="#/donghonuoc"><span class="bt">🔢</span><span class="gian"><b>Đọc 2 đồng hồ nước</b><span class="mo">Chỉ số + ảnh</span></span>›</a>' : ''}
-        ${q('vuonuom') ? '<a class="the-viec" href="#/vuonuom"><span class="bt">🌱</span><span class="gian"><b>Vườn ươm sân vườn</b><span class="mo">Tưới, vệ sinh, số ươm, chất cải tạo đất</span></span>›</a>' : ''}
+        ${q('vuonuom') ? '<a class="the-viec" href="#/vuonuom"><span class="bt">🌱</span><span class="gian"><b>Vườn ươm cây bụi</b><span class="mo">Tưới, vệ sinh, số ươm, chất cải tạo đất</span></span>›</a>' : ''}
         <h2 style="font-size:15px;margin:16px 0 8px">Định kỳ tháng (kỳ ${esc(S.dm.ky.ten)})</h2>
         <a class="the-viec" href="#/dinhky"><span class="bt">✅</span><span class="gian"><b>8 đầu việc định kỳ</b><span class="mo">Chọn đầu việc → chọn vị trí → ảnh → lưu</span></span>›</a>`;
     }
@@ -406,7 +406,7 @@
         + (xemCu ? '<p class="mo">Ngày cũ chỉ để xem. Sửa công ngày cũ dùng Phiếu sửa công trong Báo cáo → Bảng công.</p>' : `<button class="nut rong" id="suaTT" style="margin-top:8px">✏️ Anh điểm danh / sửa trực tiếp</button>`)
         + `<p class="mo">Buổi đã khóa thì tổ trưởng không sửa được nữa. Chỉ anh sửa, mọi lần sửa đều ghi nhật ký (người, giờ, giá trị cũ → mới, lý do).</p>`;
       m.querySelectorAll('[data-duyet]').forEach((b) => { b.onclick = () => chay(async () => { await API.goi('diemDanh.duyet', { ngay: st.ngay, buoi: st.buoi, doi: b.dataset.duyet }); bao('Đã duyệt, công buổi này đã khóa'); manDiemDanh(); }, b); });
-      m.querySelectorAll('[data-nhac]').forEach((b) => { b.onclick = () => G.guiZalo('📸 ' + b.dataset.nhac + ': gửi ảnh tập thể đầu ca buổi ' + st.buoi.toLowerCase() + ' ' + G.ngayVN(st.ngay) + ' trên GreenLog để anh Vũ duyệt công.'); });
+      m.querySelectorAll('[data-nhac]').forEach((b) => { b.onclick = () => G.guiZalo('📸 ' + b.dataset.nhac + ': gửi ảnh tập thể đầu ca buổi ' + st.buoi.toLowerCase() + ' ' + G.ngayVN(st.ngay) + ' trên GreenLog để Trưởng bộ phận duyệt công.'); });
       const kh = m.querySelector('#khoaHet'); if (kh) kh.onclick = () => chay(async () => { const kq = await API.goi('diemDanh.duyet', { ngay: st.ngay, buoi: st.buoi }); bao('Đã khóa: ' + (kq.doi || []).join(', ') + ((kq.boQua || []).length ? ' · chưa có ảnh nên chưa khóa: ' + kq.boQua.join(', ') : '')); manDiemDanh(); }, kh);
       const sTT = m.querySelector('#suaTT'); if (sTT) sTT.onclick = () => suaTrucTiep(st, rows, cn);
       return ganDau();
@@ -436,9 +436,9 @@
       });
       const co = sua.filter((x) => tt[x.ma].tt === 'Có mặt').length;
       m.innerHTML = dau + `<div class="chon"><button data-dd="${esc(S.u.doi)}" class="${!thay ? 'dang' : ''}">${esc(S.u.doi)} (đội tôi)</button><button data-dd="${esc(doiKhac)}" class="${thay ? 'dang' : ''}">Điểm danh giúp ${esc(doiKhac)}</button></div>`
-        + (thay ? `<div class="canh-bao">Dùng khi tổ trưởng ${esc(doiKhac)} nghỉ. Danh sách là nhân viên ${esc(doiKhac)}; tổ trưởng của đội đó đã để sẵn Vắng. Anh Vũ sẽ thấy ghi chú "điểm danh giúp".${cuaDoi.length ? '' : '<br><b>Chưa có công nhân nào được xếp vào ' + esc(doiKhac) + '.</b> Anh Vũ xếp đội trong mục Công nhân.'}</div>` : '')
-        + (cuaDoi.length || thay ? '' : `<div class="canh-bao">Chưa có công nhân nào được xếp vào ${esc(S.u.doi)}. Anh Vũ xếp đội trong mục Công nhân.</div>`)
-        + (khoa ? '<div class="canh-bao" style="background:var(--xanh-nhat);color:var(--xanh)">Anh Vũ đã duyệt và khóa buổi này. Cần sửa thì báo anh Vũ.</div>' : daGui && !guiKhac ? '<div class="canh-bao">Đã gửi · chờ anh Vũ duyệt. Sửa rồi gửi lại được.</div>' : '')
+        + (thay ? `<div class="canh-bao">Dùng khi tổ trưởng ${esc(doiKhac)} nghỉ. Danh sách là nhân viên ${esc(doiKhac)}; tổ trưởng của đội đó đã để sẵn Vắng. Trưởng bộ phận sẽ thấy ghi chú "điểm danh giúp".${cuaDoi.length ? '' : '<br><b>Chưa có công nhân nào được xếp vào ' + esc(doiKhac) + '.</b> Trưởng bộ phận xếp đội trong mục Công nhân.'}</div>` : '')
+        + (cuaDoi.length || thay ? '' : `<div class="canh-bao">Chưa có công nhân nào được xếp vào ${esc(S.u.doi)}. Trưởng bộ phận xếp đội trong mục Công nhân.</div>`)
+        + (khoa ? '<div class="canh-bao" style="background:var(--xanh-nhat);color:var(--xanh)">Trưởng bộ phận đã duyệt và khóa buổi này. Cần sửa thì báo Trưởng bộ phận.</div>' : daGui && !guiKhac ? '<div class="canh-bao">Đã gửi · chờ Trưởng bộ phận duyệt. Sửa rồi gửi lại được.</div>' : '')
         + (daGui && daGui['Ảnh tập thể'] ? `<div class="mo">Ảnh tập thể đã gửi:</div><div>${G.xemAnh(daGui['Ảnh tập thể'])}</div>` : '')
         + `<p class="mo">Mặc định mọi người <b>Có mặt</b>. Chỉ cần bấm người Vắng hoặc Về sớm.</p><div class="ds" style="margin-bottom:90px">${html || '<div class="muc mo">Không có công nhân</div>'}</div>`
         + (khoa || !sua.length ? '' : `<div class="thanh-duoi"><button class="nut chinh" id="gui">Gửi điểm danh ${st.buoi.toLowerCase()} · ${co}/${sua.length} có mặt</button></div>`);
@@ -450,7 +450,7 @@
           if (b.dataset.tt !== 'Về sớm') { tt[ma] = { tt: b.dataset.tt }; return ve(); }
           hop('Về sớm', `<label class="o"><span>Giờ về</span><input type="time" id="gv" value="${new Date().toTimeString().slice(0, 5)}"></label>
             <label class="o"><span>Lý do</span><input type="text" id="ld" placeholder="Ví dụ: việc gia đình"></label>
-            <p class="mo">Về sớm tính 0 công cho buổi này, anh Vũ sẽ xác nhận.</p><button class="nut chinh rong" id="ok">Xong</button>`, (o, dong) => {
+            <p class="mo">Về sớm tính 0 công cho buổi này, Trưởng bộ phận sẽ xác nhận.</p><button class="nut chinh rong" id="ok">Xong</button>`, (o, dong) => {
             o.querySelector('#ok').onclick = () => { tt[ma] = { tt: 'Về sớm', gioVe: o.querySelector('#gv').value, lyDo: o.querySelector('#ld').value }; dong(); ve(); };
           });
         };
@@ -460,12 +460,12 @@
         const sang = st.buoi === 'Sáng'; const daCoAnh = daGui && daGui['Ảnh tập thể'];
         hop(`Gửi điểm danh ${st.buoi.toLowerCase()} · ${st.doiDD}`, `<p style="margin-top:0"><b>${co}</b>/${sua.length} có mặt${sua.length - co ? ` · ${sua.length - co} vắng / về sớm` : ''}</p>
           <div class="o" style="margin-bottom:12px"><span style="display:block;font-size:13px;font-weight:600;margin-bottom:6px">Ảnh tập thể đầu ca ${st.buoi.toLowerCase()} ${!daCoAnh ? '(bắt buộc)' : '(đã có, chụp lại nếu cần)'}</span><div id="anhTT"></div></div>
-          <button class="nut chinh rong" id="ok">Gửi anh Vũ duyệt</button>`, (o, dong) => {
+          <button class="nut chinh rong" id="ok">Gửi Trưởng bộ phận duyệt</button>`, (o, dong) => {
           const anh = G.oAnh(o.querySelector('#anhTT'), { batBuoc: !daCoAnh, toiDa: 3 }); void sang;
           o.querySelector('#ok').onclick = (e) => chay(async () => {
             const a = anh.kiemTra();
             await API.goi('diemDanh.gui', { ngay: st.ngay, buoi: st.buoi, doi: st.doiDD, anh: a.length ? a : API.dsAnh(daGui && daGui['Ảnh tập thể']), ds: sua.map((x) => Object.assign({ ma: x.ma }, tt[x.ma])) });
-            dong(); bao('Đã gửi, chờ anh Vũ duyệt'); manDiemDanh();
+            dong(); bao('Đã gửi, chờ Trưởng bộ phận duyệt'); manDiemDanh();
           }, e.target);
         });
       };
@@ -473,7 +473,7 @@
     ve();
   }
 
-  /* anh Vũ điểm danh / sửa trực tiếp (kể cả buổi đã khóa), có nhật ký */
+  /* Trưởng bộ phận điểm danh / sửa trực tiếp (kể cả buổi đã khóa), có nhật ký */
   function suaTrucTiep(st, rows, cn) {
     const TT = 'Trạng thái (Có mặt/Vắng/Về sớm)';
     const cu = {}; rows.forEach((r) => { cu[r['Mã CN']] = { tt: r[TT], gioVe: r['Giờ về'], lyDo: r['Lý do'] }; });
@@ -578,7 +578,7 @@
         const trong = !!p['Chi tiết trồng'];
         hd.innerHTML = '<b>Báo xong</b>' + (trong ? '<p class="mo" style="margin:4px 0 8px">Ảnh trong khi trồng (bắt buộc)</p><div id="anhTrong"></div>' : '') + '<p class="mo" style="margin:4px 0 8px">Ảnh sau khi xử lý (bắt buộc): chụp trực tiếp, chọn ảnh có sẵn trong máy, hoặc dán ảnh đã sao chép.</p><div id="anhSau"></div><button class="nut chinh rong" style="margin-top:10px" id="xong">Báo xong</button>';
         const anh = G.oAnh(hd.querySelector('#anhSau'), { batBuoc: true, toiDa: 4 }); const anhT = trong ? G.oAnh(hd.querySelector('#anhTrong'), { batBuoc: true, toiDa: 4 }) : null;
-        hd.querySelector('#xong').onclick = (e) => chay(async () => { const at = anhT ? anhT.kiemTra() : []; const a = anh.kiemTra(); await API.goi('phieu.chuyen', { ma: p['Mã phiếu'], hd: 'xong', anh: a, anhTrong: at }); dong(); bao('Đã báo xong, chờ anh Vũ duyệt'); G.taiLai(); }, e.target);
+        hd.querySelector('#xong').onclick = (e) => chay(async () => { const at = anhT ? anhT.kiemTra() : []; const a = anh.kiemTra(); await API.goi('phieu.chuyen', { ma: p['Mã phiếu'], hd: 'xong', anh: a, anhTrong: at }); dong(); bao('Đã báo xong, chờ Trưởng bộ phận duyệt'); G.taiLai(); }, e.target);
       }
       if (duyet && tt === 'Báo xong') {
         hd.innerHTML = '<div class="nhom-nut"><button class="nut" data-x="tra">Trả lại</button><button class="nut chinh" data-x="duyet">Duyệt</button></div>';

@@ -19,8 +19,8 @@
     setTimeout(() => {
       const ct = vung.closest('.hop-than') || vung.closest('main') || vung; if (!ct) return;
       const nut = ct.querySelector('#l, #luu, #gui, #ok, #xong'); if (!nut) return;
-      const ktra = () => { const thieu = [...ct.querySelectorAll('.luoi-anh')].some((l) => { const o = l.closest('.o, [data-batbuoc]'); const bb = /\*|Bắt buộc/.test(((o || l.parentElement).textContent || '')); return bb && !l.children.length; }); nut.disabled = thieu; nut.title = thieu ? 'Cần ít nhất 1 ảnh' : ''; if (thieu && !nut.dataset.goc) { nut.dataset.goc = nut.textContent; } if (thieu) nut.textContent = '📷 Cần ảnh để lưu'; else if (nut.dataset.goc) { nut.textContent = nut.dataset.goc; delete nut.dataset.goc; } };
-      ct.querySelectorAll('.luoi-anh').forEach((l) => new MutationObserver(ktra).observe(l, { childList: true }));
+      const ktra = () => { const thieu = [...ct.querySelectorAll('.luoi-anh')].filter((l) => !l.closest('[hidden]')).some((l) => { const o = l.closest('.o, [data-batbuoc]'); const bb = /\*|Bắt buộc/.test(((o || l.parentElement).textContent || '')); return bb && !l.children.length; }); nut.disabled = thieu; nut.title = thieu ? 'Cần ít nhất 1 ảnh' : ''; if (thieu && !nut.dataset.goc) { nut.dataset.goc = nut.textContent; } if (thieu) nut.textContent = '📷 Cần ảnh để lưu'; else if (nut.dataset.goc) { nut.textContent = nut.dataset.goc; delete nut.dataset.goc; } };
+      ct.querySelectorAll('.luoi-anh').forEach((l) => new MutationObserver(ktra).observe(l, { childList: true })); ct.addEventListener('gl-doi', ktra);
       ktra();
     }, 30);
   }
@@ -85,15 +85,17 @@
   /* ================= VIỆC: ô có ✓ giờ, người (mục 14) · bỏ rác hữu cơ · Vị Garden · túi thuốc dừa · Hoa Giấy N2/N4 ================= */
   const NGUON = { // link → [bảng, lọc thêm]
     tuoi: ['Tuoi'], 'cum/DV10': ['ViecHangNgay', { 'Mã việc': 'DV10' }], 'cum/DV11': ['ViecHangNgay', { 'Mã việc': 'DV11' }], vanchuyen: ['VanChuyen'], phatsinh: ['ViecPhatSinh'], donghonuoc: ['DongHoNuoc'],
-    vuonuom: ['VuonUom', { 'Vườn ươm': 'Vườn ươm sân vườn' }], 'nb/bien': ['VeSinhBien'], 'nb/ktbien': ['KiemTraBien'], 'nb/may': ['MaySangCat'], 'nb/vuonrau': ['VuonRau'], 'nb/thuhoach': ['ThuHoach'],
-    'nb/noithat': ['CayNoiThat'], 'nb/vuonuomnt': ['VuonUom', { 'Vườn ươm': 'Vườn ươm cây nội thất' }], 'nb/compost': ['PhanCompost'], 'nb/rac': ['RacHuuCo'], tuithuoc: ['TuiThuocDua'],
+    vuonuom: ['VuonUom', { 'Vườn ươm': 'Vườn ươm cây bụi' }], 'nb/bien': ['VeSinhBien'], 'nb/ktbien': ['KiemTraBien'], 'nb/may': ['MaySangCat'], 'nb/vuonrau': ['VuonRau'], 'nb/thuhoach': ['ThuHoach'],
+    'nb/noithat': ['CayNoiThat'], 'nb/vuonuomnt': ['VuonUomNoiThat'], 'nb/compost': ['PhanCompost'], 'nb/rac': ['RacHuuCo'], tuithuoc: ['TuiThuocDua'],
   };
   const TILE_QV = { 'nb/rac': 'DV23', tuoi: 'DV09', 'cum/DV10': 'DV10', 'cum/DV11': 'DV11', vanchuyen: 'CN04', phatsinh: 'CN06', donghonuoc: 'DV12', vuonuom: 'DV17', 'nb/bien': 'DV18', 'nb/ktbien': 'DV19', 'nb/may': 'DV30', 'nb/vuonrau': 'DV20', 'nb/thuhoach': 'DV31', 'nb/noithat': 'DV22', 'nb/vuonuomnt': 'DV21', sotrongcay: 'CN09', dichhai: 'CN08', phunbon: 'CN07', tuithuoc: 'DV39' };
   const viecGoc = G.man.viec.fn;
-  G.trangThaiHomNay = async () => {
-    const bangs = [...new Set(Object.values(NGUON).map((x) => x[0]))].map((b) => ({ bang: b, loc: { 'Ngày': hn() } }));
+  G.NGUON_VIEC = NGUON;
+  G.trangThaiHomNay = async (ngayXem) => {
+    const ngay = ngayXem || hn();
+    const bangs = [...new Set(Object.values(NGUON).map((x) => x[0]))].map((b) => ({ bang: b, loc: { 'Ngày': ngay } }));
     const d = await G.docNhieu(bangs); const out = {};
-    Object.keys(NGUON).forEach((k) => { const [b, loc] = NGUON[k]; const ds = (d[b] || []).filter((r) => !loc || Object.keys(loc).every((c) => r[c] === loc[c])); if (ds.length) { const r = ds[ds.length - 1]; out[k] = { n: ds.length, gio: String(r['Giờ ghi'] || r['Giờ tick'] || r['Giờ'] || r['Bắt đầu'] || r['Giờ bắt đầu'] || '').replace(/^\d{4}-\d{2}-\d{2} /, '').slice(0, 5), ai: (r['Người ghi'] || r['Người đọc'] || r['Người tick'] || '').split(' ').pop() }; } });
+    Object.keys(NGUON).forEach((k) => { const [b, loc] = NGUON[k]; const ds = (d[b] || []).filter((r) => !loc || Object.keys(loc).every((c) => r[c] === loc[c])); if (ds.length) { const r = ds[ds.length - 1]; out[k] = { ds, n: ds.length, gio: String(r['Giờ ghi'] || r['Giờ tick'] || r['Giờ'] || r['Bắt đầu'] || r['Giờ bắt đầu'] || '').replace(/^\d{4}-\d{2}-\d{2} /, '').slice(0, 5), ai: (r['Người ghi'] || r['Người đọc'] || r['Người tick'] || '').split(' ').pop() }; } });
     return out;
   };
   G.man.viec = Object.assign(G.man.viec, { fn: async () => {
@@ -215,7 +217,7 @@
             ${loai === 'goc' ? '' : `<div class="chon boc" style="margin:-2px 0 8px">${['ml', 'g', 'gói'].map((u) => `<button data-u="${j}" data-v="${u}" class="${x.dvt === u ? 'dang' : ''}">${u}/bình</button>`).join('')}</div>`}`).join('')}
           ${loai === 'goc' ? `<div class="chon boc">${['kg', 'bao'].map((u) => `<button data-kl="${u}" class="${st.dvKL === u ? 'dang' : ''}">tính theo ${u}${u === 'bao' ? ' (25 kg)' : ''}</button>`).join('')}</div>` : ''}
           <button type="button" class="nut rong" id="themSP">${loai === 'thuoc' ? '↻ Đổi / thêm thuốc (tổ trưởng)' : '＋ Thêm phân'}</button>
-          ${st.ky.length ? `<div class="canh-bao do" style="margin-top:8px">⚠️ Pha kỵ: ${st.ky.map(esc).join('; ')}. Vẫn lưu được nhưng anh Vũ được báo và tự đưa vào mục nhắc trong họp.</div>` : ''}</div>
+          ${st.ky.length ? `<div class="canh-bao do" style="margin-top:8px">⚠️ Pha kỵ: ${st.ky.map(esc).join('; ')}. Vẫn lưu được nhưng Trưởng bộ phận được báo và tự đưa vào mục nhắc trong họp.</div>` : ''}</div>
         ${loai === 'goc' ? '' : `<div class="the">${buoc('Số bình 16L')}<div class="hang"><div class="gian mo">${st.sp.map((x) => `${esc(x.t.tenNgan || x.t.ten)}: ${G.so((+x.lieu || 0) * st.binh, 2)} ${esc(x.dvt)}`).join(' · ') || 'Chưa chọn'}</div>
           <button class="tron" id="tru">−</button><b class="so-vua" style="min-width:34px;text-align:center">${st.binh}</b><button class="tron chinh" id="cong">＋</button></div></div>`}
         <div class="the"><div id="f2"></div></div>
@@ -252,7 +254,7 @@
         if (dv) { const hop_ = G.dsVT(dv).map((v) => v.ma); const ds = vts.filter((x) => hop_.includes(x));
           if (ds.length) { try { const t = await G.doc('TickDinhKy', { 'Kỳ': S.dm.ky.ten, 'Mã việc': dv }); const daL = new Set(t.filter((r) => (r['Trạng thái'] || 'Xong') === 'Xong').map((r) => r['Mã vị trí']));
             await API.goi('dinhKy.luu', { viec: dv, trangThai: 'Xong', anh: b.anh.slice(0, 2), maNK: nk['Mã NK'], ghiChu: 'Từ nhật ký ' + nk['Mã NK'], ds: ds.map((vt) => ({ vt, kv: (G.vt(vt) || {}).kv, lyDo: daL.has(vt) ? 'Theo yêu cầu' : '' })) }); tu = ` · đã đánh dấu ${ds.length} vị trí ${G.dvTen(dv)}`; } catch (er) { tu = ' · chưa đánh dấu định kỳ: ' + er.message; } } }
-        manPhun.st = null; bao('Đã lưu ' + nk['Mã NK'] + (cl2 ? ` · cách ly đến ${G.ngayVN(G.congNgay(ngay, cl2))}` : '') + tu + (st.ky.length ? ' · đã báo anh Vũ pha kỵ' : '')); location.hash = maDH ? '#/dichhai' : '#/phunbon';
+        manPhun.st = null; bao('Đã lưu ' + nk['Mã NK'] + (cl2 ? ` · cách ly đến ${G.ngayVN(G.congNgay(ngay, cl2))}` : '') + tu + (st.ky.length ? ' · đã báo Trưởng bộ phận pha kỵ' : '')); location.hash = maDH ? '#/dichhai' : '#/phunbon';
       }, e.target);
     };
     ve();

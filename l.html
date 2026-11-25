@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123524">
+<title>GreenLog · Việc được giao</title>
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root { --xanh: #123524; --chanh: #C9E265; --nen: #F2F4F0; --mo: #5A6B5F; --do: #B23A33; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--nen); color: #142019; font-size: 18px; line-height: 1.45; }
+  header { background: var(--xanh); color: #fff; padding: 18px 18px 22px; border-radius: 0 0 22px 22px; }
+  header small { opacity: .8; display: block; font-size: 15px; }
+  header h1 { margin: 6px 0 0; font-size: 24px; }
+  main { padding: 14px; max-width: 640px; margin: 0 auto; }
+  .the { background: #fff; border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 1px 0 rgba(0,0,0,.04); }
+  .mo { color: var(--mo); font-size: 16px; }
+  .nut { display: block; width: 100%; border: 0; border-radius: 14px; padding: 16px; font-size: 19px; font-weight: 700; margin-top: 10px; cursor: pointer; background: #E5EBE3; color: var(--xanh); }
+  .nut.chinh { background: var(--xanh); color: #fff; }
+  .nut.chanh { background: var(--chanh); color: var(--xanh); }
+  .nut:disabled { opacity: .45; }
+  .thanh { height: 12px; background: #E1E7DF; border-radius: 8px; overflow: hidden; margin-top: 8px; }
+  .thanh i { display: block; height: 100%; background: var(--chanh); }
+  .muc { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #E5EAE3; }
+  .muc:first-child { border-top: 0; }
+  .muc b { display: block; }
+  .muc .ok { margin-left: auto; font-size: 26px; }
+  .muc button { margin-left: auto; width: auto; padding: 10px 14px; margin-top: 0; font-size: 16px; }
+  .anh { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+  .anh img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .chips button { border: 2px solid #CFD8CC; background: #fff; border-radius: 22px; padding: 10px 16px; font-size: 17px; }
+  .chips button.dang { background: var(--xanh); color: #fff; border-color: var(--xanh); }
+  textarea, input[type=number] { width: 100%; font-size: 18px; padding: 12px; border-radius: 12px; border: 2px solid #CFD8CC; margin-top: 8px; font-family: inherit; }
+  .loi { background: #FBEAE8; color: var(--do); }
+  .loc { display: flex; gap: 8px; margin-bottom: 8px; }
+  .loc button { flex: 1; padding: 10px; border-radius: 12px; border: 2px solid #CFD8CC; background: #fff; font-size: 16px; font-weight: 600; }
+  .loc button.dang { background: var(--xanh); color: #fff; border-color: var(--xanh); }
+  .hop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; z-index: 9; }
+  .hop > div { background: #fff; width: 100%; max-width: 640px; border-radius: 20px 20px 0 0; padding: 18px; max-height: 92vh; overflow: auto; }
+  .bao { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--xanh); color: #fff; padding: 12px 18px; border-radius: 12px; z-index: 10; font-size: 16px; }
+</style>
+</head>
+<body>
+<header><small id="phu">GreenLog · Bộ phận Cảnh Quan</small><h1 id="td">Đang mở việc…</h1></header>
+<main id="m"></main>
+<script src="js/config.js"></script>
+<script>
+/* GreenLog · trang LINK VIỆC (mục 82): người nhận chỉ thao tác trong đúng việc này, không đăng nhập, link dùng đến 18:00 */
+(function () {
+  const CFG = window.GL_CONFIG || {}; const MA = decodeURIComponent(location.hash.replace(/^#\/?/, '')).trim();
+  const THU = !CFG.API_URL || localStorage.getItem('gl_che_do') === '"thu"';
+  const HET = '18:00'; const $m = document.getElementById('m');
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const nay = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return { ngay: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`, gio: `${p(d.getHours())}:${p(d.getMinutes())}`, du: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}` }; };
+  const bao = (t) => { const b = document.createElement('div'); b.className = 'bao'; b.textContent = t; document.body.appendChild(b); setTimeout(() => b.remove(), 2600); };
+  /* ---- dữ liệu: chạy thử đọc trên máy, bản thật gọi máy chủ ---- */
+  const tb = (t) => { try { return JSON.parse(localStorage.getItem('gl_tb_' + t) || '[]'); } catch (e) { return []; } };
+  const luu = (t, d) => localStorage.setItem('gl_tb_' + t, JSON.stringify(d));
+  const kiem = (r) => { if (!r) throw new Error('Link không đúng hoặc đã bị xóa.'); if (r['Trạng thái'] === 'Thu hồi') throw new Error('Link đã được thu hồi. Liên hệ tổ trưởng.');
+    const n = nay(); if (r['Ngày'] !== n.ngay || n.gio >= HET) throw new Error('Link đã hết hạn (dùng đến 18:00 trong ngày). Liên hệ tổ trưởng để gửi lại.'); return r; };
+  const goi = async (action, body) => {
+    if (THU) {
+      const ds = tb('LinkViec'); const r = kiem(ds.find((x) => x['Mã link'] === MA));
+      if (action === 'link.mo') { if (r['Trạng thái'] === 'Đã gửi') { r['Trạng thái'] = 'Đã mở'; r['Giờ mở'] = nay().du; luu('LinkViec', ds); } return { link: r, kq: tb('LinkViecKetQua').filter((x) => x['Mã link'] === MA) }; }
+      if (r['Trạng thái'] === 'Báo xong') throw new Error('Việc đã báo xong.');
+      if (!(body.anh || []).length && ['xong', 'muc', 'truoc'].includes(body.loai)) throw new Error('Cần ít nhất 1 ảnh');
+      const kq = tb('LinkViecKetQua'); kq.push({ 'Mã link': MA, 'Mục': body.muc || '', 'Loại': body.loai || 'Xong', 'Ảnh': (body.anh || []).join(' | '), 'Tình trạng': body.tt || '', 'Khối lượng': body.kl || '', 'Ghi chú': body.gc || '', 'Người': r['Người nhận'], 'Giờ': nay().du }); luu('LinkViecKetQua', kq);
+      r['Trạng thái'] = body.loai === 'xong' ? 'Báo xong' : body.loai === 'khokhan' ? 'Không làm được' : 'Đang làm'; luu('LinkViec', ds);
+      if (body.loai === 'xong' && r['Mã phiếu']) { const ps = tb('Phieu'); const p = ps.find((x) => x['Mã phiếu'] === r['Mã phiếu']); if (p) { Object.assign(p, { 'Trạng thái': 'Báo xong', 'Ảnh sau': (body.anh || []).join(' | '), 'Giờ xong': nay().du }); luu('Phieu', ps); } }
+      return { ok: true };
+    }
+    const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action, ma: MA }, body || {})) });
+    const j = await res.json(); if (!j.ok) throw new Error(j.loi || 'Lỗi'); return j.data;
+  };
+  const anhUrl = (v) => { v = String(v || '').trim(); return !v ? '' : /^(data:|http|img\/|icons\/)/.test(v) ? v : 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(v) + '&sz=w600'; };
+  /* ảnh: chụp bằng camera điện thoại, thu nhỏ trước khi gửi */
+  const chup = () => new Promise((ok) => { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.capture = 'environment';
+    i.onchange = () => { const f = i.files[0]; if (!f) return ok(null); const img = new Image(); img.onload = () => { const k = Math.min(1, 1280 / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = img.width * k; c.height = img.height * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.8)); }; img.src = URL.createObjectURL(f); }; i.click(); });
+  const hop = (html, gan) => { const h = document.createElement('div'); h.className = 'hop'; h.innerHTML = `<div>${html}</div>`; document.body.appendChild(h); h.onclick = (e) => { if (e.target === h) h.remove(); }; gan(h, () => h.remove()); };
+  const nghe = (t) => { try { const u = new SpeechSynthesisUtterance(t); u.lang = 'vi-VN'; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { /* bỏ qua */ } };
+  /* khung ghi: ảnh (bắt buộc) + tình trạng + khối lượng + ghi chú, rồi gửi */
+  const moGhi = (tieuDe, opt, gui) => hop(`<h2 style="margin:0 0 6px">${esc(tieuDe)}</h2>
+      <button class="nut chanh" id="cp">📷 Chụp ảnh</button><div class="anh" id="a"></div>
+      ${opt.tt ? `<div class="mo" style="margin-top:12px">Tình trạng</div><div class="chips" id="tt">${opt.tt.map((x, i) => `<button data-v="${esc(x)}" class="${i ? '' : 'dang'}">${esc(x)}</button>`).join('')}</div>` : ''}
+      ${opt.kl ? `<div class="mo" style="margin-top:12px">${esc(opt.kl)}</div><input type="number" inputmode="decimal" id="kl">` : ''}
+      <textarea id="gc" rows="2" placeholder="Ghi chú (không bắt buộc)"></textarea>
+      <button class="nut chinh" id="g" ${opt.khongAnh ? '' : 'disabled'}>${esc(opt.nut || '✓ Xong')}</button><button class="nut" id="huy">Đóng</button>`, (h, dong) => {
+      const anh = [];
+      h.querySelector('#cp').onclick = async () => { const a = await chup(); if (!a) return; anh.push(a); h.querySelector('#a').innerHTML = anh.map((x) => `<img src="${x}">`).join(''); h.querySelector('#g').disabled = false; };
+      h.querySelectorAll('#tt button').forEach((b) => { b.onclick = () => { h.querySelectorAll('#tt button').forEach((x) => x.classList.remove('dang')); b.classList.add('dang'); }; });
+      h.querySelector('#huy').onclick = dong;
+      h.querySelector('#g').onclick = async (e) => { e.target.disabled = true; e.target.textContent = 'Đang gửi…';
+        try { const t = h.querySelector('#tt .dang'); await gui({ anh, tt: t ? t.dataset.v : '', kl: h.querySelector('#kl') ? h.querySelector('#kl').value : '', gc: h.querySelector('#gc').value }); dong(); bao('Đã gửi'); ve(); }
+        catch (er) { bao(er.message); e.target.disabled = false; e.target.textContent = opt.nut || '✓ Xong'; } };
+    });
+  let LOC = 'chua';
+  async function ve() {
+    if (!MA) { $m.innerHTML = '<div class="the loi">Link không đúng.</div>'; return; }
+    let d; try { d = await goi('link.mo'); } catch (e) { document.getElementById('td').textContent = 'Không mở được việc'; $m.innerHTML = `<div class="the loi"><b>${esc(e.message)}</b></div>`; return; }
+    const r = d.link; const kq = d.kq || []; const xong = r['Trạng thái'] === 'Báo xong';
+    document.getElementById('td').textContent = r['Tiêu đề'] || 'Việc được giao';
+    document.getElementById('phu').textContent = `${r['Người nhận'] || ''} · dùng đến 18:00 hôm nay`;
+    const dan = r['Dặn'] ? `<div class="the"><div class="mo">Tổ trưởng dặn</div><div>${esc(r['Dặn'])}</div><button class="nut" id="nghe" style="margin-top:8px">🔊 Nghe đọc</button></div>` : '';
+    let ds = []; try { ds = JSON.parse(r['Danh sách'] || '[]'); } catch (e) { ds = []; }
+    if (r['Loại'] === 'Danh sách' && ds.length) {
+      const da = new Set(kq.filter((x) => x['Mục']).map((x) => x['Mục'])); const con = ds.filter((x) => !da.has(x.ma));
+      const hien = LOC === 'chua' ? con : ds.filter((x) => da.has(x.ma));
+      $m.innerHTML = `${dan}<div class="the"><b>${da.size}/${ds.length} đã xong</b><div class="thanh"><i style="width:${Math.round(da.size / ds.length * 100)}%"></i></div></div>
+        <div class="loc"><button data-l="chua" class="${LOC === 'chua' ? 'dang' : ''}">Chưa làm (${con.length})</button><button data-l="xong" class="${LOC === 'xong' ? 'dang' : ''}">Đã làm (${da.size})</button></div>
+        <div class="the">${hien.map((x) => `<div class="muc"><div><b>${esc(x.ten)}</b><span class="mo">${esc(x.vt || '')}</span></div>${da.has(x.ma) ? '<span class="ok">✅</span>' : `<button class="nut chinh" data-m="${esc(x.ma)}">📷 Làm</button>`}</div>`).join('') || '<div class="mo">Không còn mục nào.</div>'}</div>
+        ${!con.length && !xong ? '<button class="nut chinh" id="bx">✓ Báo xong cả danh sách</button>' : ''}${xong ? '<div class="the">✅ Đã báo xong. Cảm ơn anh/chị!</div>' : ''}`;
+      $m.querySelectorAll('[data-l]').forEach((b) => { b.onclick = () => { LOC = b.dataset.l; ve(); }; });
+      $m.querySelectorAll('[data-m]').forEach((b) => { b.onclick = () => { const x = ds.find((y) => y.ma === b.dataset.m); moGhi(x.ten, { tt: ['Bình thường', 'Có vấn đề'], kl: r['Khối lượng'], nut: '✓ Xong mục này' }, (v) => goi('link.ghi', Object.assign({ muc: x.ma, loai: 'muc' }, v))); }; });
+      const bx = $m.querySelector('#bx'); if (bx) bx.onclick = () => moGhi('Báo xong cả danh sách', { nut: '✓ Báo xong' }, (v) => goi('link.ghi', Object.assign({ loai: 'xong' }, v)));
+    } else {
+      const truoc = kq.filter((x) => x['Loại'] === 'truoc'); const sau = kq.filter((x) => x['Loại'] === 'xong');
+      const anhCua = (a) => a.flatMap((x) => String(x['Ảnh'] || '').split(' | ').filter(Boolean)).map((u) => `<img src="${esc(anhUrl(u))}">`).join('');
+      $m.innerHTML = `${dan}${r['Mã vị trí'] ? `<div class="the"><div class="mo">Vị trí</div><b>${esc(r['Mã vị trí'])}</b></div>` : ''}
+        <div class="the"><b>1. Ảnh trước khi làm</b>${truoc.length ? `<div class="anh">${anhCua(truoc)}</div>` : xong ? '' : '<button class="nut chanh" id="tr">📷 Chụp ảnh trước</button>'}</div>
+        <div class="the"><b>2. Làm xong → chụp ảnh sau và báo xong</b>${sau.length ? `<div class="anh">${anhCua(sau)}</div><p>✅ Đã báo xong. Cảm ơn anh/chị!</p>` : '<button class="nut chinh" id="bx">✓ Báo xong</button>'}</div>
+        ${xong ? '' : '<button class="nut" id="kk">⚠ Không làm được, báo tổ trưởng</button>'}`;
+      const tr = $m.querySelector('#tr'); if (tr) tr.onclick = () => moGhi('Ảnh trước khi làm', { nut: 'Lưu ảnh trước' }, (v) => goi('link.ghi', Object.assign({ loai: 'truoc' }, v)));
+      const bx = $m.querySelector('#bx'); if (bx) bx.onclick = () => moGhi('Báo xong', { kl: r['Khối lượng'], nut: '✓ Báo xong' }, (v) => goi('link.ghi', Object.assign({ loai: 'xong' }, v)));
+      const kk = $m.querySelector('#kk'); if (kk) kk.onclick = () => moGhi('Không làm được', { tt: ['Mưa', 'Thiếu vật tư', 'Máy hỏng', 'Có khách', 'Khác'], nut: 'Gửi tổ trưởng', khongAnh: true }, (v) => goi('link.ghi', Object.assign({ loai: 'khokhan' }, v)));
+    }
+    const ng = $m.querySelector('#nghe'); if (ng) ng.onclick = () => nghe(r['Dặn']);
+  }
+  ve();
+})();
+</script>
+</body>
+</html>

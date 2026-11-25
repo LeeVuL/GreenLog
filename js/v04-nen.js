@@ -10,7 +10,7 @@
     NgayLamViec: ['homnay', 2], GiaoViecNgay: ['homnay', 2], NghiemThu: ['homnay', 3], BaoCaoTuan: ['homnay', 2],
     DaoTaoDiemDanh: ['homnay', 2], DaoTaoDeXuat: ['homnay', 2], KetQuaThi: ['homnay', 2], SOPDoc: ['homnay', 2],
     TuiThuocDua: ['phunbon', 2], BaoTriMay: ['noibo', 2], DanhDauSlide: ['homnay', 2], BaoCaoGM: ['homnay', 3], PhanQuyenViec: ['danhmuc', 3],
-    KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2], AnhDanhMuc: ['homnay', 2],
+    KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2], AnhDanhMuc: ['homnay', 2], AnhDaiDien: ['homnay', 1], LinkViec: ['homnay', 2], LinkViecKetQua: ['homnay', 1],
   });
   /* bảng anh Pháp được ghi dù Hôm nay chỉ Xem: báo cáo tuần, kế hoạch tuần */
   API.BANG.DaoTao = ['homnay', 2];
@@ -234,7 +234,7 @@
       { k: 'loai', nhan: 'Loại', loai: 'chips', ds: ['Thiếu vật tư', 'Máy hỏng', 'Thiếu người', 'Thời tiết', 'Khách, bộ phận khác', 'Khác'], bb: true }, { k: 'mt', nhan: 'Mô tả', loai: 'mota', bb: true }, { k: 'anh', nhan: 'Ảnh (không bắt buộc)', loai: 'anh', toiDa: 3 }]);
     o.querySelector('#l').onclick = (e) => chay(async () => {
       const v = lay(); await API.goi('ghi', { bang: 'KhoKhan', dong: { 'Mã': G.ma('KK'), 'Ngày': '', 'Loại': v.loai, 'Mô tả': v.mt, 'Liên kết': ctx.link || location.hash, 'Việc': ctx.tieuDe || '', 'Đội': S.u.doi || S.u.nhom, 'Ảnh': v.anh, 'Trạng thái': 'Mới', 'Người báo': '', 'Giờ ghi': '' } });
-      dong(); bao('Đã báo khó khăn · anh Vũ thấy ngay');
+      dong(); bao('Đã báo khó khăn · Trưởng bộ phận thấy ngay');
     }, e.target);
   });
   /* tự gắn hai nút vào cuối mọi cửa sổ chi tiết (phiếu, hồ sơ, ảnh, vị trí) */
@@ -313,8 +313,8 @@
       if (i % 3 === 0) co.push({ 'Ngày': d, 'Phân compost tuần hoàn (kg)': String(r(30, 70)), 'Ghi chú': 'Bón vườn rau, chậu nội thất', 'Người ghi': 'Nguyễn Tấn Hiệp' });
       th.push({ 'Ngày': d, 'Vườn': vr[i % 7], 'Tên cây': ['Rau muống', 'Cải xanh', 'Húng quế', 'Nấm bào ngư', 'Ớt', 'Rau thơm'][i % 6], 'kg': String(r(3, 12)), 'Bộ phận nhận': ['Bếp', 'Bếp', 'Bar', 'Nhà hàng'][i % 4], 'Ghi chú': i % 4 < 2 ? ['Bếp nóng', 'Bếp lạnh'][i % 2] : '', 'Người ghi': 'Lê Hữu Nghị' });
       vs.push({ 'Ngày': d, 'Buổi': 'Sáng', 'kg rác': String(r(15, 60)), 'Người ghi': 'Nguyễn Tấn Hiệp' }, { 'Ngày': d, 'Buổi': 'Chiều', 'kg rác': String(r(10, 40)), 'Người ghi': 'Lê Hữu Nghị' });
-      if (i % 7 === 2) vu.push({ 'Ngày': d, 'Vườn ươm': 'Vườn ươm sân vườn', 'Loại ghi': 'Ươm vào', 'Việc': 'Ươm vào', 'Tên cây': ['Dứa vàng', 'Huỳnh Anh', 'Hồng Lộc', 'Chuỗi Ngọc'][i % 4], 'Số lượng': String(r(60, 200)), 'ĐVT': 'Bầu', 'Chất cải tạo đất hữu cơ (bao)': String(r(2, 6)), 'Người ghi': 'Trương Thị Men' });
-      if (i % 7 === 5) vu.push({ 'Ngày': d, 'Vườn ươm': 'Vườn ươm sân vườn', 'Loại ghi': 'Xuất vườn', 'Việc': 'Xuất vườn', 'Tên cây': ['Dứa vàng', 'Huỳnh Anh'][i % 2], 'Số lượng': String(r(30, 90)), 'ĐVT': 'Bầu', 'Xuất đi': 'Villa 32 · mặt sau', 'Người ghi': 'Trương Thị Men' });
+      if (i % 7 === 2) vu.push({ 'Ngày': d, 'Vườn ươm': 'Vườn ươm cây bụi', 'Loại ghi': 'Ươm vào', 'Việc': 'Ươm vào', 'Tên cây': ['Dứa vàng', 'Huỳnh Anh', 'Hồng Lộc', 'Chuỗi Ngọc'][i % 4], 'Số lượng': String(r(60, 200)), 'ĐVT': 'Bầu', 'Chất cải tạo đất hữu cơ (bao)': String(r(2, 6)), 'Người ghi': 'Trương Thị Men' });
+      if (i % 7 === 5) vu.push({ 'Ngày': d, 'Vườn ươm': 'Vườn ươm cây bụi', 'Loại ghi': 'Xuất vườn', 'Việc': 'Xuất vườn', 'Tên cây': ['Dứa vàng', 'Huỳnh Anh'][i % 2], 'Số lượng': String(r(30, 90)), 'ĐVT': 'Bầu', 'Xuất đi': 'Villa 32 · mặt sau', 'Người ghi': 'Trương Thị Men' });
       ['Đội khu vực', 'Đội cơ động'].forEach((doi) => { vc.push({ 'Ngày': d, 'Đội': doi, 'Loại hàng': 'Rác cắt tỉa (cành, lá, cỏ)', 'Nhóm': 'Rác cắt tỉa', 'Số chuyến': String(r(2, 6)), 'Người ghi': doi === 'Đội khu vực' ? 'Phạm Nhật Trường' : 'Phan Văn Thìn', 'Giờ ghi': d + ' 17:20:00' }, { 'Ngày': d, 'Đội': doi, 'Loại hàng': 'Đất, cát, phân', 'Nhóm': 'Khác', 'Số chuyến': String(r(0, 2)), 'Người ghi': 'Phan Văn Thìn', 'Giờ ghi': d + ' 17:20:00' }); });
       if (i % 6 === 1) { const ma = 'NK' + d.replace(/-/g, '').slice(2) + '-001'; pb.push({ 'Mã NK': ma, 'Ngày giờ': d + ' 06:00', 'Loại (Phun thuốc/Phun phân bón lá/Bón gốc)': 'Phun thuốc', 'Mục đích': 'Trị', 'Nhóm cây': 'Cây bụi / hoa', 'Cụm': 'Villa 49 - 80', 'Số bình 16L': '8', 'Người phun': 'Nguyễn Văn Lâm', 'Hết cách ly': G.congNgay(d, 7), 'Cách ly dài nhất (ngày)': '7' });
         pbct.push({ 'Mã NK': ma, 'STT': '1', 'Sản phẩm': 'Movento 150OD', 'Liều / bình': '16', 'ĐVT': 'ml', 'Tổng lượng': '128' }, { 'Mã NK': ma, 'STT': '2', 'Sản phẩm': 'Closer 500WG', 'Liều / bình': '4', 'ĐVT': 'g', 'Tổng lượng': '32' }); }
@@ -340,7 +340,7 @@
     luu('KhuPhuTrach', [['Hotel', 'CN04'], ['Hotel', 'CN07'], ['Aura', 'CN09'], ['Residences', 'CN10'], ['Residences', 'CN11'], ['Villa 1 - 14', 'CN13'], ['Villa 1 - 14', 'CN14'], ['Villa 15 - 24', 'CN15'], ['Villa 15 - 24', 'CN18'], ['Villa 25 - 48', 'CN19'], ['Villa 25 - 48', 'CN20'], ['Villa 49 - 80', 'CN21'], ['Villa 49 - 80', 'CN23'], ['Villa 49 - 80', 'CN25'], ['Villa 49 - 80', 'CN26'], ['Islander', 'CN27'], ['Public', 'CN28']].map(([c, m]) => ({ 'Cụm': c, 'Mã CN': m, 'Người ghi': 'Lê Vũ' })));
     // phiếu, dịch hại, phát sinh, sự kiện, dự án, cây nội thất bất thường, nhắc nhở
     luu('Phieu', tb('Phieu').concat([
-      { 'Mã phiếu': 'P261124-001', 'Loại': 'Lỗi', 'Nguồn': 'Anh Vũ kiểm tra', 'Nhóm lỗi': 'Tưới', 'Loại lỗi': 'Vỡ ống tưới', 'Mức độ': 'Cao', 'Mã vị trí': 'VT001', 'Mô tả': 'Vỡ ống tưới V52 mặt sau', 'Giao cho': 'Đội khu vực', 'Người tạo': 'Lê Vũ', 'Giờ tạo': hn() + ' 07:10:00', 'Hạn': hn() + ' 16:00', 'Trạng thái': 'Báo xong', 'Số lần trả lại': '0' },
+      { 'Mã phiếu': 'P261124-001', 'Loại': 'Lỗi', 'Nguồn': 'Trưởng bộ phận kiểm tra', 'Nhóm lỗi': 'Tưới', 'Loại lỗi': 'Vỡ ống tưới', 'Mức độ': 'Cao', 'Mã vị trí': 'VT001', 'Mô tả': 'Vỡ ống tưới V52 mặt sau', 'Giao cho': 'Đội khu vực', 'Người tạo': 'Lê Vũ', 'Giờ tạo': hn() + ' 07:10:00', 'Hạn': hn() + ' 16:00', 'Trạng thái': 'Báo xong', 'Số lần trả lại': '0' },
       { 'Mã phiếu': 'P261124-002', 'Loại': 'Lỗi', 'Nguồn': 'Nhân viên tự phát hiện', 'Nhóm lỗi': 'An toàn', 'Loại lỗi': 'Cây đổ lối đi', 'Mức độ': 'Khẩn cấp', 'Vị trí khác': 'Đường N4', 'Mô tả': 'Cây đổ lối đi N4', 'Giao cho': 'Đội cơ động', 'Người tạo': 'Phan Văn Thìn', 'Giờ tạo': hn() + ' 05:50:00', 'Hạn': hn() + ' 07:50', 'Trạng thái': 'Đang xử lý', 'Số lần trả lại': '0' }]));
     luu('DichHai', tb('DichHai').concat([{ 'Mã DH': 'DH261118-001', 'Ngày phát hiện': G.congNgay(hn(), -6), 'Cụm': 'Villa 49 - 80', 'Mã vị trí': '', 'Vị trí chi tiết': 'Villa 49–56 hàng rào', 'Loại dịch hại': 'Rệp sáp', 'Tên cây': 'Hồng Lộc', 'Nhóm cây': 'Cây bụi', 'Phạm vi (Vài cây/Một mảng/Cả khu vực)': 'Một mảng', 'Mức độ': 'Trung bình', 'Trạng thái (Phát hiện/Đang xử lý/Báo xong/Đã duyệt)': 'Đang xử lý', 'Người báo': 'Phan Văn Thìn' }]));
     luu('ViecPhatSinh', tb('ViecPhatSinh').concat([{ 'Mã PS': 'PS261124-001', 'Ngày': hn(), 'Loại việc': 'Hỗ trợ bộ phận khác', 'Mô tả': 'Khiêng chậu cho F&B', 'Vị trí khác': 'Aura', 'Số người': '3', 'Hỗ trợ': 'F&B', 'Bắt đầu': hn() + ' 08:00:00', 'Kết thúc': hn() + ' 10:00:00', 'Số giờ': '2', 'Trạng thái': 'Xong', 'Người ghi': 'Phạm Nhật Trường' }]));

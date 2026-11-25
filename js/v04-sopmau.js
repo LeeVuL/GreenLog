@@ -5,10 +5,10 @@
   const ND = `## 1. Mục đích và phạm vi
 - Giúp người pha và phun thuốc bảo vệ thực vật (BVTV) làm đúng liều, an toàn cho bản thân, cho khách và cho môi trường resort.
 - Áp dụng cho mọi lần phun thuốc, phun phân bón lá bằng bình điện 16 lít trong toàn khu nghỉ dưỡng.
-- Người thực hiện: tổ Bón phân + phun thuốc (Đội cơ động). Người kiểm tra: tổ trưởng. Người duyệt thuốc mới: anh Vũ.
+- Người thực hiện: tổ Bón phân + phun thuốc (Đội cơ động). Người kiểm tra: tổ trưởng. Người duyệt thuốc mới: Trưởng bộ phận.
 
 ## 2. Nguyên tắc 4 ĐÚNG
-- Đúng thuốc: chỉ dùng thuốc có trong Danh mục thuốc, phân của app. Thuốc lạ phải đề xuất, chờ anh Vũ duyệt.
+- Đúng thuốc: chỉ dùng thuốc có trong Danh mục thuốc, phân của app. Thuốc lạ phải đề xuất, chờ Trưởng bộ phận duyệt.
 - Đúng liều: theo liều cho bình 16 lít ghi trong app. Không tự tăng liều "cho chắc".
 - Đúng lúc: khi dịch hại mới chớm, sáng sớm (trước 9h) hoặc chiều mát (sau 16h), trời không mưa, gió nhẹ.
 - Đúng cách: phun ướt đều tán, cả mặt dưới lá, không để thuốc chảy thành giọt xuống đất.
@@ -35,7 +35,7 @@
 - Dừng ngay khi có khách đi tới, khi gió mạnh hoặc trời bắt đầu mưa.
 - Không ăn, uống, hút thuốc khi đang pha hoặc đang phun.
 - Decis không dùng gần hồ cá, hồ thủy sinh vì rất độc với cá.
-- Gần Vị Garden: báo anh Vũ trước. App tự khóa thu hoạch đến hết ngày cách ly.
+- Gần Vị Garden: báo Trưởng bộ phận trước. App tự khóa thu hoạch đến hết ngày cách ly.
 
 ## 6. Sau khi phun
 - Rửa bình 3 lần, nước rửa phun lại lên chính khu vừa phun. Không đổ xuống cống, hồ, bãi biển.
@@ -48,7 +48,7 @@
 - Văng vào mắt: rửa bằng nước sạch liên tục ít nhất 15 phút.
 - Hít phải, thấy chóng mặt, buồn nôn: ra ngay chỗ thoáng khí, ngồi nghỉ, báo tổ trưởng.
 - Nuốt phải: không tự gây nôn nếu nhãn không hướng dẫn. Gọi 115, mang theo chai/gói thuốc hoặc ảnh nhãn đến cơ sở y tế.
-- Mọi trường hợp đều báo tổ trưởng và anh Vũ ngay, ghi vào app bằng nút ⚠ Báo khó khăn.
+- Mọi trường hợp đều báo tổ trưởng và Trưởng bộ phận ngay, ghi vào app bằng nút ⚠ Báo khó khăn.
 
 ## 8. Kiểm tra sau khóa học
 - Người học tự pha đúng 1 bình theo công thức app gợi ý, có tổ trưởng kiểm tra.

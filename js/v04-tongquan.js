@@ -1,4 +1,4 @@
-/* GreenLog 0.4 – Tổng quan (anh Vũ): 8 ô chỉ số, Phát triển bền vững, ma trận định kỳ, nhân sự, chờ duyệt, đang diễn ra; bấm thẻ nào cũng ra chi tiết */
+/* GreenLog 0.4 – Tổng quan (Trưởng bộ phận): 8 ô chỉ số, Phát triển bền vững, ma trận định kỳ, nhân sự, chờ duyệt, đang diễn ra; bấm thẻ nào cũng ra chi tiết */
 (function () {
   const API = window.GL_API; const G = window.GL; const S = G.S; const { esc, q, chay, bao } = G;
   const hn = () => API.ngay();
@@ -16,7 +16,7 @@
     { k: 'vigarden', ten: 'Thu hoạch Vị Garden', ic: 'thu_hoach', dv: 'kg', bang: 'ThuHoach', ngay: 'Ngày', gt: (r) => +r.kg || 0, cot: ['Ngày', 'Vườn', 'Tên cây', 'kg', 'Bộ phận nhận', 'Ghi chú', 'Người ghi'] },
     { k: 'racbien', ten: 'Rác bãi biển', ic: 'bai_bien', dv: 'kg', bang: 'VeSinhBien', ngay: 'Ngày', gt: (r) => +r['kg rác'] || 0, cot: ['Ngày', 'Buổi', 'kg rác', 'Người ghi'] },
     { k: 'nuoc', ten: 'Nước tưới', ic: 'tuoi', dv: 'm³', ghep: true },
-    { k: 'vuonuom', ten: 'Vườn ươm sân vườn', ic: 'vuon_uom', dv: 'cây', ghep: true },
+    { k: 'vuonuom', ten: 'Vườn ươm cây bụi', ic: 'vuon_uom', dv: 'cây', ghep: true },
     { k: 'vanchuyen', ten: 'Vận chuyển', ic: 'van_chuyen', dv: 'chuyến', bang: 'VanChuyen', ngay: 'Ngày', gt: (r) => +r['Số chuyến'] || 0, cot: ['Ngày', 'Đội', 'Loại hàng', 'Nhóm', 'Số chuyến', 'Người ghi'] },
     { k: 'bvtv', ten: 'Thuốc BVTV', ic: 'thuoc', dv: 'lít | kg', ghep: true },
     { k: 'phanvoco', ten: 'Phân bón vô cơ', ic: 'bon_phan_co', dv: 'lít | kg', ghep: true },
@@ -24,7 +24,7 @@
   /* đọc mọi bảng cần cho [tu, den] (đồng hồ nước lấy thêm 1 ngày trước để tính chênh lệch) */
   G.taiBV = async (tu, den) => {
     const loc = { 'Ngày': { tu, den } };
-    const d = await G.docNhieu([{ bang: 'RacHuuCo', loc }, { bang: 'PhanCompost', loc }, { bang: 'ThuHoach', loc }, { bang: 'VeSinhBien', loc }, { bang: 'VanChuyen', loc }, { bang: 'VuonUom', loc },
+    const d = await G.docNhieu([{ bang: 'RacHuuCo', loc }, { bang: 'PhanCompost', loc }, { bang: 'ThuHoach', loc }, { bang: 'VeSinhBien', loc }, { bang: 'VanChuyen', loc }, { bang: 'VuonUom', loc }, { bang: 'VuonUomNoiThat', loc },
       { bang: 'DongHoNuoc', loc: { 'Ngày': { tu: G.congNgay(tu, -3), den } } }, { bang: 'SoTrongCay', loc: { 'Thời gian': { tu, den: den + ' 99' } } }, { bang: 'DuAnTienDo', loc },
       { bang: 'NhatKyPhunBon', loc: { 'Ngày giờ': { tu, den: den + ' 99' } } }, { bang: 'NhatKyPhunBonChiTiet', gioiHan: 5000 }, { bang: 'PhunLai', loc: { 'Ngày': { tu, den } } }]);
     Object.keys(d).forEach((k) => { d[k] = d[k] || []; });
@@ -37,7 +37,7 @@
     const vc = (d.VanChuyen || []).filter((r) => trongKhoang(r['Ngày'], tu, den)); out.vanchuyen.phu = `trong đó rác cắt tỉa ${so(sum(vc.filter((r) => r['Nhóm'] === 'Rác cắt tỉa'), (r) => r['Số chuyến']), 0)} chuyến`;
     // mùn cưa: vườn ươm + dự án + sổ trồng cây
     const mc = [];
-    (d.VuonUom || []).forEach((r) => { if (+r['Chất cải tạo đất hữu cơ (bao)']) mc.push({ 'Ngày': r['Ngày'], 'Nguồn': r['Vườn ươm'], 'Chi tiết': r['Tên cây'] || r['Việc'], 'Bao': +r['Chất cải tạo đất hữu cơ (bao)'] }); });
+    (d.VuonUom || []).concat(d.VuonUomNoiThat || []).forEach((r) => { if (+r['Chất cải tạo đất hữu cơ (bao)']) mc.push({ 'Ngày': r['Ngày'], 'Nguồn': r['Vườn ươm'], 'Chi tiết': r['Tên cây'] || r['Việc'], 'Bao': +r['Chất cải tạo đất hữu cơ (bao)'] }); });
     (d.SoTrongCay || []).forEach((r) => { if (+r['Chất cải tạo đất hữu cơ (bao)']) mc.push({ 'Ngày': String(r['Thời gian']).slice(0, 10), 'Nguồn': 'Sổ trồng cây' + (r['Mã DA'] ? ' · ' + r['Mã DA'] : ''), 'Chi tiết': r['Tên cây'] + ' · ' + (r['Khu vực'] || ''), 'Bao': +r['Chất cải tạo đất hữu cơ (bao)'] }); });
     (d.DuAnTienDo || []).forEach((r) => { if (+r['Mùn cưa (bao)']) mc.push({ 'Ngày': r['Ngày'], 'Nguồn': 'Dự án ' + r['Mã DA'], 'Chi tiết': r['Khối lượng hôm nay'] || '', 'Bao': +r['Mùn cưa (bao)'] }); });
     const mcK = mc.filter((r) => trongKhoang(r['Ngày'], tu, den)); const bao_ = sum(mcK, (r) => r['Bao']);
@@ -48,7 +48,7 @@
     out.nuoc = { so: ta, tong: tt, tyLe: tt ? Math.round(ta / tt * 100) : 0, phu: `Tái sử dụng ${so(ta, 0)} m³ chiếm tỷ lệ ${tt ? Math.round(ta / tt * 100) : 0}% · Tổng tưới ${so(tt, 0)} m³`, chuoi: t2,
       dong: Object.keys(t2).sort().map((n) => ({ 'Ngày': n, 'Nước sau xử lý (m³)': t1[n] || 0, 'Tổng nước tưới (m³)': t2[n], 'Tái sử dụng (%)': t2[n] ? Math.round((t1[n] || 0) / t2[n] * 100) : 0 })), cot: ['Ngày', 'Nước sau xử lý (m³)', 'Tổng nước tưới (m³)', 'Tái sử dụng (%)'] };
     // vườn ươm sân vườn: đã ươm / đã xuất
-    const vu = (d.VuonUom || []).filter((r) => r['Vườn ươm'] === 'Vườn ươm sân vườn' && trongKhoang(r['Ngày'], tu, den));
+    const vu = (d.VuonUom || []).filter((r) => r['Vườn ươm'] === 'Vườn ươm cây bụi' && trongKhoang(r['Ngày'], tu, den));
     const uom = vu.filter((r) => r['Loại ghi'] === 'Ươm vào' || /Ươm mới/.test(r['Việc'])); const xuat = vu.filter((r) => r['Loại ghi'] === 'Xuất vườn' || /Xuất cây/.test(r['Việc']));
     out.vuonuom = { so: sum(uom, (r) => r['Số lượng']), xuat: sum(xuat, (r) => r['Số lượng']), phu: `Đã ươm ${so(sum(uom, (r) => r['Số lượng']), 0)} · Đã xuất ${so(sum(xuat, (r) => r['Số lượng']), 0)}`, chuoi: chuoi(uom, (r) => r['Ngày'], (r) => +r['Số lượng'] || 0), dong: uom.concat(xuat), cot: ['Ngày', 'Loại ghi', 'Tên cây', 'Số lượng', 'ĐVT', 'Xuất đi', 'Người ghi'] };
     // thuốc BVTV, phân vô cơ: tách lít / kg
@@ -88,7 +88,7 @@
     if (!G.laAnhVu()) return G.manHomNayMoi ? G.manHomNayMoi() : G.manHomNayGoc();
     if (!G.MT_IC) { G.MT_IC = {}; (G.MT_DK || []).forEach(([, r]) => r.forEach((x) => { if (x) G.MT_IC[x[0]] = x[1]; })); }
     const k = S.dm.ky; const ngayHN = hn(); if (G.kiemKy) G.kiemKy().catch(() => {});
-    const m = G.khung('Tổng quan', `${G.thu()}, ${G.ngayVN(ngayHN)} · Chào anh ${S.u.ten.split(' ').pop()}`);
+    const m = G.khung('Tổng quan', `${G.thu()}, ${G.ngayVN(ngayHN)} · ${G.laAnhVu() ? 'Trưởng bộ phận Cảnh Quan' : 'Chào anh ' + S.u.ten.split(' ').pop()}`);
     const [tu, den] = G.khoang(st.khoang);
     const [d, bvD] = await Promise.all([G.docNhieu([
       { bang: 'DiemDanh', loc: { 'Ngày': ngayHN } }, { bang: 'DuyetCong', loc: { 'Ngày': ngayHN } }, { bang: 'TickDinhKy', loc: { 'Kỳ': k.ten } }, { bang: 'Phieu', gioiHan: 500 }, { bang: 'Tuoi', loc: { 'Ngày': ngayHN } },
@@ -118,7 +118,7 @@
     d.CongNhanDangKy.forEach((x) => cho.push(['Đăng ký công nhân · ' + x['Họ và tên'], 'congnhan']));
     d.DeXuatThuoc.forEach((x) => cho.push(['Đề xuất thuốc · ' + x['Tên thuốc/phân'], 'thuoc']));
     d.DaoTao.filter((x) => /Chờ duyệt/.test(x['Trạng thái'] || '')).forEach((x) => cho.push(['Đào tạo · ' + x['Nội dung'] + ' (' + x['Trạng thái'] + ')', 'daotao/' + encodeURIComponent(x['Mã ĐT'])]));
-    d.KyDinhKy.filter((x) => x['Trạng thái'] === 'Chờ anh duyệt kết thúc').forEach((x) => cho.push(['Kết thúc kỳ ' + x['Kỳ'], 'kydinhky']));
+    d.KyDinhKy.filter((x) => x['Trạng thái'] === 'Chờ Trưởng bộ phận duyệt kết thúc').forEach((x) => cho.push(['Kết thúc kỳ ' + x['Kỳ'], 'kydinhky']));
     d.NgayLamViec.filter((x) => x['Loại'] === 'Chốt ngày' && x['Trạng thái'] === 'Chờ anh chốt').forEach((x) => cho.push(['Chốt ngày · ' + x['Đội'], 'homnay']));
     // 5 tưới
     const nVT = S.dm.vitri.filter((v) => v.ap === 'Có').length; const mua = d.Tuoi.filter((x) => /mưa/i.test(x['Trạng thái'])).length;
@@ -133,7 +133,7 @@
       ${kpi('diem_danh', 'Quân số hôm nay', sang.length ? `${coMat.size}/${G.TONG_DINH_BIEN}` : '—', sang.length ? (db.trong.length ? db.trong.length + ' khu trống' : 'đủ khu') : 'chưa điểm danh', db.trong.length || !sang.length ? 'do' : 'xanh', 'homnay')}
       ${kpi('viec', 'Định kỳ kỳ ' + k.ten.split('.')[0], Math.round(pTB * 100) + '%', (pTB >= moc - 0.1 ? 'đúng tiến độ' : 'chậm') + ` (ngày ${ngayThu}/${tongN})`, pTB >= moc - 0.1 ? 'xanh' : 'cam', 'viec')}
       ${kpi('phieu', 'Phiếu đang mở', pMo.length, `${pMo.filter((x) => x['Mức độ'] === 'Khẩn cấp').length} khẩn · ${pQH.length} quá hạn`, pQH.length ? 'do' : '', 'phieu')}
-      ${kpi('cham_diem', 'Chờ anh duyệt', cho.length, cho.length ? cho.slice(0, 2).map((c) => c[0].split(' · ')[0]).join(' · ') : 'không có', cho.length ? 'vang' : 'xanh', 'homnay')}
+      ${kpi('cham_diem', 'Chờ duyệt', cho.length, cho.length ? cho.slice(0, 2).map((c) => c[0].split(' · ')[0]).join(' · ') : 'không có', cho.length ? 'vang' : 'xanh', 'homnay')}
       ${kpi('tuoi', 'Tưới hôm nay', `${d.Tuoi.length}/${nVT}`, mua ? mua + ' chỗ mưa bỏ qua' : 'chưa có chỗ mưa', 'xanh', 'tuoi')}
       ${kpi('phat_sinh', 'Việc phát sinh', ps.length, so(ngGio) + ' người-giờ', 'chanh', 'phatsinh')}
       ${kpi('dich_hai', 'Dịch hại đang xử lý', dhMo.length, dhNang.length ? dhNang.length + ' mức nặng' : 'không có mức nặng', dhNang.length ? 'do' : 'xanh', 'dichhai')}
@@ -158,7 +158,7 @@
         ${db.thieu.length ? `<p class="mo">Thiếu theo định biên: ${db.thieu.map((x) => `${esc(x.cd)} ${x.thieu}`).join(' · ')}</p>` : ''}
         ${sang.filter((x) => !/Có mặt/.test(x['Trạng thái (Có mặt/Vắng/Về sớm)'])).map((x) => `<div class="mo">${esc(x['Họ tên'])} · ${esc(x['Trạng thái (Có mặt/Vắng/Về sớm)'])}${x['Lý do'] ? ' · ' + esc(x['Lý do']) : ''}</div>`).join('')}
         <a href="#/homnay" class="nut nho" style="margin-top:10px;text-decoration:none">Hôm nay toàn bộ phận ›</a></div>
-      <div class="the"><div class="hang"><h2 class="gian" style="margin:0">Chờ anh duyệt</h2><span class="chip vang">${cho.length}</span></div>
+      <div class="the"><div class="hang"><h2 class="gian" style="margin:0">Chờ duyệt</h2><span class="chip vang">${cho.length}</span></div>
         ${cho.length ? `<table class="bang-tq">${cho.slice(0, 12).map((c) => `<tr><td>${esc(c[0])}</td><td style="text-align:right"><a class="chip xanh" href="#/${c[1]}" style="text-decoration:none">Duyệt</a></td></tr>`).join('')}</table>` : '<p class="mo">Không có việc chờ duyệt.</p>'}</div>
       <div class="the rong2"><div class="hang"><h2 class="gian" style="margin:0">Đang diễn ra</h2><a class="mo" href="#/lich">xem tất cả</a></div>
         <table class="bang-tq"><tr><th>Loại</th><th>Nội dung</th><th>Trạng thái</th></tr>${dangDR.slice(0, 10).map((x) => `<tr><td><span class="chip ${x[3]}">${esc(x[0])}</span></td><td><a href="#/${x[4]}" style="color:inherit">${esc(x[1])}</a></td><td><span class="chip ${x[3]}">${esc(x[2])}</span></td></tr>`).join('') || '<tr><td colspan="3" class="mo">Không có</td></tr>'}</table></div>

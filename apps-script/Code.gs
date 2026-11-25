@@ -19,7 +19,7 @@ const COT_NHOM = { 'Tổ trưởng': 1, 'Quản lý nhà thầu': 2, 'Nhân viê
 const BANG = {
   DiemDanh: ['diemdanh', 3], DuyetCong: ['diemdanh', 3], PhieuSuaCong: ['diemdanh', 3],
   TickDinhKy: ['dinhky', 3], AnhNgay: ['dinhky', 3], Tuoi: ['dinhky', 2], ViecHangNgay: ['dinhky', 2], KeHoachDinhKy: ['kehoach', 2],
-  DongHoNuoc: ['donghonuoc', 2], VuonUom: ['vuonuom', 2],
+  DongHoNuoc: ['donghonuoc', 2], VuonUom: ['vuonuom', 2], VuonUomNoiThat: ['noibo', 2],
   VeSinhBien: ['noibo', 2], KiemTraBien: ['noibo', 2], VuonRau: ['noibo', 2], ThuHoach: ['noibo', 2], CayNoiThat: ['noibo', 2],
   RacHuuCo: ['noibo', 2], PhanCompost: ['noibo', 2], MaySangCat: ['noibo', 2],
   Phieu: ['phieu', 3], PhieuLichSu: ['phieu', 3], DichHai: ['phieu', 2], DichHaiCapNhat: ['phieu', 2], SoTrongCay: ['phieu', 2], BatThuong: ['phieu', 2],
@@ -46,6 +46,8 @@ function doPost(e) {
   try { req = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, loi: 'Yêu cầu không hợp lệ' }); }
   try {
     if (req.action === 'dangNhap') return json_({ ok: true, data: dangNhap_(req.idToken) });
+    // mục 82: link việc cho nhân viên — không đăng nhập, chỉ thao tác trong đúng 1 việc, hết hạn 18:00
+    if (String(req.action).indexOf('link.') === 0 && typeof LINK_API !== 'undefined' && LINK_API[req.action]) return json_({ ok: true, data: LINK_API[req.action](req) });
     const u = nguoiTuPhien_(req.token);
     if (!u) return json_({ ok: false, loi: 'HET_PHIEN' });
     const fn = API[req.action];
@@ -81,7 +83,7 @@ function dangNhap_(idToken) {
   if (t.aud !== prop_('CLIENT_ID')) throw new Error('Mã đăng nhập không đúng ứng dụng');
   if (String(t.email_verified) !== 'true') throw new Error('Gmail chưa xác minh');
   const u = timNguoiDung_(String(t.email).toLowerCase());
-  if (!u) throw new Error('Gmail ' + t.email + ' chưa có trong danh sách người dùng GreenLog. Nhờ anh Vũ thêm vào.');
+  if (!u) throw new Error('Gmail ' + t.email + ' chưa có trong danh sách người dùng GreenLog. Nhờ Trưởng bộ phận thêm vào.');
   const token = Utilities.getUuid() + Utilities.getUuid().slice(0, 8);
   PropertiesService.getScriptProperties().setProperty('S_' + token, JSON.stringify({ email: u.gmail, het: Date.now() + PHIEN_NGAY * 864e5 }));
   return { token: token, user: u };
@@ -141,7 +143,6 @@ function docCap_(o, ten, tenRieng) {
 function can_(u, ph, cap) { if ((u.quyen[ph] || 0) < cap) throw new Error('Anh/chị chưa có quyền này'); }
 function quyenBang_(u, bang, cap, hd) {
   const b = BANG[bang]; if (!b) throw new Error('Không có bảng ' + bang);
-  if (bang === 'VuonUom' && (u.quyen.noibo || 0) >= cap) return;
   if (bang === 'DuAnTienDo' && cap === 2 && (u.quyen.duan || 0) >= 2) return;
   if (bang === 'SuKien' && hd === 'sua' && cap === 2 && (u.quyen.sukien || 0) >= 2) return;
   if (typeof laNhaThauGhi_ === 'function' && laNhaThauGhi_(u, bang, cap)) return;
@@ -186,7 +187,7 @@ function khoiDong_(u) {
     hangrao: bang_(nen, 'HangRao').filter(function (r) { return r['Mã']; }).map(function (r) { return { ma: r['Mã'], kv: r['Khu vực'], ten: r['Vị trí'], cay: r['Loại cây'] }; }),
     hothuysinh: bang_(nen, 'HoThuySinh').filter(function (r) { return r['Mã']; }).map(function (r) { return { ma: r['Mã'], kv: r['Villa'], ten: r['Tên'] }; }),
     lieu: lieu, dhThuoc: bang_(nen, 'DichHaiThuoc').filter(function (r) { return r['Dịch hại']; }).map(function (r) { return { dh: r['Dịch hại'], nhan: r['Nhận biết nhanh'], chinh: r['Thuốc chính (liều/16L)'], luan: r['Thuốc luân phiên'], ghi: r['Ghi chú'] }; }),
-    loaiHang: ['Rác cắt tỉa (cành, lá, cỏ)', 'Đất, cát, phân', 'Cây, chậu', 'Vật tư, dụng cụ', 'Khác'], loaiPhatSinh: ['Hỗ trợ bộ phận khác', 'Sự cố cần xử lý gấp', 'Theo yêu cầu khách', 'Theo yêu cầu anh Vũ', 'Khác'],
+    loaiHang: ['Rác cắt tỉa (cành, lá, cỏ)', 'Đất, cát, phân', 'Cây, chậu', 'Vật tư, dụng cụ', 'Khác'], loaiPhatSinh: ['Hỗ trợ bộ phận khác', 'Sự cố cần xử lý gấp', 'Theo yêu cầu khách', 'Theo yêu cầu Trưởng bộ phận', 'Khác'],
     boPhan: ['F&B', 'Housekeeping', 'Engineering', 'Sales & Marketing', 'Front Office', 'Security', 'Spa', 'Khác'], viecNT: ['Tưới nước', 'Tưới phân', 'Bón phân hạt', 'Phun phân bón lá'],
     chuDeSOP: ['Cây nội thất', 'Cỏ thảm', 'Cây bụi', 'Cây bóng mát', 'Phun thuốc, an toàn', 'Vườn rau', 'Compost', 'Bãi biển, máy sàng cát', 'Khác'],
   };
@@ -305,9 +306,9 @@ function ghiDD_(u, r) {
     if (!anh && r.ngay !== ngay_()) throw new Error('Chỉ điểm danh cho hôm nay.');
     if (!anh && doi !== 'Quản lý nhà thầu' && !anhTT.length) throw new Error('Cần 1 ảnh tập thể đầu ca buổi ' + String(r.buoi).toLowerCase() + '.');
     if (!anh) {
-      if (du.some(function (x) { return x['Khóa'] === 'Có'; })) throw new Error('Buổi này anh Vũ đã duyệt và khóa. Cần sửa thì báo anh Vũ.');
+      if (du.some(function (x) { return x['Khóa'] === 'Có'; })) throw new Error('Buổi này Trưởng bộ phận đã duyệt và khóa. Cần sửa thì báo Trưởng bộ phận.');
       const khoa = r.ds.filter(function (x) { return cu.some(function (c) { return c['Mã CN'] === x.ma && c['Trạng thái duyệt'] === 'Đã duyệt'; }); });
-      if (khoa.length) throw new Error('Đã khóa, không sửa được: ' + khoa.map(function (x) { return ten(x.ma); }).join(', ') + '. Cần sửa thì báo anh Vũ.');
+      if (khoa.length) throw new Error('Đã khóa, không sửa được: ' + khoa.map(function (x) { return ten(x.ma); }).join(', ') + '. Cần sửa thì báo Trưởng bộ phận.');
       const khac = r.ds.filter(function (x) { return cu.some(function (c) { return c['Mã CN'] === x.ma && c['Người ghi'] !== u.ten; }); });
       if (khac.length) throw new Error('Đã được tổ trưởng khác điểm danh: ' + khac.map(function (x) { return ten(x.ma); }).join(', '));
     }
@@ -315,7 +316,7 @@ function ghiDD_(u, r) {
     xoaDong_(vh.getSheetByName('DiemDanh'), function (x) { return x['Ngày'] === r.ngay && x['Buổi'] === r.buoi && ma.indexOf(x['Mã CN']) >= 0; });
     const rows = r.ds.map(function (x) {
       const c = cu.filter(function (y) { return y['Mã CN'] === x.ma; })[0];
-      if (anh && c && c[TT_DD] !== x.tt) ghi_(vh, 'NhatKyThayDoi', { 'Thời điểm': gio, 'Người': u.ten, 'Trang': 'DiemDanh', 'Mã bản ghi': r.ngay + '/' + r.buoi + '/' + x.ma, 'Trường': 'Trạng thái', 'Giá trị cũ': c[TT_DD], 'Giá trị mới': x.tt, 'Lý do': r.lyDo || 'Anh Vũ sửa trực tiếp' });
+      if (anh && c && c[TT_DD] !== x.tt) ghi_(vh, 'NhatKyThayDoi', { 'Thời điểm': gio, 'Người': u.ten, 'Trang': 'DiemDanh', 'Mã bản ghi': r.ngay + '/' + r.buoi + '/' + x.ma, 'Trường': 'Trạng thái', 'Giá trị cũ': c[TT_DD], 'Giá trị mới': x.tt, 'Lý do': r.lyDo || 'Trưởng bộ phận sửa trực tiếp' });
       const o = { 'Ngày': r.ngay, 'Buổi': r.buoi, 'Mã CN': x.ma, 'Họ tên': ten(x.ma), 'Đội': anh ? (c ? c['Đội'] : (cnMap[x.ma] || {})['Đội'] || 'Chưa phân đội') : doi,
         'Giờ về': x.gioVe || '', 'Lý do': x.lyDo || '', 'Công': x.tt === 'Có mặt' ? 0.5 : 0, 'Ảnh tập thể': '',
         'Người ghi': anh && c ? c['Người ghi'] : u.ten, 'Giờ ghi': gio, 'Trạng thái duyệt': anh ? 'Đã duyệt' : 'Chờ duyệt' };
@@ -404,7 +405,7 @@ function vcGui_(u, r) {
   return voiKhoa_(function () {
     const vh = vh_(); const hn = ngay_(); const doi = r.doi || u.doi || 'Chung'; const gio = bayGio_();
     const cu = bang_(vh, 'VanChuyen').filter(function (x) { return x['Ngày'] === hn && x['Đội'] === doi; });
-    if (cu.length && !anhVu) throw new Error('Hôm nay ' + doi + ' đã gửi lúc ' + String(cu[0]['Giờ ghi']).slice(11, 16) + '. Cần sửa thì báo anh Vũ.');
+    if (cu.length && !anhVu) throw new Error('Hôm nay ' + doi + ' đã gửi lúc ' + String(cu[0]['Giờ ghi']).slice(11, 16) + '. Cần sửa thì báo Trưởng bộ phận.');
     if (anh.length < 2 && !anhVu) throw new Error('Cần ít nhất 2 ảnh của vài chuyến trong ngày');
     xoaDong_(vh.getSheetByName('VanChuyen'), function (x) { return x['Ngày'] === hn && x['Đội'] === doi; });
     const rows = r.ds.filter(function (x) { return +x.n > 0; }).map(function (x, i) { return { 'Ngày': hn, 'Đội': doi, 'Loại hàng': x.loai, 'Nhóm': /rác cắt tỉa/i.test(x.loai) ? 'Rác cắt tỉa' : 'Khác', 'Số chuyến': x.n, 'Mã DA': r.maDA || '', 'Ghi chú': r.ghiChu || '', 'Ảnh': i === 0 ? anh.join(' | ') : '', 'Người ghi': u.ten, 'Giờ ghi': gio }; });
@@ -412,7 +413,7 @@ function vcGui_(u, r) {
   });
 }
 
-/* ================= Công nhân: anh Vũ thêm, sửa, chuyển đội, đổi trạng thái (không xóa) ================= */
+/* ================= Công nhân: Trưởng bộ phận thêm, sửa, chuyển đội, đổi trạng thái (không xóa) ================= */
 function cnSua_(u, r) {
   can_(u, 'congnhan', 3);
   return voiKhoa_(function () {
@@ -422,7 +423,7 @@ function cnSua_(u, r) {
     const doi = {}; Object.keys(r.doi).forEach(function (k) { if (MAP[k]) doi[MAP[k]] = r.doi[k]; });
     if (!ma) { ma = 'CN' + ('0' + (Math.max.apply(null, ds.map(function (y) { return +String(y['Mã']).slice(2) || 0; })) + 1)).slice(-2); const o = { 'Mã': ma }; Object.keys(doi).forEach(function (k) { o[k] = doi[k]; }); ghi_(nen, 'CongNhan', o); }
     else capNhat_(sh, function (y) { return y['Mã'] === ma; }, doi);
-    Object.keys(doi).forEach(function (k) { if (String(cu[k] || '') !== String(doi[k])) ghi_(vh, 'NhatKyThayDoi', { 'Thời điểm': bayGio_(), 'Người': u.ten, 'Trang': 'CongNhan', 'Mã bản ghi': ma, 'Trường': k, 'Giá trị cũ': cu[k] || '', 'Giá trị mới': doi[k], 'Lý do': r.lyDo || (r.ma ? 'Anh Vũ sửa' : 'Thêm mới') }); });
+    Object.keys(doi).forEach(function (k) { if (String(cu[k] || '') !== String(doi[k])) ghi_(vh, 'NhatKyThayDoi', { 'Thời điểm': bayGio_(), 'Người': u.ten, 'Trang': 'CongNhan', 'Mã bản ghi': ma, 'Trường': k, 'Giá trị cũ': cu[k] || '', 'Giá trị mới': doi[k], 'Lý do': r.lyDo || (r.ma ? 'Trưởng bộ phận sửa' : 'Thêm mới') }); });
     return { ma: ma };
   });
 }
@@ -504,7 +505,7 @@ function sauGhi_(u, bang, d) {
 }
 function sauSua_(u, bang, khoa, doi) {
   try {
-    if (bang === 'BatThuong' && doi['Trả lời của anh Vũ']) { const r = bang_(vh_(), 'BatThuong').filter(function (x) { return khop_(x, khoa); })[0]; if (r) guiTen_(r['Người báo'], '🥀 Anh Vũ trả lời về ' + r['Tên cây'] + ' (' + r['Mã điểm'] + '): ' + doi['Trả lời của anh Vũ']); }
+    if (bang === 'BatThuong' && doi['Trả lời của Trưởng bộ phận']) { const r = bang_(vh_(), 'BatThuong').filter(function (x) { return khop_(x, khoa); })[0]; if (r) guiTen_(r['Người báo'], '🥀 Trưởng bộ phận trả lời về ' + r['Tên cây'] + ' (' + r['Mã điểm'] + '): ' + doi['Trả lời của Trưởng bộ phận']); }
     if (bang === 'DichHai' && /Báo xong/.test(doi['Trạng thái (Phát hiện/Đang xử lý/Báo xong/Đã duyệt)'] || '')) guiNhom_('Trưởng bộ phận', '🐛 Hồ sơ dịch hại ' + khoa['Mã DH'] + ' báo xong, chờ duyệt\n' + link_('dichhai'));
   } catch (e) { console.error(e); }
 }
@@ -557,7 +558,7 @@ function thoiTiet_() {
 /* ================= AI ================= */
 function aiCay_(u, r) {
   can_(u, 'ai', 2);
-  const key = prop_('PLANTNET_KEY', true); if (!key) throw new Error('Chưa có mã Pl@ntNet. Anh Vũ điền PLANTNET_KEY trong caiDat().');
+  const key = prop_('PLANTNET_KEY', true); if (!key) throw new Error('Chưa có mã Pl@ntNet. Trưởng bộ phận điền PLANTNET_KEY trong caiDat().');
   const anh = (r.anh || []).slice(0, 1)[0]; const m = String(anh || '').match(/^data:(image\/\w+);base64,(.+)$/); if (!m) throw new Error('Chưa có ảnh');
   const res = UrlFetchApp.fetch('https://my-api.plantnet.org/v2/identify/all?lang=vi&api-key=' + key, { method: 'post', payload: { images: Utilities.newBlob(Utilities.base64Decode(m[2]), m[1], 'cay.jpg') }, muteHttpExceptions: true });
   if (res.getResponseCode() >= 400) throw new Error('Pl@ntNet không nhận ra (' + res.getResponseCode() + ')');
@@ -569,7 +570,7 @@ function aiCay_(u, r) {
 }
 function aiTrieuChung_(u, r) {
   can_(u, 'ai', 2);
-  const key = prop_('GEMINI_KEY', true); if (!key) throw new Error('Chưa có mã Gemini. Anh Vũ điền GEMINI_KEY trong caiDat().');
+  const key = prop_('GEMINI_KEY', true); if (!key) throw new Error('Chưa có mã Gemini. Trưởng bộ phận điền GEMINI_KEY trong caiDat().');
   const p = PropertiesService.getScriptProperties(); const k = 'AI_' + ngay_() + '_' + u.ten; const dung = +(p.getProperty(k) || 0); const toiDa = +(prop_('AI_TOI_DA', true) || 10);
   if (dung >= toiDa) throw new Error('Đã dùng hết ' + toiDa + ' lượt hôm nay.');
   const thuoc = bang_(nen_(), 'ThuocPhan', 3).map(function (x) { return x['Tên vật tư']; }).filter(String).join('; ');

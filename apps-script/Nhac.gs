@@ -1,6 +1,6 @@
 /**
  * GreenLog – nhắc việc và báo tin qua Zalo Bot (và Telegram nếu bật).
- * Cài một lần: chạy caiTrigger(). Mỗi người nhắn Gmail của mình cho Bot GreenLog, rồi anh Vũ chạy layChatId().
+ * Cài một lần: chạy caiTrigger(). Mỗi người nhắn Gmail của mình cho Bot GreenLog, rồi Trưởng bộ phận chạy layChatId().
  * Giờ yên lặng 21h–6h: chỉ gửi phiếu Khẩn cấp.
  */
 
@@ -91,7 +91,7 @@ function moiPhut() {
   } catch (e) { console.error(e); }
 }
 
-/* phiếu Khẩn cấp chưa ai nhận: sau 15 phút cứ 2 phút gửi lại; tới 30 phút báo anh Vũ */
+/* phiếu Khẩn cấp chưa ai nhận: sau 15 phút cứ 2 phút gửi lại; tới 30 phút báo Trưởng bộ phận */
 function nhacKhan_() {
   const ds = bang_(vh_(), 'Phieu').filter(function (p) { return p['Mức độ'] === 'Khẩn cấp' && p['Trạng thái'] === 'Mới'; });
   if (!ds.length) return;

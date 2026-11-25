@@ -134,3 +134,28 @@ a.the, a.the-viec { text-decoration: none; color: inherit; }
   body.nhap #app { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
   .dau .tieude b, .dau .tieude small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+[hidden]{display:none !important}
+/* 0.4.2 · xem ảnh từng lần ghi */
+.xv-anh { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 8px; }
+.xv-anh figure { margin: 0; }
+.xv-anh img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; background: #E9EFE9; cursor: zoom-in; display: block; }
+.xv-anh figcaption { font-size: 12px; color: var(--mo, #667); margin-top: 2px; }
+.bc-so { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.bc-so .so-the b { font-size: 24px; display: block; }
+.bc-cot { display: flex; align-items: flex-end; gap: 3px; height: 120px; margin-top: 8px; overflow-x: auto; }
+.bc-cot > div { flex: 1 0 14px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.bc-cot i { display: block; width: 100%; background: #C9E265; border-radius: 4px 4px 0 0; min-height: 2px; }
+.bc-cot small { font-size: 10px; color: #667; }
+.bc-them table { margin-bottom: 10px; }
+.xuat-chon { display: grid; gap: 8px; }
+.xuat-chon .nut { text-align: left; display: block; padding: 12px 14px; }
+.xuat-chon small { display: block; font-weight: 400; color: #667; font-size: 12px; }
+header.dau .nut-bc { margin-right: 6px; white-space: nowrap; }
+.av-img { border-radius: 50%; object-fit: cover; flex: none; display: inline-block; vertical-align: middle; }
+.av-chu { border-radius: 50%; background: #C9E265; color: #123524; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+header.dau .nut-hd { font-weight: 800; font-size: 18px; margin-right: 6px; }
+.hd-buoc { padding-left: 22px; margin: 4px 0 10px; font-size: 17px; line-height: 1.5; }
+.hd-buoc li { margin-bottom: 6px; }
+.vao-nhanh { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 12px 0; }
+.vao-nhanh .the { margin: 0; text-decoration: none; color: inherit; display: block; }
+.vao-nhanh .the .mo { display: block; }

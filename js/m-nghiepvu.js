@@ -47,7 +47,7 @@
         const r = await API.goi('ghi', { bang: 'DichHai', dong: { 'Mã DH': '', 'Ngày phát hiện': API.ngay(), 'Cụm': vt.cum || (vt.caNhom ? vt.ten : G.cumCua(vt.ma)), 'Mã vị trí': vt.ma || '', 'Vị trí chi tiết': v.ct || (vt.ma ? '' : vt.ten),
           'Phạm vi (Vài cây/Một mảng/Cả khu vực)': v.pv, 'Nhóm cây': cay.nhom || '', 'Tên cây': cay.ten, 'Loại dịch hại': v.loai.ten, 'Mức độ': v.muc, 'Mô tả': v.mt, 'Ảnh': v.anh,
           'Người phát hiện': '', [TT_DH]: 'Phát hiện', 'Số lần trả lại': '0', 'Cập nhật gần nhất': '' } });
-        dong(); bao('Đã tạo hồ sơ ' + r['Mã DH'] + (/dừa|cọ|chà là/i.test(cay.ten) ? ' · sâu hại dừa: anh Vũ được báo ngay' : '')); manDichHai();
+        dong(); bao('Đã tạo hồ sơ ' + r['Mã DH'] + (/dừa|cọ|chà là/i.test(cay.ten) ? ' · sâu hại dừa: Trưởng bộ phận được báo ngay' : '')); manDichHai();
       }, e.target);
     });
   }
@@ -72,7 +72,7 @@
       if (duyet && tt === 'Báo xong') {
         hd.innerHTML = '<div class="nhom-nut"><button class="nut" id="tra">Trả lại</button><button class="nut chinh" id="ok">Duyệt</button></div>';
         hd.querySelector('#ok').onclick = (e) => chay(async () => { await API.goi('sua', { bang: 'DichHai', khoa: { 'Mã DH': r['Mã DH'] }, doi: { [TT_DH]: 'Đã duyệt', 'Người duyệt': S.u.ten } }); if (G.sauDuyetDH) await G.sauDuyetDH(r); dong(); bao('Đã duyệt'); manDichHai(); }, e.target);
-        hd.querySelector('#tra').onclick = async (e) => { const g = await G.hoi('Lý do trả lại'); if (g === null) return; chay(async () => { await API.goi('sua', { bang: 'DichHai', khoa: { 'Mã DH': r['Mã DH'] }, doi: { [TT_DH]: 'Đang xử lý', 'Số lần trả lại': +r['Số lần trả lại'] + 1 }, lyDo: g }); await API.goi('ghi', { bang: 'DichHaiCapNhat', dong: { 'Mã DH': r['Mã DH'], 'Thời điểm': '', 'Việc đã làm': 'Anh Vũ trả lại: ' + g, 'Người ghi': '' } }); dong(); bao('Đã trả lại'); manDichHai(); }, e.target); };
+        hd.querySelector('#tra').onclick = async (e) => { const g = await G.hoi('Lý do trả lại'); if (g === null) return; chay(async () => { await API.goi('sua', { bang: 'DichHai', khoa: { 'Mã DH': r['Mã DH'] }, doi: { [TT_DH]: 'Đang xử lý', 'Số lần trả lại': +r['Số lần trả lại'] + 1 }, lyDo: g }); await API.goi('ghi', { bang: 'DichHaiCapNhat', dong: { 'Mã DH': r['Mã DH'], 'Thời điểm': '', 'Việc đã làm': 'Trưởng bộ phận trả lại: ' + g, 'Người ghi': '' } }); dong(); bao('Đã trả lại'); manDichHai(); }, e.target); };
       }
     }, true);
   }
@@ -103,7 +103,7 @@
         const v = lay();
         await API.goi('sua', { bang: 'DichHai', khoa: { 'Mã DH': r['Mã DH'] }, doi: { [TT_DH]: 'Báo xong', 'Ngày báo xong': API.ngay(), 'Ảnh xong': v.anh.join(' | '), 'Cập nhật gần nhất': API.bayGio() } });
         await API.goi('ghi', { bang: 'DichHaiCapNhat', dong: { 'Mã DH': r['Mã DH'], 'Thời điểm': '', 'Việc đã làm': 'Báo xong', 'Ảnh': v.anh, 'Ghi chú': v.gc, 'Người ghi': '' } });
-        dong(); bao('Đã báo xong, chờ anh Vũ duyệt'); manDichHai();
+        dong(); bao('Đã báo xong, chờ Trưởng bộ phận duyệt'); manDichHai();
       }, e.target);
     });
   }
@@ -194,7 +194,7 @@
       ${cho.length ? `<h3 style="font-size:14px">Đề xuất chờ duyệt</h3><div class="ds">${cho.map((x, i) => `<div class="muc"><div class="gian"><b>${esc(x['Tên thuốc/phân'])}</b><div class="mo">${esc(x['Loại'])} · ${esc(x['Hoạt chất'])} · cách ly ${esc(x['Cách ly đề xuất (ngày)'])} ngày · ${esc(x['Người đề xuất'])}</div>${G.xemAnh(x['Ảnh nhãn'])}</div>${q('phunbon') >= 3 ? `<button class="nut nho" data-d="${i}">Duyệt</button>` : '<span class="chip cam">Chờ duyệt</span>'}</div>`).join('')}</div>` : ''}
       ${(S.dm.congThuc || []).length ? `<h3 style="font-size:14px">Công thức pha sẵn</h3><div class="ds">${[...new Set(S.dm.congThuc.map((r) => r['Mã CT']))].map((k) => { const rs = S.dm.congThuc.filter((r) => r['Mã CT'] === k); return `<div class="muc"><div class="gian"><b>${esc(rs[0]['Tên công thức'])}</b><div class="mo">${rs.map((r) => `${esc(r['Sản phẩm'])} ${esc(r['Liều / bình'])} ${esc(r['ĐVT'])}/bình`).join(' + ')}</div></div></div>`; }).join('')}</div>` : ''}
       ${Object.keys(nhom).map((n) => `<h3 style="font-size:14px">${esc(n)}</h3><div class="ds">${nhom[n].map((t) => `<div class="muc"><div class="gian"><b>${esc(t.ten)}</b><div class="mo">${esc(t.dvt || '')}${t.khongPha ? ' · không pha với: ' + esc(t.khongPha) : ''}</div></div><span class="chip ${t.tt === 'Chờ duyệt' ? 'cam' : ''}">${t.tt === 'Chờ duyệt' ? 'Chờ duyệt · ' : ''}cách ly ${t.cachLy} ngày</span></div>`).join('')}</div>`).join('')}
-      <p class="mo">Ngưng dùng một thuốc: anh Vũ sửa cột Trạng thái thành "Ngưng dùng" trong trang ThuocPhan (không xóa).</p>`;
+      <p class="mo">Ngưng dùng một thuốc: Trưởng bộ phận sửa cột Trạng thái thành "Ngưng dùng" trong trang ThuocPhan (không xóa).</p>`;
     m.querySelector('#dx').onclick = () => hop('Đề xuất thuốc mới', '<div id="f"></div><button class="nut chinh rong" id="l">Gửi đề xuất</button>', (o, dong) => {
       const lay = G.form(o.querySelector('#f'), [{ k: 'ten', nhan: 'Tên thuốc / phân', loai: 'chu', bb: true }, { k: 'loai', nhan: 'Loại', loai: 'chips', ds: ['Thuốc bảo vệ thực vật', 'Phân bón lá', 'Phân bón gốc', 'Phụ gia'], bb: true },
         { k: 'hc', nhan: 'Hoạt chất (ghi trên nhãn)', loai: 'chu' }, { k: 'anh', nhan: 'Ảnh nhãn chai / bao', loai: 'anh', bb: true, toiDa: 3 }, { k: 'cl', nhan: 'Cách ly (ngày)', loai: 'so', gt: 14, phu: 'Chưa rõ thì để 14 ngày' }]);
@@ -275,7 +275,7 @@
   G.man.ai = { ten: 'AI nhận diện', bt: '🔍', nhom: 'Cây xanh', ph: 'ai', fn: async () => {
     const m = G.khung('AI hỗ trợ', 'Kết quả chỉ là gợi ý');
     m.innerHTML = `<div class="the"><h2>🌿 Nhận diện cây (Pl@ntNet)</h2><p class="mo">Chụp lá, hoa hoặc thân cây. Không chụp khách hay giấy tờ.</p><div id="a1"></div><button class="nut chinh rong" id="b1" style="margin-top:8px">Nhận diện</button><div id="k1"></div></div>
-      <div class="the"><h2>🩺 Phân tích triệu chứng (Gemini)</h2><p class="mo">Tối đa 10 lượt/người/ngày. Ưu tiên thuốc, phân có trong danh mục. Phun thuốc vẫn do anh Vũ duyệt.</p><div id="a2"></div>${G.oMoTa('mt2', 'Mô tả triệu chứng')}<button class="nut chinh rong" id="b2">Phân tích</button><div id="k2"></div></div>
+      <div class="the"><h2>🩺 Phân tích triệu chứng (Gemini)</h2><p class="mo">Tối đa 10 lượt/người/ngày. Ưu tiên thuốc, phân có trong danh mục. Phun thuốc vẫn do Trưởng bộ phận duyệt.</p><div id="a2"></div>${G.oMoTa('mt2', 'Mô tả triệu chứng')}<button class="nut chinh rong" id="b2">Phân tích</button><div id="k2"></div></div>
       <p class="mo" style="text-align:center">Nhận diện cây: dữ liệu Pl@ntNet (plantnet.org)</p>`;
     const a1 = G.oAnh(m.querySelector('#a1'), { toiDa: 3 }); const a2 = G.oAnh(m.querySelector('#a2'), { toiDa: 3 }); G.ganMic(m);
     m.querySelector('#b1').onclick = (e) => chay(async () => {

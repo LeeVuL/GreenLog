@@ -23,7 +23,7 @@
   const BANG = {
     DiemDanh: ['diemdanh', 3], DuyetCong: ['diemdanh', 3], PhieuSuaCong: ['diemdanh', 3], // TickDinhKy, AnhNgay, DiemDanh, DuyetCong, Phieu: chỉ ghi qua hàm riêng
     TickDinhKy: ['dinhky', 3], AnhNgay: ['dinhky', 3], Tuoi: ['dinhky', 2], ViecHangNgay: ['dinhky', 2], KeHoachDinhKy: ['kehoach', 2],
-    DongHoNuoc: ['donghonuoc', 2], VuonUom: ['vuonuom', 2],
+    DongHoNuoc: ['donghonuoc', 2], VuonUom: ['vuonuom', 2], VuonUomNoiThat: ['noibo', 2],
     VeSinhBien: ['noibo', 2], KiemTraBien: ['noibo', 2], VuonRau: ['noibo', 2], ThuHoach: ['noibo', 2], CayNoiThat: ['noibo', 2],
     RacHuuCo: ['noibo', 2], PhanCompost: ['noibo', 2], MaySangCat: ['noibo', 2],
     Phieu: ['phieu', 3], PhieuLichSu: ['phieu', 3], DichHai: ['phieu', 2], DichHaiCapNhat: ['phieu', 2], SoTrongCay: ['phieu', 2], BatThuong: ['phieu', 2],
@@ -118,7 +118,6 @@
   function can(u, ph, cap) { if ((u.quyen[ph] || 0) < cap) throw new Error('Anh/chị chưa có quyền này'); }
   function quyenBang(u, bang, cap, hd) {
     const b = BANG[bang]; if (!b) throw new Error('Không có bảng ' + bang);
-    if (bang === 'VuonUom' && (u.quyen.noibo || 0) >= cap) return; // vườn ươm nội thất do nội bộ ghi
     if (bang === 'DuAnTienDo' && cap === 2 && (u.quyen.duan || 0) >= 2) return; // ghi tiến độ
     if (bang === 'SuKien' && hd === 'sua' && cap === 2 && (u.quyen.sukien || 0) >= 2) return; // thêm ảnh sự kiện
     if (cap >= 2 && u.nhom === 'Quản lý nhà thầu' && (API.NHA_THAU_GHI || []).includes(bang)) return; // anh Pháp cập nhật báo cáo tuần, kế hoạch tuần
@@ -126,10 +125,11 @@
     can(u, b[0], cap);
   }
   /* ảnh bắt buộc cho mọi đầu việc (mục 18) – máy chủ cũng chặn; ngoại lệ: checklist Vị Garden (VuonRau) */
-  const COT_ANH = { Tuoi: 'Ảnh', ViecHangNgay: 'Ảnh', VeSinhBien: 'Ảnh', KiemTraBien: 'Ảnh', CayNoiThat: 'Ảnh', PhanCompost: 'Ảnh', VuonUom: 'Ảnh', DongHoNuoc: 'Ảnh', ThuHoach: 'Ảnh cân', NhatKyPhunBon: 'Ảnh', SoTrongCay: 'Ảnh', TuiThuocDua: 'Ảnh', BaoTriMay: 'Ảnh', DichHai: 'Ảnh', BatThuong: 'Ảnh' };
+  const COT_ANH = { Tuoi: 'Ảnh', ViecHangNgay: 'Ảnh', VeSinhBien: 'Ảnh', KiemTraBien: 'Ảnh', CayNoiThat: 'Ảnh', PhanCompost: 'Ảnh', VuonUom: 'Ảnh', VuonUomNoiThat: 'Ảnh', DongHoNuoc: 'Ảnh', ThuHoach: 'Ảnh cân', NhatKyPhunBon: 'Ảnh', SoTrongCay: 'Ảnh', TuiThuocDua: 'Ảnh', BaoTriMay: 'Ảnh', DichHai: 'Ảnh', BatThuong: 'Ảnh' };
   function canAnh(bang, dong) {
     const c = COT_ANH[bang]; if (!c || !dong.length) return;
     if (bang === 'TuiThuocDua' && dong.every((x) => x['Loại dòng'] === 'Cây')) return;
+    if (bang === 'MaySangCat' && dong.every((x) => x['Loại'] === 'Không sàng' || x['Bảo trì'] === 'Đọc đồng hồ giờ')) return; // mục 73
     const co = (x) => { const v = x[c] != null ? x[c] : x['Ảnh']; return Array.isArray(v) ? v.length > 0 : !!String(v || '').trim(); };
     if (!dong.some(co)) throw new Error('Cần ít nhất 1 ảnh hiện trường cho việc này');
   }
@@ -173,7 +173,7 @@
     async 'vanChuyen.gui'(u, r) {
       can(u, 'dinhky', 2); const hn = ngay(); const doi = r.doi || u.doi || 'Chung';
       const cu = tb('VanChuyen').filter((x) => x['Ngày'] === hn && x['Đội'] === doi);
-      if (cu.length && (u.quyen.homnay || 0) < 3) throw new Error('Hôm nay ' + doi + ' đã gửi lúc ' + cu[0]['Giờ ghi'].slice(11, 16) + '. Cần sửa thì báo anh Vũ.');
+      if (cu.length && (u.quyen.homnay || 0) < 3) throw new Error('Hôm nay ' + doi + ' đã gửi lúc ' + cu[0]['Giờ ghi'].slice(11, 16) + '. Cần sửa thì báo Trưởng bộ phận.');
       if ((r.anh || []).length < 2 && (u.quyen.homnay || 0) < 3) throw new Error('Cần ít nhất 2 ảnh của vài chuyến trong ngày');
       const gio = bayGio(); const ds = tb('VanChuyen').filter((x) => !(x['Ngày'] === hn && x['Đội'] === doi));
       const moi = r.ds.filter((x) => +x.n > 0).map((x, i) => ({ 'Ngày': hn, 'Đội': doi, 'Loại hàng': x.loai, 'Nhóm': /rác cắt tỉa/i.test(x.loai) ? 'Rác cắt tỉa' : 'Khác', 'Số chuyến': String(x.n), 'Mã DA': r.maDA || '', 'Ghi chú': r.ghiChu || '', 'Ảnh': i === 0 ? (r.anh || []).join(' | ') : '', 'Người ghi': u.ten, 'Giờ ghi': gio }));
@@ -186,7 +186,7 @@
       if (!ma) { const tat = d.congnhan.concat(sua); ma = 'CN' + String(Math.max(...tat.map((y) => +String(y.ma).slice(2) || 0)) + 1).padStart(2, '0'); }
       const moi = Object.assign({ tt: 'Đang làm' }, cu, r.doi, { ma });
       luuTb('CongNhanSua', sua.filter((x) => x.ma !== ma).concat([moi]));
-      const nk = tb('NhatKyThayDoi'); Object.keys(r.doi).forEach((k) => { if (String(cu[k] || '') !== String(r.doi[k])) nk.push({ 'Thời điểm': bayGio(), 'Người': u.ten, 'Trang': 'CongNhan', 'Mã bản ghi': ma, 'Trường': k, 'Giá trị cũ': cu[k] || '', 'Giá trị mới': r.doi[k], 'Lý do': r.lyDo || (r.ma ? 'Anh Vũ sửa' : 'Thêm mới') }); });
+      const nk = tb('NhatKyThayDoi'); Object.keys(r.doi).forEach((k) => { if (String(cu[k] || '') !== String(r.doi[k])) nk.push({ 'Thời điểm': bayGio(), 'Người': u.ten, 'Trang': 'CongNhan', 'Mã bản ghi': ma, 'Trường': k, 'Giá trị cũ': cu[k] || '', 'Giá trị mới': r.doi[k], 'Lý do': r.lyDo || (r.ma ? 'Trưởng bộ phận sửa' : 'Thêm mới') }); });
       luuTb('NhatKyThayDoi', nk); return { ma };
     },
     async khoiDong(u) {
@@ -243,7 +243,7 @@
       if (r.bang !== 'NhatKyThayDoi' && r.lyDo) { const nk = tb('NhatKyThayDoi'); nk.push(dien(u, 'NhatKyThayDoi', { 'Thời điểm': '', 'Người': '', 'Trang': r.bang, 'Mã bản ghi': JSON.stringify(r.khoa), 'Trường': Object.keys(r.doi).join(', '), 'Giá trị mới': Object.values(r.doi).join(', '), 'Lý do': r.lyDo })); luuTb('NhatKyThayDoi', nk); }
       return { n };
     },
-    async xoa(u, r) { // chỉ xóa dòng của chính mình trong hôm nay (đánh nhầm); anh Vũ xóa được mọi dòng
+    async xoa(u, r) { // chỉ xóa dòng của chính mình trong hôm nay (đánh nhầm); Trưởng bộ phận xóa được mọi dòng
       quyenBang(u, r.bang, 2);
       const ds = tb(r.bang); const hn = ngay(); let n = 0;
       const giu = ds.filter((x) => {
@@ -355,9 +355,9 @@
     if (!anh && r.ngay !== ngay()) throw new Error('Chỉ điểm danh cho hôm nay.');
     if (!anh && doi !== 'Quản lý nhà thầu' && !(r.anh || []).length) throw new Error('Cần 1 ảnh tập thể đầu ca buổi ' + String(r.buoi).toLowerCase() + '.');
     if (!anh) {
-      if (khoaDoi) throw new Error('Buổi này anh Vũ đã duyệt và khóa. Cần sửa thì báo anh Vũ.');
+      if (khoaDoi) throw new Error('Buổi này Trưởng bộ phận đã duyệt và khóa. Cần sửa thì báo Trưởng bộ phận.');
       const khoa = r.ds.filter((x) => cu.some((c) => c['Mã CN'] === x.ma && c['Trạng thái duyệt'] === 'Đã duyệt'));
-      if (khoa.length) throw new Error('Đã khóa, không sửa được: ' + khoa.map((x) => (cnMap[x.ma] || {}).ten || x.ma).join(', ') + '. Cần sửa thì báo anh Vũ.');
+      if (khoa.length) throw new Error('Đã khóa, không sửa được: ' + khoa.map((x) => (cnMap[x.ma] || {}).ten || x.ma).join(', ') + '. Cần sửa thì báo Trưởng bộ phận.');
       const khac = r.ds.filter((x) => cu.some((c) => c['Mã CN'] === x.ma && c['Người ghi'] !== u.ten));
       if (khac.length) throw new Error('Đã được tổ trưởng khác điểm danh: ' + khac.map((x) => (cnMap[x.ma] || {}).ten || x.ma).join(', '));
     }
@@ -366,7 +366,7 @@
     const gio = bayGio(); const nk = tb('NhatKyThayDoi');
     r.ds.forEach((x) => {
       const c = cu.find((y) => y['Mã CN'] === x.ma);
-      if (anh && c && c['Trạng thái (Có mặt/Vắng/Về sớm)'] !== x.tt) nk.push({ 'Thời điểm': gio, 'Người': u.ten, 'Trang': 'DiemDanh', 'Mã bản ghi': r.ngay + '/' + r.buoi + '/' + x.ma, 'Trường': 'Trạng thái', 'Giá trị cũ': c['Trạng thái (Có mặt/Vắng/Về sớm)'], 'Giá trị mới': x.tt, 'Lý do': r.lyDo || 'Anh Vũ sửa trực tiếp' });
+      if (anh && c && c['Trạng thái (Có mặt/Vắng/Về sớm)'] !== x.tt) nk.push({ 'Thời điểm': gio, 'Người': u.ten, 'Trang': 'DiemDanh', 'Mã bản ghi': r.ngay + '/' + r.buoi + '/' + x.ma, 'Trường': 'Trạng thái', 'Giá trị cũ': c['Trạng thái (Có mặt/Vắng/Về sớm)'], 'Giá trị mới': x.tt, 'Lý do': r.lyDo || 'Trưởng bộ phận sửa trực tiếp' });
       dd.push({ 'Ngày': r.ngay, 'Buổi': r.buoi, 'Mã CN': x.ma, 'Họ tên': (cnMap[x.ma] || {}).ten || '', 'Đội': anh ? (c ? c['Đội'] : (cnMap[x.ma] || {}).doi || 'Chưa phân đội') : doi,
         'Trạng thái (Có mặt/Vắng/Về sớm)': x.tt, 'Giờ về': x.gioVe || '', 'Lý do': x.lyDo || '', 'Công': x.tt === 'Có mặt' ? '0.5' : '0', 'Ảnh tập thể': '',
         'Người ghi': anh && c ? c['Người ghi'] : u.ten, 'Giờ ghi': gio, 'Trạng thái duyệt': anh ? 'Đã duyệt' : 'Chờ duyệt' });
@@ -400,7 +400,7 @@
         const u = Object.assign({}, NGUOI_THU[LS.get('thu_i', 0)]); u.quyen = quyenThu(u);
         if (u.nhom === 'Tổ trưởng') u.doi = u.doi; HOAN = null;
         const kq = JSON.parse(JSON.stringify(await fn(u, body || {})));
-        if (HOAN && action !== 'hoanTac' && !(body && body.imLang)) window.dispatchEvent(new CustomEvent('gl-hoan', { detail: HOAN }));
+        if (HOAN && GHI.includes(action) && action !== 'hoanTac' && !(body && body.imLang)) window.dispatchEvent(new CustomEvent('gl-hoan', { detail: HOAN }));
         return kq;
       }
       return goiThat(action, body);

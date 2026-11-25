@@ -222,7 +222,8 @@
   const G = window.GL; const API = window.GL_API; const esc = G.esc;
   G.form = function (goc, truong) {
     const st = {};
-    goc.innerHTML = truong.map((t, i) => {
+    goc.innerHTML = truong.map((t, i) => `<div data-fo="${i}">${veTruong(t, i)}</div>`).join('');
+    function veTruong(t, i) {
       const nhan = `<span>${esc(t.nhan)}${t.bb ? ' *' : ''}</span>`;
       const gt = t.gt == null ? '' : t.gt;
       switch (t.loai) {
@@ -239,7 +240,7 @@
         case 'ghichu': return `<p class="mo">${t.html || esc(t.nhan)}</p>`;
         default: return `<label class="o">${nhan}<input type="text" data-f="${i}" value="${esc(gt)}" placeholder="${esc(t.goiY || '')}"></label>`;
       }
-    }).join('');
+    }
     truong.forEach((t, i) => {
       const el = goc.querySelector(`[data-f="${i}"]`); if (!el) return;
       if (t.loai === 'chips') st[i] = G.chips(el, t.ds, t.gt || '', t.doi);
@@ -256,15 +257,23 @@
       if (t.loai === 'anh') st[i] = G.oAnh(el, { batBuoc: t.bb, toiDa: t.toiDa || 6 });
       if (t.loai === 'mota') G.mic(goc.querySelector(`[data-micf="${i}"]`), el);
     });
+    const giaTri = (t, i) => { const el = goc.querySelector(`[data-f="${i}"]`);
+      if (['chips', 'nhieu', 'vitri', 'cay', 'loi', 'chonds'].includes(t.loai)) return st[i] ? st[i].gt : '';
+      if (t.loai === 'anh') return st[i] ? st[i].ds() : [];
+      if (t.loai === 'ngaygio') return el && el.value ? el.value.replace('T', ' ') : '';
+      return el ? el.value.trim() : ''; };
+    const an = (i) => { const o = goc.querySelector(`[data-fo="${i}"]`); return o && o.hidden; };
+    /* mục 74: ô chỉ hiện khi điều kiện đúng (khi: hàm nhận các giá trị hiện tại) */
+    const capNhat = () => { if (!truong.some((t) => t.khi)) return; const v = {}; truong.forEach((t, i) => { if (t.k) v[t.k] = giaTri(t, i); });
+      truong.forEach((t, i) => { if (!t.khi) return; const o = goc.querySelector(`[data-fo="${i}"]`); if (o) o.hidden = !t.khi(v); });
+      goc.dispatchEvent(new CustomEvent('gl-doi', { bubbles: true })); };
+    if (truong.some((t) => t.khi)) { capNhat(); ['click', 'change', 'input'].forEach((ev) => goc.addEventListener(ev, () => setTimeout(capNhat, 0))); }
     return function lay() {
       const out = {};
       truong.forEach((t, i) => {
         if (!t.k) return;
-        const el = goc.querySelector(`[data-f="${i}"]`); let v;
-        if (['chips', 'nhieu', 'vitri', 'cay', 'loi', 'chonds'].includes(t.loai)) v = st[i].gt;
-        else if (t.loai === 'anh') v = st[i].ds();
-        else if (t.loai === 'ngaygio') v = el.value ? el.value.replace('T', ' ') : '';
-        else v = el ? el.value.trim() : '';
+        if (an(i)) { out[t.k] = t.loai === 'anh' || t.loai === 'nhieu' ? [] : ''; return; }
+        const v = giaTri(t, i);
         const rong = v == null || v === '' || (Array.isArray(v) && !v.length);
         if (t.bb && rong) throw new Error((t.loai === 'anh' ? 'Cần ảnh: ' : 'Chưa điền: ') + t.nhan);
         if (t.loai === 'so' && !rong && isNaN(+v)) throw new Error(t.nhan + ' phải là số');

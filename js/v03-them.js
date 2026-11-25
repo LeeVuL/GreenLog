@@ -1,5 +1,5 @@
 /* GreenLog 0.3 – phun bón theo bình 16L và dịch hại theo cây, trồng cây 3 ảnh + dự án, phiếu trồng dặm, kế hoạch tuần, dự án nhiều vị trí,
-   lịch Ngày/Tuần/Tháng/Năm, chấm điểm → phiếu, công nhân (anh Vũ toàn quyền), họp, đào tạo, thư viện SOP */
+   lịch Ngày/Tuần/Tháng/Năm, chấm điểm → phiếu, công nhân (Trưởng bộ phận toàn quyền), họp, đào tạo, thư viện SOP */
 (function () {
   const API = window.GL_API; const G = window.GL; const S = G.S; const { esc, q, chay, bao } = G;
   const hop = (...a) => G.hop(...a);
@@ -48,7 +48,7 @@
             <input type="number" step="any" inputmode="decimal" placeholder="${bon ? 'kg' : 'Liều'}" value="${esc(x.lieu)}" data-l="${i}"><button class="xx" data-x="${i}">✕</button></div>
             ${bon ? '' : `<div class="chon boc" style="margin:-2px 0 8px">${['ml', 'g', 'gói'].map((u) => `<button type="button" data-u="${i}" data-v="${u}" class="${x.dvt === u ? 'dang' : ''}">${u}/bình</button>`).join('')}</div>`}`).join('')}
           <button type="button" class="nut rong" id="themSP">＋ Thêm thuốc / phân</button>
-          ${st.ky.length ? `<div class="canh-bao do" style="margin-top:8px">⚠️ Cảnh báo tương kỵ: ${st.ky.map(esc).join('; ')}. Lưu vẫn được nhưng anh Vũ sẽ được báo.</div>` : ''}</div>
+          ${st.ky.length ? `<div class="canh-bao do" style="margin-top:8px">⚠️ Cảnh báo tương kỵ: ${st.ky.map(esc).join('; ')}. Lưu vẫn được nhưng Trưởng bộ phận sẽ được báo.</div>` : ''}</div>
         ${bon ? '' : `<div class="the"><div class="hang"><div class="gian"><b>Số bình 16L</b><div class="mo">${st.sp.map((x) => `${esc(x.t.tenNgan || x.t.ten)}: ${G.so((+x.lieu || 0) * st.binh, 2)} ${esc(x.dvt)}`).join(' · ') || 'Chưa chọn thuốc'}</div></div>
           <button type="button" class="tron" id="tru">−</button><b class="so-vua" style="min-width:34px;text-align:center">${st.binh}</b><button type="button" class="tron chinh" id="cong">＋</button></div></div>`}
         <div class="the"><div class="buoc"><span>4</span>Vị trí <small class="mo">· villa chọn riêng từng mặt</small></div><div id="lv"></div></div>
@@ -139,10 +139,10 @@
       luu: async (v, cay, anh) => {
         const r = await API.goi('phieu.tao', { loaiPhieu: 'Trồng cây', loai: v.ht + ': ' + cay.map((x) => `${x.c.ten} ${x.sl} ${x.dvt}`).join(', '), nhom: 'Trồng cây', muc: v.muc, vt: v.vt.ma || '', vtKhac: v.vt.ma ? '' : v.vt.ten, giao: v.giao, nguon: 'Nhân viên tự phát hiện', moTa: v.gc, anh: anh.tr, maDA: v.da,
           trong: { ht: v.ht, nc: v.nc, kv: v.vt.kv || '', bao: v.bao, truoc: v.truoc, da: v.da, cay: cay.map((x) => ({ ma: x.c.ma || '', ten: x.c.ten, sl: x.sl, dvt: x.dvt })) } });
-        bao('Đã tạo phiếu ' + r.ma + '. Anh Vũ duyệt thì tự ghi Sổ trồng cây.'); if (opt && opt.sau) opt.sau(r);
+        bao('Đã tạo phiếu ' + r.ma + '. Trưởng bộ phận duyệt thì tự ghi Sổ trồng cây.'); if (opt && opt.sau) opt.sau(r);
       } });
   };
-  G.moTaTrong = (p) => { try { const c = JSON.parse(p['Chi tiết trồng']); return `<div class="the" style="padding:10px;background:var(--xanh-nhat)"><b>${esc(c.ht)}</b> · ${esc(c.nc)}<div class="mo">${c.cay.map((x) => `${esc(x.ten)} ${esc(x.sl)} ${esc(x.dvt)}`).join(' · ')}${c.bao ? ` · ${esc(c.bao)} bao cải tạo đất` : ''}${c.da ? ` · dự án ${esc(c.da)}` : ''}</div><div class="mo">Anh Vũ duyệt → tự ghi Sổ trồng cây${c.da ? ' và tiến độ dự án' : ''}.</div></div>`; } catch (e) { return ''; } };
+  G.moTaTrong = (p) => { try { const c = JSON.parse(p['Chi tiết trồng']); return `<div class="the" style="padding:10px;background:var(--xanh-nhat)"><b>${esc(c.ht)}</b> · ${esc(c.nc)}<div class="mo">${c.cay.map((x) => `${esc(x.ten)} ${esc(x.sl)} ${esc(x.dvt)}`).join(' · ')}${c.bao ? ` · ${esc(c.bao)} bao cải tạo đất` : ''}${c.da ? ` · dự án ${esc(c.da)}` : ''}</div><div class="mo">Trưởng bộ phận duyệt → tự ghi Sổ trồng cây${c.da ? ' và tiến độ dự án' : ''}.</div></div>`; } catch (e) { return ''; } };
 
   /* ================= KẾ HOẠCH TUẦN: A định kỳ, B việc khác (động từ → đối tượng → vị trí → người → hạn) ================= */
   const DONG_TU = ['Cắt tỉa', 'Trồng', 'Dọn, vệ sinh', 'Phun', 'Bón', 'Sửa', 'Kiểm tra', 'Chuẩn bị', 'Khác'];
@@ -247,7 +247,7 @@
     });
   };
 
-  /* ================= CÔNG NHÂN: anh Vũ thêm, sửa, chuyển đội, đổi trạng thái (không xóa), có nhật ký ================= */
+  /* ================= CÔNG NHÂN: Trưởng bộ phận thêm, sửa, chuyển đội, đổi trạng thái (không xóa), có nhật ký ================= */
   const cnGoc = G.man.congnhan.fn;
   G.man.congnhan = Object.assign(G.man.congnhan, { ic: 'cong_nhan', fn: async () => {
     if (q('congnhan') < 3) return cnGoc();
@@ -359,7 +359,7 @@
     const ds = (await API.goi('docNhieu', { ds: [{ bang: 'ThuVienSOP', gioiHan: 1000 }] })).ThuVienSOP;
     const nhom = {}; ds.forEach((x) => { (nhom[x['Chủ đề']] = nhom[x['Chủ đề']] || []).push(x); });
     m.innerHTML = (q('homnay') >= 3 ? '<button class="nut chinh rong" id="moi" style="margin-bottom:12px">＋ Thêm tài liệu</button>' : '') + '<input type="search" id="t" placeholder="Tìm tài liệu" style="margin-bottom:10px">'
-      + (Object.keys(nhom).map((k) => `<h3 class="tieu-nhom">${esc(k)}</h3><div class="ds">${nhom[k].map((x) => `<a class="muc" href="${esc(x['Link'])}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><div class="gian"><b>${esc(x['Tên tài liệu'])}</b><div class="mo">${esc(x['Ghi chú'])}</div></div>↗</a>`).join('')}</div>`).join('') || G.trong('Chưa có tài liệu. Anh Vũ thêm link Google Drive / Canva theo chủ đề.'));
+      + (Object.keys(nhom).map((k) => `<h3 class="tieu-nhom">${esc(k)}</h3><div class="ds">${nhom[k].map((x) => `<a class="muc" href="${esc(x['Link'])}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><div class="gian"><b>${esc(x['Tên tài liệu'])}</b><div class="mo">${esc(x['Ghi chú'])}</div></div>↗</a>`).join('')}</div>`).join('') || G.trong('Chưa có tài liệu. Trưởng bộ phận thêm link Google Drive / Canva theo chủ đề.'));
     const t = m.querySelector('#t'); t.oninput = () => m.querySelectorAll('a.muc').forEach((a) => { a.style.display = a.textContent.toLowerCase().includes(t.value.toLowerCase()) ? '' : 'none'; });
     const moi = m.querySelector('#moi'); if (moi) moi.onclick = () => hop('Thêm tài liệu SOP', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
       const lay = G.form(o.querySelector('#f'), [{ k: 'cd', nhan: 'Chủ đề', loai: 'chips', ds: S.dm.chuDeSOP || ['Khác'], bb: true }, { k: 'ten', nhan: 'Tên tài liệu', loai: 'chu', bb: true }, { k: 'link', nhan: 'Link (Google Drive, Canva…)', loai: 'chu', bb: true }, { k: 'gc', nhan: 'Ghi chú', loai: 'chu' }]);

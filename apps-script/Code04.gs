@@ -5,7 +5,7 @@ Object.assign(BANG, {
   NgayLamViec: ['homnay', 2], GiaoViecNgay: ['homnay', 2], NghiemThu: ['homnay', 3], BaoCaoTuan: ['homnay', 2],
   DaoTaoDiemDanh: ['homnay', 2], DaoTaoDeXuat: ['homnay', 2], KetQuaThi: ['homnay', 2], SOPDoc: ['homnay', 2],
   TuiThuocDua: ['phunbon', 2], BaoTriMay: ['noibo', 2], DanhDauSlide: ['homnay', 2], BaoCaoGM: ['homnay', 3], PhanQuyenViec: ['danhmuc', 3],
-  KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2], AnhDanhMuc: ['homnay', 2],
+  KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2], AnhDanhMuc: ['homnay', 2], AnhDaiDien: ['homnay', 1], LinkViec: ['homnay', 2], LinkViecKetQua: ['homnay', 1],
 });
 BANG.DaoTao = ['homnay', 2];
 /* anh Pháp được ghi các bảng này dù Hôm nay chỉ Xem */
@@ -13,10 +13,11 @@ const NHA_THAU_GHI = ['BaoCaoTuan', 'KeHoachTuan', 'KhoKhan', 'DaoTaoDeXuat', 'D
 function laNhaThauGhi_(u, bang, cap) { return cap >= 2 && u.nhom === 'Quản lý nhà thầu' && NHA_THAU_GHI.indexOf(bang) >= 0; }
 
 /* bắt buộc ảnh: máy chủ chặn giống app */
-const COT_ANH = { Tuoi: 'Ảnh', ViecHangNgay: 'Ảnh', VeSinhBien: 'Ảnh', KiemTraBien: 'Ảnh', CayNoiThat: 'Ảnh', PhanCompost: 'Ảnh', VuonUom: 'Ảnh', DongHoNuoc: 'Ảnh', ThuHoach: 'Ảnh cân', NhatKyPhunBon: 'Ảnh', SoTrongCay: 'Ảnh', TuiThuocDua: 'Ảnh', BaoTriMay: 'Ảnh', DichHai: 'Ảnh', BatThuong: 'Ảnh' };
+const COT_ANH = { Tuoi: 'Ảnh', ViecHangNgay: 'Ảnh', VeSinhBien: 'Ảnh', KiemTraBien: 'Ảnh', CayNoiThat: 'Ảnh', PhanCompost: 'Ảnh', VuonUom: 'Ảnh', VuonUomNoiThat: 'Ảnh', DongHoNuoc: 'Ảnh', ThuHoach: 'Ảnh cân', NhatKyPhunBon: 'Ảnh', SoTrongCay: 'Ảnh', TuiThuocDua: 'Ảnh', BaoTriMay: 'Ảnh', DichHai: 'Ảnh', BatThuong: 'Ảnh' };
 function canAnh_(bang, dong) {
   const c = COT_ANH[bang]; if (!c || !dong.length) return;
   if (bang === 'TuiThuocDua' && dong.every(function (x) { return x['Loại dòng'] === 'Cây'; })) return;
+  if (bang === 'MaySangCat' && dong.every(function (x) { return x['Loại'] === 'Không sàng' || x['Bảo trì'] === 'Đọc đồng hồ giờ'; })) return;
   const co = function (x) { const v = x[c] != null ? x[c] : x['Ảnh']; return Array.isArray(v) ? v.length > 0 : !!String(v || '').trim(); };
   if (!dong.some(co)) throw new Error('Cần ít nhất 1 ảnh hiện trường cho việc này');
 }
@@ -30,7 +31,7 @@ API.thayNhom = function (u, r) {
     ghiLo_(vh, r.bang, moi); return { n: moi.length };
   });
 };
-/* file mẫu slide HOD trên Drive của anh Vũ (tên cố định, không đổi màu/font/bố cục) */
+/* file mẫu slide HOD trên Drive của Trưởng bộ phận (tên cố định, không đổi màu/font/bố cục) */
 API.mauHOD = function (u) {
   can_(u, 'homnay', 3);
   const ten = prop_('MAU_HOD', true) || 'Movenpick_Phu_Quoc_Weekly_HOD_Briefing_Template';
@@ -48,3 +49,39 @@ function moiPhut04_(luc, thu) {
   if (thu === 1 && luc(8, 0) && motLan_('nhacBCTuan')) { guiNhom_('Quản lý nhà thầu', '🗒️ Hôm nay nộp báo cáo tuần và đăng ký kế hoạch tuần tới trước 17:30.\n' + link_('hop/baocao')); guiNhom_('Tổ trưởng', '🗒️ Hôm nay nộp báo cáo tuần và đăng ký kế hoạch tuần tới trước 17:30.\n' + link_('hop/baocao')); }
   if (thu === 1 && luc(15, 0) && motLan_('nhacBCTuan15')) { const t = bang_(vh_(), 'BaoCaoTuan').some(function (x) { return String(x['Giờ ghi'] || '').indexOf(hn) === 0; }); if (!t) guiNhom_('Quản lý nhà thầu', '⏰ Còn 2 giờ rưỡi: báo cáo tuần chưa gửi.\n' + link_('hop/baocao')); }
 }
+
+
+/* ================= mục 82: LINK VIỆC CHO NHÂN VIÊN =================
+   Tổ trưởng / Trưởng bộ phận tạo link (bảng LinkViec). Người nhận mở link, không đăng nhập,
+   chỉ đọc và ghi đúng việc đó. Link hết hạn 18:00 ngày tạo, hoặc khi bị thu hồi. */
+const GIO_HET_LINK = '18:00';
+function linkLay_(ma) {
+  const r = bang_(vh_(), 'LinkViec').filter(function (x) { return x['Mã link'] === ma; })[0];
+  if (!r) throw new Error('Link không đúng hoặc đã bị xóa.');
+  if (r['Trạng thái'] === 'Thu hồi') throw new Error('Link đã được thu hồi. Liên hệ tổ trưởng.');
+  const gio = Utilities.formatDate(new Date(), TZ, 'HH:mm');
+  if (r['Ngày'] !== ngay_() || gio >= GIO_HET_LINK) throw new Error('Link đã hết hạn (dùng đến 18:00 trong ngày). Liên hệ tổ trưởng để gửi lại.');
+  return r;
+}
+const LINK_API = {
+  'link.mo': function (req) {
+    const r = linkLay_(req.ma);
+    if (r['Trạng thái'] === 'Đã gửi') capNhat_(vh_().getSheetByName('LinkViec'), function (x) { return x['Mã link'] === req.ma; }, { 'Trạng thái': 'Đã mở', 'Giờ mở': bayGio_() });
+    const kq = bang_(vh_(), 'LinkViecKetQua').filter(function (x) { return x['Mã link'] === req.ma; });
+    return { link: r, kq: kq, het: GIO_HET_LINK };
+  },
+  'link.ghi': function (req) {
+    return voiKhoa_(function () {
+      const r = linkLay_(req.ma);
+      if (r['Trạng thái'] === 'Báo xong') throw new Error('Việc đã báo xong. Muốn làm lại thì tổ trưởng gửi link mới.');
+      const anh = (req.anh || []).slice(0, 4).map(function (x) { return /^data:/.test(x) ? luuAnh_(x, 'Link') : x; }).join(' | ');
+      if (!anh && ['xong', 'muc', 'truoc'].indexOf(req.loai) >= 0) throw new Error('Cần ít nhất 1 ảnh');
+      ghi_(vh_(), 'LinkViecKetQua', { 'Mã link': req.ma, 'Mục': req.muc || '', 'Loại': req.loai || 'Xong', 'Ảnh': anh, 'Tình trạng': req.tt || '', 'Khối lượng': req.kl || '', 'Ghi chú': String(req.gc || '').slice(0, 1000), 'Người': r['Người nhận'], 'Giờ': bayGio_() });
+      const doi = { 'Trạng thái': req.loai === 'xong' ? 'Báo xong' : req.loai === 'khokhan' ? 'Không làm được' : 'Đang làm' };
+      capNhat_(vh_().getSheetByName('LinkViec'), function (x) { return x['Mã link'] === req.ma; }, doi);
+      if (req.loai === 'xong' && r['Mã phiếu']) capNhat_(vh_().getSheetByName('Phieu'), function (x) { return x['Mã phiếu'] === r['Mã phiếu']; }, { 'Trạng thái': 'Báo xong', 'Ảnh sau': anh, 'Giờ xong': bayGio_(), 'Ghi chú': 'Báo xong qua link · ' + r['Người nhận'] + (req.gc ? ': ' + req.gc : '') });
+      try { guiNhom_('Trưởng bộ phận', (req.loai === 'xong' ? '✅ ' : '📷 ') + r['Người nhận'] + ' · ' + r['Tiêu đề'] + (req.muc ? ' · ' + req.muc : '')); } catch (e) { /* bỏ qua */ }
+      return { ok: true };
+    });
+  },
+};

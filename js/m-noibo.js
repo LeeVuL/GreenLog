@@ -114,7 +114,7 @@
             if (!dong_.length) throw new Error('Chưa có gì để lưu');
             if ((x.anh || []).length) dong_[0]['Ảnh'] = x.anh;
             await API.goi('ghiNhieu', { bang: 'VuonRau', dong: dong_.map((r) => Object.assign({ 'Ngày': '', 'Mã vườn': v.ma, 'Người ghi': '', 'Ngoài ngưỡng': '' }, r)) });
-            dong(); G.bao(dong_.some((r) => r['Ngoài ngưỡng'] === 'Có') ? 'Đã lưu · có chỉ số ngoài ngưỡng, anh Vũ sẽ được báo' : 'Đã lưu'); manVuonRau();
+            dong(); G.bao(dong_.some((r) => r['Ngoài ngưỡng'] === 'Có') ? 'Đã lưu · có chỉ số ngoài ngưỡng, Trưởng bộ phận sẽ được báo' : 'Đã lưu'); manVuonRau();
           }, e.target);
         });
       };
@@ -124,15 +124,15 @@
   /* ---- vườn ươm (nội thất: nội bộ; sân vườn: anh Trường) ---- */
   async function manVuonUom(ten) {
     const noiThat = ten === 'Vườn ươm cây nội thất';
-    await G.manSo({ tieuDe: ten, bang: 'VuonUom', lui: noiThat ? '#/viec' : '#/viec', loc: { 'Vườn ươm': ten, 'Ngày': { tu: G.congNgay(API.ngay(), -30) } }, nutMoi: 'Ghi vườn ươm hôm nay',
+    await G.manSo({ tieuDe: ten, bang: noiThat ? 'VuonUomNoiThat' : 'VuonUom', lui: noiThat ? '#/viec' : '#/viec', loc: { 'Vườn ươm': ten, 'Ngày': { tu: G.congNgay(API.ngay(), -30) } }, nutMoi: 'Ghi vườn ươm hôm nay',
       coGhi: () => (noiThat ? q('noibo') >= 2 : q('vuonuom') >= 2),
       truong: () => noiThat ? [{ k: 'Việc', nhan: 'Việc đã làm', loai: 'nhieu', ds: ['Tưới', 'Vệ sinh'], bb: true }, { k: 'Mô tả', nhan: 'Mô tả', loai: 'mota' }, { k: 'Ảnh', nhan: 'Ảnh', loai: 'anh', toiDa: 3 }]
         : [{ k: 'Việc', nhan: 'Việc đã làm', loai: 'nhieu', ds: ['Tưới', 'Vệ sinh', 'Ươm mới', 'Xuất cây'], bb: true }, { k: 'Tên cây', nhan: 'Cây (khi ươm / xuất)', loai: 'cay' }, { k: 'Số lượng', nhan: 'Số cây ươm / xuất', loai: 'so' },
           { k: 'ĐVT', nhan: 'ĐVT', loai: 'chips', ds: ['Bầu', 'Chậu', 'Cây', 'Bụi'] }, { k: 'Chất cải tạo đất hữu cơ (bao)', nhan: 'Chất cải tạo đất hữu cơ (bao, 1 bao = 25 kg)', loai: 'so' }, { k: 'Mô tả', nhan: 'Mô tả', loai: 'mota' }, { k: 'Ảnh', nhan: 'Ảnh', loai: 'anh', toiDa: 3 }],
-      luu: (v) => API.goi('ghi', { bang: 'VuonUom', dong: Object.assign({ 'Ngày': '', 'Vườn ươm': ten, 'Người ghi': '' }, v, { 'Tên cây': v['Tên cây'] ? v['Tên cây'].ten || v['Tên cây'] : '' }) }),
+      luu: (v) => API.goi('ghi', { bang: noiThat ? 'VuonUomNoiThat' : 'VuonUom', dong: Object.assign({ 'Ngày': '', 'Vườn ươm': ten, 'Người ghi': '' }, v, { 'Tên cây': v['Tên cây'] ? v['Tên cây'].ten || v['Tên cây'] : '' }) }),
       dong: (r) => `<div class="gian"><b>${G.ngayVN(r['Ngày'])} · ${esc(r['Việc'])}</b><div class="mo">${r['Tên cây'] ? esc(r['Tên cây']) + ' · ' + esc(r['Số lượng']) + ' ' + esc(r['ĐVT']) + ' · ' : ''}${r['Chất cải tạo đất hữu cơ (bao)'] ? esc(r['Chất cải tạo đất hữu cơ (bao)']) + ' bao · ' : ''}${esc(r['Mô tả'])}</div></div>` });
   }
-  G.man.vuonuom = { ten: 'Vườn ươm sân vườn', bt: '🌱', nhom: 'Việc hằng ngày', ph: 'vuonuom', fn: () => manVuonUom('Vườn ươm sân vườn') };
+  G.man.vuonuom = { ten: 'Vườn ươm cây bụi', bt: '🌱', nhom: 'Việc hằng ngày', ph: 'vuonuom', fn: () => manVuonUom('Vườn ươm cây bụi') };
 
   /* ---- đồng hồ nước ---- */
   G.man.donghonuoc = { ten: 'Đồng hồ nước', bt: '🔢', nhom: 'Việc hằng ngày', ph: 'donghonuoc', fn: async () => {

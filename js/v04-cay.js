@@ -14,9 +14,9 @@
     const d = await G.docNhieu([{ bang: 'BatThuong', gioiHan: 500 }, { bang: 'TraoDoi', gioiHan: 2000 }]);
     const ds = (d.BatThuong || []).filter((x) => x['Mã điểm'] || /^NT/.test(x['Mã vị trí'] || '')).reverse(); const td = d.TraoDoi || [];
     if (ma) return luong(ds.find((x) => G.maBT(x) === ma), td.filter((t) => t['Mã'] === ma));
-    const m = G.khung('Cây nội thất bất thường', 'Mỗi báo cáo là một việc trao đổi đến khi anh Vũ đóng', '#/nb/noithat');
+    const m = G.khung('Cây nội thất bất thường', 'Mỗi báo cáo là một việc trao đổi đến khi Trưởng bộ phận đóng', '#/nb/noithat');
     const mo = ds.filter((x) => x['Trạng thái'] !== 'Đã đóng'); const dong = ds.filter((x) => x['Trạng thái'] === 'Đã đóng');
-    const dong1 = (x) => { const t = td.filter((y) => y['Mã'] === G.maBT(x)); const c = t[t.length - 1]; const luot = !c ? 'Chờ anh Vũ hướng dẫn' : /Trưởng bộ phận/.test(c['Vai']) ? 'Chờ nhân viên làm và trả lời' : 'Chờ anh Vũ xem';
+    const dong1 = (x) => { const t = td.filter((y) => y['Mã'] === G.maBT(x)); const c = t[t.length - 1]; const luot = !c ? 'Chờ Trưởng bộ phận hướng dẫn' : /Trưởng bộ phận/.test(c['Vai']) ? 'Chờ nhân viên làm và trả lời' : 'Chờ Trưởng bộ phận xem';
       return `<a class="muc" href="#/batthuong/${encodeURIComponent(G.maBT(x))}" style="color:inherit"><div class="gian"><b>${esc(x['Tên cây'])} · ${esc(x['Tình trạng'])}</b><div class="mo">${esc((diem('Cây nội thất').find((p) => p.ma === x['Mã điểm']) || {}).ten || G.tenVT(x['Mã vị trí']))} · ${G.ngayVN(x['Ngày'])} · ${t.length} lượt</div></div><span class="chip ${x['Trạng thái'] === 'Đã đóng' ? 'xanh' : 'cam'}">${esc(x['Trạng thái'] === 'Đã đóng' ? 'Đã đóng' : luot)}</span></a>`; };
     m.innerHTML = `<h3 class="tieu-nhom">Đang mở (${mo.length})</h3><div class="ds">${mo.map(dong1).join('') || '<div class="muc mo">Không có việc đang mở</div>'}</div>` + (dong.length ? `<h3 class="tieu-nhom">Đã đóng</h3><div class="ds">${dong.slice(0, 40).map(dong1).join('')}</div>` : '');
   } };
@@ -25,7 +25,7 @@
     const ma = G.maBT(x); const anh = G.laAnhVu(); const dong = x['Trạng thái'] === 'Đã đóng'; const ghi = anh || q('noibo') >= 2;
     const m = G.khung(x['Tên cây'] + ' · ' + x['Tình trạng'], (diem('Cây nội thất').find((p) => p.ma === x['Mã điểm']) || {}).ten || '', '#/batthuong');
     m.innerHTML = `<div class="the ${dong ? 'the-xanh' : 'the-mo'}"><b>Báo cáo lúc ${G.ngayVN(x['Ngày'])} · ${esc(x['Người báo'])}</b><p style="margin:6px 0">${esc(x['Ghi chú'] || '')}</p>${G.xemAnh(x['Ảnh'])}
-        ${x['Trả lời của anh Vũ'] ? `<p class="mo">Trả lời cũ: ${esc(x['Trả lời của anh Vũ'])}</p>` : ''}</div>
+        ${x['Trả lời của Trưởng bộ phận'] ? `<p class="mo">Trả lời cũ: ${esc(x['Trả lời của Trưởng bộ phận'])}</p>` : ''}</div>
       <div class="luong">${td.map((t) => `<div class="tn ${/Trưởng bộ phận/.test(t['Vai']) ? 'anh-vu' : ''}"><b>${esc(t['Người'])}</b> <span class="mo">${esc(G.gioVN(t['Thời điểm']))}</span><div>${esc(t['Nội dung'])}</div>${G.xemAnh(t['Ảnh'])}</div>`).join('') || '<p class="mo">Chưa có trao đổi.</p>'}</div>
       ${dong ? `<div class="chip xanh">Đã đóng ${esc(x['Ngày đóng'] ? G.ngayVN(x['Ngày đóng']) : '')}</div>` : ghi ? `<div class="the"><div id="f"></div><button class="nut chinh rong" id="gui">${anh ? 'Gửi hướng dẫn' : 'Gửi trả lời'}</button>
         ${anh ? `<div class="nhom-nut" style="margin-top:8px"><button class="nut" id="dh">→ Hồ sơ dịch hại</button><button class="nut" id="vu">→ Đưa về vườn ươm</button></div><button class="nut do rong" id="dongV" style="margin-top:8px">Đóng việc</button>` : ''}</div>` : ''}`;
@@ -33,11 +33,11 @@
     const lay = G.form(m.querySelector('#f'), anh ? [{ k: 'mau', nhan: 'Câu mẫu', loai: 'chips', ds: CAU_MAU, doi: (v) => { const t = m.querySelector('textarea'); if (t) t.value = v; } }, { k: 'nd', nhan: 'Hướng dẫn (gõ hoặc bấm 🎤 nói)', loai: 'mota', bb: true }, { k: 'anh', nhan: 'Ảnh minh họa', loai: 'anh', toiDa: 3, tuyChon: true }]
       : [{ k: 'nd', nhan: 'Đã làm gì, cây hiện thế nào', loai: 'mota', bb: true }, { k: 'anh', nhan: 'Ảnh sau khi làm', loai: 'anh', toiDa: 3 }]);
     const gui = (nd, anh_) => API.goi('ghi', { bang: 'TraoDoi', dong: { 'Mã': ma, 'Loại': 'Cây nội thất bất thường', 'Người': S.u.ten, 'Vai': vai(), 'Nội dung': nd, 'Ảnh': anh_ || [], 'Thời điểm': '' } });
-    m.querySelector('#gui').onclick = (e) => chay(async () => { const v = lay(); await gui(v.nd, v.anh); if (anh) await API.goi('sua', { bang: 'BatThuong', khoa: khoaBT(x), doi: { 'Trả lời của anh Vũ': v.nd, 'Giờ trả lời': API.bayGio(), 'Trạng thái': 'Đang mở' } }); bao(anh ? 'Đã gửi · nhân viên nhận thông báo' : 'Đã gửi · anh Vũ nhận thông báo'); G.taiLai(); }, e.target);
+    m.querySelector('#gui').onclick = (e) => chay(async () => { const v = lay(); await gui(v.nd, v.anh); if (anh) await API.goi('sua', { bang: 'BatThuong', khoa: khoaBT(x), doi: { 'Trả lời của Trưởng bộ phận': v.nd, 'Giờ trả lời': API.bayGio(), 'Trạng thái': 'Đang mở' } }); bao(anh ? 'Đã gửi · nhân viên nhận thông báo' : 'Đã gửi · Trưởng bộ phận nhận thông báo'); G.taiLai(); }, e.target);
     if (!anh) return;
     m.querySelector('#dongV').onclick = async (e) => { if (!(await G.xacNhan('Đóng việc này? Sau khi đóng không trao đổi thêm.', 'Đóng việc'))) return; chay(async () => { await API.goi('sua', { bang: 'BatThuong', khoa: khoaBT(x), doi: { 'Trạng thái': 'Đã đóng', 'Ngày đóng': hn() } }); await gui('Đã đóng việc'); bao('Đã đóng việc'); location.hash = '#/batthuong'; }, e.target); };
     m.querySelector('#dh').onclick = (e) => chay(async () => { const r = await API.goi('ghi', { bang: 'DichHai', dong: { 'Mã DH': '', 'Ngày phát hiện': hn(), 'Cụm': 'Cây nội thất', 'Mã vị trí': x['Mã điểm'] || '', 'Vị trí chi tiết': (diem('Cây nội thất').find((p) => p.ma === x['Mã điểm']) || {}).ten || '', 'Phạm vi (Vài cây/Một mảng/Cả khu vực)': 'Vài cây', 'Nhóm cây': 'Cây nội thất', 'Tên cây': x['Tên cây'], 'Loại dịch hại': 'Chưa rõ', 'Mức độ': 'Nhẹ', 'Mô tả': 'Từ việc cây nội thất bất thường: ' + x['Tình trạng'], 'Ảnh': x['Ảnh'], 'Người phát hiện': '', 'Trạng thái (Phát hiện/Đang xử lý/Báo xong/Đã duyệt)': 'Phát hiện', 'Số lần trả lại': '0' } }); await gui('Đã chuyển thành hồ sơ dịch hại ' + r['Mã DH']); bao('Đã tạo hồ sơ ' + r['Mã DH']); G.taiLai(); }, e.target);
-    m.querySelector('#vu').onclick = (e) => chay(async () => { await gui('Đưa cây về vườn ươm nội thất để phục hồi, thay cây khác tại điểm'); await API.goi('ghi', { bang: 'VuonUom', dong: { 'Ngày': '', 'Vườn ươm': 'Vườn ươm cây nội thất', 'Loại ghi': 'Ươm vào', 'Việc': 'Nhận cây phục hồi', 'Tên cây': x['Tên cây'], 'Số lượng': 1, 'ĐVT': 'Chậu', 'Mô tả': 'Từ ' + ((diem('Cây nội thất').find((p) => p.ma === x['Mã điểm']) || {}).ten || ''), 'Ảnh': x['Ảnh'], 'Người ghi': '' } }); bao('Đã ghi đưa về vườn ươm'); G.taiLai(); }, e.target);
+    m.querySelector('#vu').onclick = (e) => chay(async () => { await gui('Đưa cây về vườn ươm nội thất để phục hồi, thay cây khác tại điểm'); await API.goi('ghi', { bang: 'VuonUomNoiThat', dong: { 'Ngày': '', 'Vườn ươm': 'Vườn ươm cây nội thất', 'Loại ghi': 'Ươm vào', 'Việc': 'Nhận cây phục hồi', 'Tên cây': x['Tên cây'], 'Số lượng': 1, 'ĐVT': 'Chậu', 'Mô tả': 'Từ ' + ((diem('Cây nội thất').find((p) => p.ma === x['Mã điểm']) || {}).ten || ''), 'Ảnh': x['Ảnh'], 'Người ghi': '' } }); bao('Đã ghi đưa về vườn ươm'); G.taiLai(); }, e.target);
   }
 
   /* ================= PHIẾU "SETUP CÂY NỘI THẤT" (mục 25) ================= */
@@ -46,7 +46,7 @@
     const lay = G.form(o.querySelector('#f'), [{ k: 'cay', nhan: 'Loại cây', loai: 'chonds', ds: ['Tùy chọn (nhân viên tự chọn)'].concat(cayNT()), bb: true }, { k: 'sl', nhan: 'Số lượng chậu', loai: 'so', bb: true }, { k: 'ly', nhan: 'Lý do', loai: 'chips', ds: ['Sự kiện', 'Thay cây hư', 'Yêu cầu bộ phận', 'Trang trí mới', 'Khác'], bb: true },
       { k: 'kv', nhan: 'Mô tả khu vực setup', loai: 'mota', bb: true }, { k: 'han', nhan: 'Hạn', loai: 'ngaygio', bb: true }]);
     o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); const cay = v.cay.ten || v.cay;
-      const p = await API.goi('phieu.tao', { loaiPhieu: 'Setup cây nội thất', nguon: 'Anh Vũ giao', nhom: 'Cây nội thất', loai: 'Setup cây nội thất', muc: 'Trung bình', vtKhac: v.kv, moTa: `Setup ${v.sl} chậu ${cay}. Lý do: ${v.ly}. Khu vực: ${v.kv}`, giao: 'Nhân viên nội bộ' });
+      const p = await API.goi('phieu.tao', { loaiPhieu: 'Setup cây nội thất', nguon: 'Trưởng bộ phận giao', nhom: 'Cây nội thất', loai: 'Setup cây nội thất', muc: 'Trung bình', vtKhac: v.kv, moTa: `Setup ${v.sl} chậu ${cay}. Lý do: ${v.ly}. Khu vực: ${v.kv}`, giao: 'Nhân viên nội bộ' });
       await API.goi('sua', { bang: 'Phieu', khoa: { 'Mã phiếu': p.ma }, doi: { 'Hạn': v.han, 'Chi tiết setup': JSON.stringify({ cay, sl: v.sl, ly: v.ly, kv: v.kv }) } });
       dong(); bao('Đã tạo phiếu ' + p.ma + ' · Hiệp, Nghị nhận thông báo'); }, e.target);
   });
@@ -57,8 +57,8 @@
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); const cay = v.cay.ten || v.cay;
         await API.goi('phieu.chuyen', { ma: p['Mã phiếu'], hd: 'xong', anh: v.anh, ghiChu: `${v.sl} chậu ${cay} · ${v.vt}` });
         await API.goi('sua', { bang: 'Phieu', khoa: { 'Mã phiếu': p['Mã phiếu'] }, doi: { 'Kết quả setup': JSON.stringify({ cay, sl: v.sl, vt: v.vt, tuVU: v.tuVU }) } });
-        if (v.tuVU === 'Có') await API.goi('ghi', { bang: 'VuonUom', dong: { 'Ngày': '', 'Vườn ươm': 'Vườn ươm cây nội thất', 'Loại ghi': 'Xuất vườn', 'Việc': 'Xuất vườn', 'Tên cây': cay, 'Số lượng': v.sl, 'ĐVT': 'Chậu', 'Xuất đi': 'Setup ' + p['Mã phiếu'] + ' · ' + v.vt, 'Ảnh': v.anh, 'Người ghi': '' } });
-        dong(); bao('Đã báo xong · chờ anh Vũ duyệt đóng phiếu' + (v.tuVU === 'Có' ? ' · đã trừ tồn vườn ươm' : '')); G.taiLai(); }, e.target);
+        if (v.tuVU === 'Có') await API.goi('ghi', { bang: 'VuonUomNoiThat', dong: { 'Ngày': '', 'Vườn ươm': 'Vườn ươm cây nội thất', 'Loại ghi': 'Xuất vườn', 'Việc': 'Xuất vườn', 'Tên cây': cay, 'Số lượng': v.sl, 'ĐVT': 'Chậu', 'Xuất đi': 'Setup ' + p['Mã phiếu'] + ' · ' + v.vt, 'Ảnh': v.anh, 'Người ghi': '' } });
+        dong(); bao('Đã báo xong · chờ Trưởng bộ phận duyệt đóng phiếu' + (v.tuVU === 'Có' ? ' · đã trừ tồn vườn ươm' : '')); G.taiLai(); }, e.target);
     }); };
   // màn cây nội thất: link trao đổi + phiếu setup đang mở
   const nbFn = G.man.nb.fn;
@@ -68,7 +68,7 @@
     const d = await G.docNhieu([{ bang: 'Phieu', gioiHan: 500 }, { bang: 'BatThuong', gioiHan: 300 }]);
     const su = (d.Phieu || []).filter((p) => p['Loại'] === 'Setup cây nội thất' && !/Đã duyệt|Báo xong/.test(p['Trạng thái']));
     const bt = (d.BatThuong || []).filter((x) => x['Trạng thái'] !== 'Đã đóng' && (x['Mã điểm'] || /^NT/.test(x['Mã vị trí'] || '')));
-    m.insertAdjacentHTML('afterbegin', `${bt.length ? `<a class="the the-do" href="#/batthuong" style="display:block;color:inherit"><b>🥀 ${bt.length} việc cây bất thường đang mở</b><div class="mo">Bấm để xem trao đổi với anh Vũ</div></a>` : ''}
+    m.insertAdjacentHTML('afterbegin', `${bt.length ? `<a class="the the-do" href="#/batthuong" style="display:block;color:inherit"><b>🥀 ${bt.length} việc cây bất thường đang mở</b><div class="mo">Bấm để xem trao đổi với Trưởng bộ phận</div></a>` : ''}
       ${su.map((p) => { const ct = JSON.parse(p['Chi tiết setup'] || '{}'); return `<div class="the the-mo"><b>🪴 Setup ${esc(ct.sl)} chậu ${esc(ct.cay)}</b><div class="mo">${esc(ct.kv)} · hạn ${esc(G.gioVN(p['Hạn']))} · ${esc(p['Mã phiếu'])}</div>${q('noibo') >= 2 ? `<button class="nut nho chinh" data-su="${esc(p['Mã phiếu'])}" style="margin-top:6px">Báo xong setup</button>` : ''}</div>`; }).join('')}`);
     m.querySelectorAll('[data-su]').forEach((b) => { b.onclick = () => G.baoXongSetup(su.find((p) => p['Mã phiếu'] === b.dataset.su)); });
     // thêm Mã BT khi báo bất thường mới (để mở luồng trao đổi)
@@ -89,7 +89,7 @@
     const ve = () => { const t = st.tim.toLowerCase(); const ds = S.dm.cay.filter((c) => (!st.nhom || c.nhom === st.nhom) && (!t || (c.ten + ' ' + (c.en || '') + ' ' + (c.kh || '')).toLowerCase().includes(t)));
       m.querySelector('#ds').innerHTML = ds.map((c) => `<a class="muc" href="#/danhmuccay/${encodeURIComponent(c.ma)}" style="color:inherit">${c.anh ? `<img src="${esc(API.anhUrl(API.dsAnh(c.anh)[0]))}" style="width:44px;height:44px;border-radius:10px;object-fit:cover">` : G.ic('trong_cay', 40)}<div class="gian"><b>${esc(c.ten)}</b><div class="mo">${esc(c.en || '')} · <i>${esc(c.kh || '')}</i></div><div class="mo">${esc(c.nhom)}${c.dh ? ' · ' + esc(c.dh) : ''}</div></div>›</a>`).join('') || '<div class="muc mo">Không thấy</div>'; };
     m.innerHTML = `<input type="search" id="tim" placeholder="Tìm tên Việt, Anh hoặc khoa học" value="${esc(st.tim)}"><div class="chon" style="margin-top:8px"><button data-n="" class="${!st.nhom ? 'dang' : ''}">Tất cả</button>${nhoms.map((n) => `<button data-n="${esc(n)}" class="${st.nhom === n ? 'dang' : ''}">${esc(n)}</button>`).join('')}</div>
-      ${G.laAnhVu() ? '<button class="nut chinh rong" id="them" style="margin-bottom:10px">＋ Thêm cây</button>' : '<button class="nut rong" id="dx" style="margin-bottom:10px">＋ Đề xuất cây mới (anh Vũ duyệt)</button>'}
+      ${G.laAnhVu() ? '<button class="nut chinh rong" id="them" style="margin-bottom:10px">＋ Thêm cây</button>' : '<button class="nut rong" id="dx" style="margin-bottom:10px">＋ Đề xuất cây mới (Trưởng bộ phận duyệt)</button>'}
       ${G.laAnhVu() ? '<div id="choDX"></div>' : ''}<div class="ds" id="ds"></div>`;
     m.querySelector('#tim').oninput = (e) => { st.tim = e.target.value; ve(); };
     m.querySelectorAll('[data-n]').forEach((b) => { b.onclick = () => { st.nhom = b.dataset.n; G.taiLai(); }; });
@@ -167,26 +167,26 @@
     G._daVC = ''; document.getElementById('daVC').onchange = (e) => { G._daVC = e.target.value; };
   } });
 
-  /* ================= KỲ ĐỊNH KỲ: tự tạo ngày 20, kỳ cũ chờ anh duyệt kết thúc, giai đoạn làm quen (mục 28) ================= */
+  /* ================= KỲ ĐỊNH KỲ: tự tạo ngày 20, kỳ cũ chờ Trưởng bộ phận duyệt kết thúc, giai đoạn làm quen (mục 28) ================= */
   const kyTruoc = () => API.ky(G.congNgay(S.dm.ky.tu, -1));
   const DV_KY = () => S.dm.dauviec.filter((v) => /^DV0[1-8]$/.test(v.ma) || v.ma === 'DV37' || v.ma === 'DV38');
   G.kiemKy = () => (G._kiemKyP = G._kiemKyP || kiemKy1().finally(() => { setTimeout(() => { G._kiemKyP = null; }, 5000); }));
-  const kiemKy1 = async () => { // gọi khi mở app: nếu đã sang kỳ mới mà kỳ cũ chưa có dòng → tạo dòng "Chờ anh duyệt kết thúc"
+  const kiemKy1 = async () => { // gọi khi mở app: nếu đã sang kỳ mới mà kỳ cũ chưa có dòng → tạo dòng "Chờ Trưởng bộ phận duyệt kết thúc"
     if (!G.laAnhVu()) return; const kt = kyTruoc(); const ds = await G.doc('KyDinhKy');
     if (!ds.some((r) => r['Kỳ'] === S.dm.ky.ten)) await API.goi('ghi', { imLang: true, bang: 'KyDinhKy', dong: { 'Kỳ': S.dm.ky.ten, 'Từ': S.dm.ky.tu, 'Đến': S.dm.ky.den, 'Trạng thái': 'Đang chạy', 'Tạo lúc': API.bayGio(), 'Ghi chú': 'Tự tạo ngày 20 đủ việc định kỳ và vị trí' } }).catch(() => {});
-    if (!ds.some((r) => r['Kỳ'] === kt.ten)) await API.goi('ghi', { imLang: true, bang: 'KyDinhKy', dong: { 'Kỳ': kt.ten, 'Từ': kt.tu, 'Đến': kt.den, 'Trạng thái': 'Chờ anh duyệt kết thúc', 'Tạo lúc': API.bayGio() } }).catch(() => {});
-    else { const r = ds.find((x) => x['Kỳ'] === kt.ten); if (r['Trạng thái'] === 'Đang chạy') await API.goi('sua', { imLang: true, bang: 'KyDinhKy', khoa: { 'Kỳ': kt.ten }, doi: { 'Trạng thái': 'Chờ anh duyệt kết thúc' } }).catch(() => {}); }
+    if (!ds.some((r) => r['Kỳ'] === kt.ten)) await API.goi('ghi', { imLang: true, bang: 'KyDinhKy', dong: { 'Kỳ': kt.ten, 'Từ': kt.tu, 'Đến': kt.den, 'Trạng thái': 'Chờ Trưởng bộ phận duyệt kết thúc', 'Tạo lúc': API.bayGio() } }).catch(() => {});
+    else { const r = ds.find((x) => x['Kỳ'] === kt.ten); if (r['Trạng thái'] === 'Đang chạy') await API.goi('sua', { imLang: true, bang: 'KyDinhKy', khoa: { 'Kỳ': kt.ten }, doi: { 'Trạng thái': 'Chờ Trưởng bộ phận duyệt kết thúc' } }).catch(() => {}); }
   };
   G.lamQuen = () => G.caiDat('Giai đoạn làm quen', 'Bật') === 'Bật';
   G.man.kydinhky = { ten: 'Kỳ định kỳ', ic: 'ke_hoach', bt: '📆', nhom: 'Kế hoạch', ph: 'homnay', cap: 3, fn: async () => {
     await G.kiemKy();
-    const m = G.khung('Kỳ định kỳ (20 → 19)', 'Ngày 20 app tự tạo kỳ mới · kỳ cũ chờ anh duyệt kết thúc', '#/');
+    const m = G.khung('Kỳ định kỳ (20 → 19)', 'Ngày 20 app tự tạo kỳ mới · kỳ cũ chờ Trưởng bộ phận duyệt kết thúc', '#/');
     const kt = kyTruoc(); const [ds, tk] = await Promise.all([G.doc('KyDinhKy'), G.doc('TickDinhKy', { 'Kỳ': kt.ten })]);
     const r = ds.find((x) => x['Kỳ'] === kt.ten) || {}; const khoa = r['Trạng thái'] === 'Đã khóa';
     const kq = DV_KY().map((v) => { const vt = G.dsVT(v.ma); const xong = new Set(tk.filter((t) => t['Mã việc'] === v.ma && (t['Trạng thái'] || 'Xong') === 'Xong').map((t) => t['Mã vị trí'])); return { v, tong: vt.length, xong: vt.filter((x) => xong.has(x.ma)).length, thieu: vt.filter((x) => !xong.has(x.ma)) }; });
     m.innerHTML = `<div class="the"><div class="hang"><div class="gian"><b>Giai đoạn làm quen</b><div class="mo">Bật: cho phép bỏ việc sót của kỳ cũ, bắt đầu mới ở kỳ mới. Tắt: bắt buộc làm dồn (việc thiếu hiện ở cả 2 kỳ, làm xong tính cho kỳ cũ trước).</div></div>
         <div class="chon" style="margin:0">${['Bật', 'Tắt'].map((x) => `<button data-lq="${x}" class="${(G.lamQuen() ? 'Bật' : 'Tắt') === x ? 'dang' : ''}">${x}</button>`).join('')}</div></div></div>
-      <div class="the ${khoa ? 'the-xanh' : 'the-mo'}"><div class="hang"><h2 class="gian" style="margin:0">Kỳ ${esc(kt.ten)} · ${G.ngayVN(kt.tu)} → ${G.ngayVN(kt.den)}</h2><span class="chip ${khoa ? 'xanh' : 'cam'}">${esc(r['Trạng thái'] || 'Chờ anh duyệt kết thúc')}</span></div>
+      <div class="the ${khoa ? 'the-xanh' : 'the-mo'}"><div class="hang"><h2 class="gian" style="margin:0">Kỳ ${esc(kt.ten)} · ${G.ngayVN(kt.tu)} → ${G.ngayVN(kt.den)}</h2><span class="chip ${khoa ? 'xanh' : 'cam'}">${esc(r['Trạng thái'] || 'Chờ Trưởng bộ phận duyệt kết thúc')}</span></div>
         <table class="bang" style="margin-top:8px"><tr><th>Việc</th><th>Xong</th><th>Không hoàn thành</th></tr>${kq.map((x) => `<tr><td>${esc(x.v.ten)}</td><td>${x.xong}/${x.tong}</td><td style="color:${x.thieu.length ? 'var(--do)' : 'inherit'}">${x.thieu.length}</td></tr>`).join('')}</table>
         ${khoa ? `<p class="mo">Đã khóa lúc ${esc(G.gioVN(r['Giờ duyệt']))}. Kết quả đã vào báo cáo, chỗ chưa làm ghi "Không hoàn thành".</p>` : '<button class="nut chinh rong" id="duyet" style="margin-top:10px">Duyệt kết thúc kỳ, khóa hẳn</button>'}</div>
       <div class="the"><h2>Kỳ ${esc(S.dm.ky.ten)} đang chạy</h2><p class="mo" style="margin:0">Đã tự tạo đủ ${DV_KY().length} việc định kỳ × vị trí. Màn "Kế hoạch định kỳ tháng" chỉ để xem, chỉnh ngày và đội.</p><a class="nut nho" href="#/khthang" style="margin-top:8px">Mở kế hoạch định kỳ tháng</a></div>`;

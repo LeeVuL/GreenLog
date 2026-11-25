@@ -11,11 +11,11 @@
     const cho = dk.filter((x) => x['Trạng thái duyệt'] === 'Chờ duyệt');
     const nhom = {}; dang.forEach((x) => { const k = x.doi || 'Chưa phân đội'; (nhom[k] = nhom[k] || []).push(x); });
     m.innerHTML = (q('congnhan') >= 2 && q('congnhan') < 3 ? '<button class="nut chinh rong" id="dk" style="margin-bottom:12px">＋ Đăng ký: mới / thay đổi / nghỉ việc</button>' : '')
-      + (cho.length ? `<h3 style="font-size:14px">Chờ anh Vũ duyệt (${cho.length})</h3><div class="ds">${cho.map((x, i) => `<div class="muc"><div class="gian"><b>${esc(x['Loại (Mới/Thay đổi/Nghỉ việc)'])}: ${esc(x['Họ và tên'])}</b><div class="mo">${esc(x['Đội'])} · ${esc(x['Chức danh'])} · ${esc(x['Số điện thoại'])} · từ ${G.ngayVN(x['Từ ngày'])} · ${esc(x['Người đăng ký'])}</div></div>${q('congnhan') >= 3 ? `<button class="nut nho" data-d="${i}">Xét</button>` : '<span class="chip cam">Chờ duyệt</span>'}</div>`).join('')}</div>` : '')
+      + (cho.length ? `<h3 style="font-size:14px">Chờ Trưởng bộ phận duyệt (${cho.length})</h3><div class="ds">${cho.map((x, i) => `<div class="muc"><div class="gian"><b>${esc(x['Loại (Mới/Thay đổi/Nghỉ việc)'])}: ${esc(x['Họ và tên'])}</b><div class="mo">${esc(x['Đội'])} · ${esc(x['Chức danh'])} · ${esc(x['Số điện thoại'])} · từ ${G.ngayVN(x['Từ ngày'])} · ${esc(x['Người đăng ký'])}</div></div>${q('congnhan') >= 3 ? `<button class="nut nho" data-d="${i}">Xét</button>` : '<span class="chip cam">Chờ duyệt</span>'}</div>`).join('')}</div>` : '')
       + `<p class="mo">${dang.length} người đang làm · ${cn.length - dang.length} đã nghỉ</p>`
       + Object.keys(nhom).map((k) => `<div class="ds"><div class="nhom-ten">${esc(k)} (${nhom[k].length})</div>${nhom[k].map((x) => `<div class="muc"><div class="gian"><b>${esc(x.ten)}</b><div class="mo">${esc(x.ma)} · ${esc(x.cd || 'chưa có chức danh')}${x.kv ? ' · ' + esc(x.kv) : ''}${x.sdt ? ' · ' + esc(x.sdt) : ''}</div></div></div>`).join('')}</div>`).join('');
     const b = m.querySelector('#dk');
-    if (b) b.onclick = () => hop('Đăng ký công nhân', '<div id="f"></div><button class="nut chinh rong" id="l">Gửi anh Vũ duyệt</button>', (o, dong) => {
+    if (b) b.onclick = () => hop('Đăng ký công nhân', '<div id="f"></div><button class="nut chinh rong" id="l">Gửi Trưởng bộ phận duyệt</button>', (o, dong) => {
       const lay = G.form(o.querySelector('#f'), [{ k: 'loai', nhan: 'Loại', loai: 'chips', ds: ['Mới', 'Thay đổi', 'Nghỉ việc'], bb: true }, { k: 'ten', nhan: 'Họ và tên (đầy đủ)', loai: 'chu', bb: true, goiY: 'Với Thay đổi / Nghỉ việc: gõ đúng tên trong danh sách' },
         { k: 'doi', nhan: 'Đội', loai: 'chips', ds: ['Đội cơ động', 'Đội khu vực'] }, { k: 'cd', nhan: 'Chức danh', loai: 'chips', ds: ['Cắt cỏ', 'Vận chuyển', 'Bón phân + phun thuốc', 'Cắt tỉa cây bóng mát', 'Nhân viên khu vực', 'Nhân viên vườn ươm', 'Tổ trưởng'] },
         { k: 'kv', nhan: 'Khu vực phụ trách', loai: 'chu' }, { k: 'sdt', nhan: 'Số điện thoại', loai: 'chu' }, { k: 'tu', nhan: 'Từ ngày', loai: 'ngay', bb: true }, { k: 'gc', nhan: 'Ghi chú', loai: 'mota' }]);
@@ -25,7 +25,7 @@
         if (v.loai === 'Mới' && (!v.doi || !v.cd)) throw new Error('Người mới cần đội và chức danh');
         if (v.loai !== 'Mới' && !co) throw new Error('Không thấy "' + v.ten + '" trong danh sách');
         await API.goi('ghi', { bang: 'CongNhanDangKy', dong: { 'Mã ĐK': '', 'Loại (Mới/Thay đổi/Nghỉ việc)': v.loai, 'Mã CN': co ? co.ma : '', 'Họ và tên': co ? co.ten : v.ten, 'Đội': v.doi, 'Chức danh': v.cd, 'Khu vực phụ trách': v.kv, 'Số điện thoại': v.sdt, 'Từ ngày': v.tu, 'Ghi chú': v.gc, 'Người đăng ký': '', 'Giờ đăng ký': '', 'Trạng thái duyệt': 'Chờ duyệt' } });
-        dong(); bao('Đã gửi, chờ anh Vũ duyệt'); G.taiLai();
+        dong(); bao('Đã gửi, chờ Trưởng bộ phận duyệt'); G.taiLai();
       }, e.target);
     });
     m.querySelectorAll('[data-d]').forEach((x) => { x.onclick = async () => { const r = cho[+x.dataset.d]; const c = await G.chonDS('Xét: ' + r['Họ và tên'], ['Duyệt', 'Từ chối']); if (!c) return;
@@ -155,7 +155,7 @@
     });
     m.querySelector('#uq').onclick = () => hop('Ủy quyền', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
       const lay = G.form(o.querySelector('#f'), [{ k: 'ai', nhan: 'Người nhận', loai: 'chips', ds: nguoi.map((n) => n.ten), bb: true }, { k: 'ph', nhan: 'Phân hệ', loai: 'chonds', ds: PH.map((p) => ({ ten: p[1], k: p[0] })), bb: true }, { k: 'cap', nhan: 'Cấp', loai: 'chips', ds: ['Ghi', 'Duyệt'], gt: 'Duyệt', bb: true },
-        { k: 'tu', nhan: 'Từ ngày', loai: 'ngay', bb: true }, { k: 'den', nhan: 'Đến ngày', loai: 'ngay', bb: true }, { k: 'ly', nhan: 'Lý do', loai: 'chu', goiY: 'Ví dụ: anh Vũ nghỉ phép' }]);
+        { k: 'tu', nhan: 'Từ ngày', loai: 'ngay', bb: true }, { k: 'den', nhan: 'Đến ngày', loai: 'ngay', bb: true }, { k: 'ly', nhan: 'Lý do', loai: 'chu', goiY: 'Ví dụ: Trưởng bộ phận nghỉ phép' }]);
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); if (v.den < v.tu) throw new Error('Ngày kết thúc trước ngày bắt đầu'); await API.goi('ghi', { bang: 'UyQuyen', dong: { 'Người ủy quyền': S.u.ten, 'Người nhận': v.ai, 'Phân hệ': v.ph.k, 'Cấp': v.cap, 'Từ ngày': v.tu, 'Đến ngày': v.den, 'Lý do': v.ly, 'Đang hiệu lực': 'Có' } }); dong(); bao('Đã ủy quyền'); G.taiLai(); }, e.target);
     });
   } };

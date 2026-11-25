@@ -170,7 +170,7 @@
     const tai = m.querySelector('#tai'); if (tai) tai.onclick = () => G.taiCSV('KeHoachTuan_' + tuan, [['Nội dung', 'Vị trí', 'Đội/Người', 'Hạn', 'Mức độ', 'Trạng thái', 'Lý do trễ']].concat(kh.map((x) => [x['Nội dung'], G.tenVT(x['Mã vị trí']), x['Đội/Người'], x['Hạn'], x['Mức độ'], x['Trạng thái'], x['Lý do trễ']])));
   } };
 
-  /* ================= KẾ HOẠCH ĐỊNH KỲ THÁNG (anh Pháp lập, anh Vũ duyệt) ================= */
+  /* ================= KẾ HOẠCH ĐỊNH KỲ THÁNG (anh Pháp lập, Trưởng bộ phận duyệt) ================= */
   G.man.khthang = { ten: 'Kế hoạch định kỳ tháng', bt: '📆', nhom: 'Kế hoạch', ph: 'kehoach', fn: async () => {
     const k = S.dm.ky; const m = G.khung('Kế hoạch định kỳ tháng', `Kỳ ${k.ten} · ${G.ngayVN(k.tu)}–${G.ngayVN(k.den)}`);
     const d = await API.goi('docNhieu', { ds: [{ bang: 'KeHoachDinhKy', gioiHan: 2000 }] });

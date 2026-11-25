@@ -62,8 +62,8 @@ const DM_BOSUNG = {
 };
 
 const MUC_DO_4 = [
-  ['Mức độ', 'Hạn xử lý (giờ)', 'Tổng hợp gửi anh Vũ', 'Nhắc lại khi chưa nhận việc'],
-  ['Khẩn cấp', 2, '16h mỗi ngày', 'Báo ngay; sau 15 phút cứ 2 phút gửi lại; sau 30 phút báo anh Vũ'],
+  ['Mức độ', 'Hạn xử lý (giờ)', 'Tổng hợp gửi Trưởng bộ phận', 'Nhắc lại khi chưa nhận việc'],
+  ['Khẩn cấp', 2, '16h mỗi ngày', 'Báo ngay; sau 15 phút cứ 2 phút gửi lại; sau 30 phút báo Trưởng bộ phận'],
   ['Cao', 24, '16h mỗi ngày', ''],
   ['Trung bình', 72, '16h thứ Sáu', ''],
   ['Thấp', 168, '16h thứ Sáu', ''],
@@ -118,7 +118,7 @@ const VH = {
   DichHaiCapNhat: ['Mã DH', 'Thời điểm', 'Việc đã làm', 'Mã NK phun bón', 'Tính luôn định kỳ', 'Mức độ hiện tại', 'Ảnh', 'Ghi chú', 'Người ghi'],
   ThoiTiet: ['Thời điểm lấy', 'Nguồn', 'Mốc dự báo', '% mưa', 'Lượng mưa (mm)', 'Nhiệt độ (°C)', 'Gió giật (m/s)', 'Gợi ý'],
   ChamDiem: ['Ngày', 'Mã vị trí', 'Tiêu chí', 'Điểm (1–5)', 'Ảnh', 'Ghi chú', 'Người chấm'],
-  BatThuong: ['Ngày', 'Mã vị trí', 'Tên cây', 'Tình trạng', 'Ảnh', 'Ghi chú', 'Người báo', 'Xử lý', 'Mã điểm', 'Trả lời của anh Vũ', 'Giờ trả lời'],
+  BatThuong: ['Ngày', 'Mã vị trí', 'Tên cây', 'Tình trạng', 'Ảnh', 'Ghi chú', 'Người báo', 'Xử lý', 'Mã điểm', 'Trả lời của Trưởng bộ phận', 'Giờ trả lời'],
   VuonRau: ['Ngày', 'Mã vườn', 'Trường', 'Giá trị', 'Ngoài ngưỡng', 'Người ghi'],
   ThuHoach: ['Ngày', 'Mã vườn', 'Vườn', 'Mã cây', 'Tên cây', 'kg', 'Ảnh cân', 'Bếp nhận', 'Người ghi'],
   DongHoNuoc: ['Ngày', 'Mã đồng hồ', 'Chỉ số', 'Ảnh', 'Người đọc'],
