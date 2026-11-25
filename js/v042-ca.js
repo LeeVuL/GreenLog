@@ -93,6 +93,7 @@
     await hnFn(...a); const m = document.getElementById('noiDung') || document.getElementById('app'); if (!m || G.qv('CN06') < 2) return;
     const goc = m.querySelector('.loc-tt');
     const ps = (await G.doc('ViecPhatSinh', { 'Ngày': hn() })).filter((r) => r['Người ghi'] === S.u.ten || (S.u.doi && r['Đội'] === S.u.doi));
+    if (m.querySelector('.viec-khac')) return;
     const nut = G.h(`<button class="nut rong viec-khac" style="margin:10px 0">＋ Việc khác ngoài danh sách</button>`); nut.onclick = G.moViecKhac;
     if (goc) goc.insertAdjacentElement('afterend', nut); else (document.getElementById('noiDung') || m).appendChild(nut);
     if (ps.length) nut.insertAdjacentHTML('afterend', `<div class="the"><b>➕ Việc làm thêm hôm nay (${ps.length})</b>${ps.map((r) => `<div class="mo">• ${esc(r['Mô tả'] || r['Loại việc'] || '')}${r['Số người'] ? ' · ' + esc(r['Số người']) + ' người' : ''}${r['Số giờ'] ? ' · ' + esc(r['Số giờ']) + ' giờ' : ''}${G.anhCua([r]).length ? ' · 📷 ' + G.anhCua([r]).length : ''} · ${esc(r['Trạng thái'] || '')}</div>`).join('')}<div class="mo" style="font-size:12px">Không tính vào % việc chính.</div></div>`);

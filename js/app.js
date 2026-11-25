@@ -30,7 +30,8 @@
     const l = document.getElementById('nutLui'); if (l) l.onclick = () => { if (typeof lui === 'string') location.hash = lui; else history.back(); };
     return document.getElementById('noiDung');
   };
-  G.taiLai = () => dieuHuong();
+  /* mục 103: sau mọi thao tác, vẽ lại màn nhưng giữ nguyên chỗ đang xem (không nhảy về đầu trang) */
+  G.taiLai = () => { G._giuCuon = { y: window.scrollY, h: document.documentElement.scrollHeight, mo: [...document.querySelectorAll('#noiDung details')].map((d) => d.open) }; dieuHuong(); };
 
   /* ---------- đăng nhập ---------- */
   function manVao() {
@@ -67,8 +68,11 @@
     const man = thay || { '': manHomNay, viec: manViec, dinhky: manDinhKy, tuoi: manTuoi, cum: manTheoCum, diemdanh: manDiemDanh, phieu: manPhieu, them: manThem }[t[0]]
       || (G.man[t[0]] && G.man[t[0]].fn) || manHomNay;
     document.querySelectorAll('.lop-phu').forEach((x) => x.remove());
-    if (!G._quayLai) window.scrollTo(0, 0);
-    Promise.resolve().then(() => man(t[1], t[2])).then(() => G.sauVe && G.sauVe()).catch((e) => {
+    const giu = G._giuCuon; G._giuCuon = null;
+    if (giu) document.body.style.minHeight = giu.h + 'px'; else if (!G._quayLai) window.scrollTo(0, 0);
+    const traCuon = () => { if (!giu) return; const mo = [...document.querySelectorAll('#noiDung details')]; if (mo.length === giu.mo.length) mo.forEach((d, i) => { if (giu.mo[i]) d.open = true; });
+      window.scrollTo(0, giu.y); [120, 450].forEach((ms) => setTimeout(() => { if (window.scrollY < giu.y - 4) window.scrollTo(0, giu.y); if (ms === 450) document.body.style.minHeight = ''; }, ms)); };
+    Promise.resolve().then(() => man(t[1], t[2])).then(() => { if (G.sauVe) G.sauVe(); traCuon(); }).catch((e) => { document.body.style.minHeight = '';
       console.error(e);
       const nd = document.getElementById('noiDung');
       if (nd && /Đang tải/.test(nd.textContent)) nd.innerHTML = G.trong(/quyền/.test(e.message) ? 'Mục này không nằm trong quyền của anh/chị.' : e.message);

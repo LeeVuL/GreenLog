@@ -72,7 +72,7 @@ const API = {
   'diemDanh.tuDiem': ddTuDiem_, 'diemDanh.duyet': ddDuyet_,
   'dinhKy.luu': dkLuu_, 'phieu.tao': phieuTao_, 'phieu.chuyen': phieuChuyen_,
   'congNhan.duyet': cnDuyet_, 'congNhan.sua': cnSua_, 'vanChuyen.gui': vcGui_, 'hoanTac': hoanTac_, 'thoiTiet': function () { return thoiTiet_(); },
-  'ai.cay': aiCay_, 'ai.trieuChung': aiTrieuChung_,
+  'ai.cay': aiCay_, 'ai.trieuChung': aiTrieuChung_, 'ai.troLy': aiTroLy_,
 };
 
 /* ================= Đăng nhập, quyền ================= */
@@ -583,6 +583,23 @@ function aiTrieuChung_(u, r) {
   const j = JSON.parse(res.getContentText());
   p.setProperty(k, String(dung + 1));
   return { traLoi: ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(function (x) { return x.text || ''; }).join('\n'), conLai: toiDa - dung - 1 };
+}
+
+/* Trợ lý GreenLog (0.4.6): Gemini chỉ đọc câu hỏi, trả về tên ý định; số liệu do app tự tính, không gửi dữ liệu bộ phận đi. 30 câu/người/ngày */
+function aiTroLy_(u, r) {
+  const key = prop_('GEMINI_KEY', true); if (!key) throw new Error('Chưa có mã Gemini');
+  const p = PropertiesService.getScriptProperties(); const k = 'TROLY_' + ngay_() + '_' + u.ten; const dung = +(p.getProperty(k) || 0); const toiDa = +(prop_('TROLY_TOI_DA', true) || 30);
+  if (dung >= toiDa) throw new Error('Đã hết ' + toiDa + ' lượt hôm nay');
+  const yd = (r.yDinh || []).join(', ');
+  const prompt = 'Bạn là bộ phân loại câu hỏi cho app GreenLog (quản lý cảnh quan resort). Chỉ trả về JSON một dòng {"y":"<ý định>","cauLai":"<câu hỏi viết lại rõ, không dấu cũng được>"}. '
+    + 'Ý định hợp lệ: ' + yd + ', ngoai. Dùng "ngoai" nếu câu hỏi không liên quan đến công việc, số liệu, kho, máy, phiếu, cây, cách dùng app GreenLog. Câu hỏi: "' + String(r.cau || '').slice(0, 300) + '"';
+  const model = prop_('GEMINI_MODEL', true) || 'gemini-2.5-flash';
+  const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + key, { method: 'post', contentType: 'application/json', payload: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json' } }), muteHttpExceptions: true });
+  if (res.getResponseCode() === 429) throw new Error('Gemini hết lượt (429)');
+  if (res.getResponseCode() >= 400) throw new Error('Gemini lỗi ' + res.getResponseCode());
+  p.setProperty(k, String(dung + 1));
+  const t = ((((JSON.parse(res.getContentText()).candidates || [])[0] || {}).content || {}).parts || []).map(function (x) { return x.text || ''; }).join('');
+  try { const j = JSON.parse(t.replace(/^```json|```$/g, '').trim()); return { y: String(j.y || ''), cauLai: String(j.cauLai || ''), conLai: toiDa - dung - 1 }; } catch (e) { return { y: '', conLai: toiDa - dung - 1 }; }
 }
 
 /* ================= Tiện ích ================= */

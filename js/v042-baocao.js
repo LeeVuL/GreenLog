@@ -54,6 +54,7 @@
       return [['Số buổi', d.length], ['Số giờ', so(d.reduce((a, r) => a + gioLop(r), 0))], ['Lượt học viên', d.reduce((a, r) => a + hv(r), 0)], ['Theo kế hoạch', kh.length + (kh.length ? ` (đúng ngày ${dungNgay})` : '')], ['Phát sinh (đột xuất)', dx.length]]; },
     cot: ['Ngày', 'Loại', 'Nội dung', 'Giảng viên', 'Bắt đầu', 'Kết thúc', 'Tổng thời lượng', 'Số học viên', 'Ngày KH'] });
 
+  { const i = BC.findIndex((x) => x.k === 'nb/compost'); if (i >= 0) BC.splice(i, 1); } // mục 102: rác ủ thẳng tại vườn, không ghi compost riêng
   G.BC_VIEC = BC;
   const KY = [['thang', 'Tháng này'], ['thangtruoc', 'Tháng trước'], ['ky', 'Kỳ nhà thầu 20→19'], ['nam', 'Từ đầu năm'], ['tuy', 'Tùy chọn']];
   const khoang = (k, tu, den) => { const h = hn(); const y = h.slice(0, 4), mo = h.slice(5, 7);
@@ -86,7 +87,25 @@
       ${tomHtml}
       ${nks.length > 1 ? `<div class="the"><b>Theo ngày${b.dvt ? ' (' + b.dvt + ')' : ' (lần ghi)'}</b><div class="bc-cot">${nks.map((n) => `<div title="${n}: ${theoNgay[n]}"><i style="height:${Math.round(theoNgay[n] / mx * 100)}%"></i><small>${n.slice(8)}</small></div>`).join('')}</div></div>` : ''}
       ${them ? `<div class="the bc-them">${them}</div>` : ''}
-      <div class="the"><b>Chi tiết (${d.length} dòng)</b>${d.length ? `<div class="cuon-ngang"><table class="bang"><tr>${cot.map((k) => `<th>${esc(k)}</th>`).join('')}</tr>${dong.slice(0, 200).map((r) => `<tr>${r.map((v) => `<td>${esc(String(v).slice(0, 80))}</td>`).join('')}</tr>`).join('')}</table></div>${d.length > 200 ? '<p class="mo">Hiện 200 dòng đầu, xuất Excel để xem đủ.</p>' : ''}` : G.trong('Không có dữ liệu trong khoảng này.')}</div>`;
+      <div class="the" id="ctBC"></div>`;
+    /* mục 105: bấm ô số / dòng bảng tổng → xem các lần ghi tạo ra con số; bấm một lần ghi → thẻ gốc (ảnh, người ghi, phiếu) */
+    const veCT = (rows, loc) => { const el = m.querySelector('#ctBC'); const dt = window.innerWidth >= 700; const thu = [...rows].reverse();
+      el.innerHTML = `<div class="hang" style="gap:8px;flex-wrap:wrap"><b class="gian">Chi tiết (${rows.length} lần ghi)</b>${loc ? `<span class="chip xanh">Đang lọc: ${esc(loc)}</span><button class="nut nho" id="boLoc">✕ Bỏ lọc</button>` : ''}</div>`
+        + (rows.length ? (dt ? `<div class="cuon-ngang"><table class="bang bc-ct"><tr>${cot.map((k) => `<th>${esc(k)}</th>`).join('')}</tr>${thu.slice(0, 200).map((r) => `<tr data-r="${d.indexOf(r)}" tabindex="0">${cot.map((k) => { const v = r[k]; return `<td>${esc(String(Array.isArray(v) ? v.join(', ') : v == null ? '' : v).slice(0, 80))}</td>`; }).join('')}</tr>`).join('')}</table></div>`
+          : `<div class="ds">${thu.slice(0, 200).map((r) => { const a = anhCua([r]).length; const ten = cot.filter((k) => k !== c && r[k] !== '' && r[k] != null && !/^Mã|Người ghi|Giờ ghi/.test(k)).slice(0, 3).map((k) => r[k]).join(' · ');
+            return `<button type="button" class="muc bc-the" data-r="${d.indexOf(r)}"><span class="gian"><b>${esc(String(ten).slice(0, 70))}</b><span class="mo">${esc(G.ngayVN(ngayCua(r, c)))}${r['Người ghi'] ? ' · ' + esc(String(r['Người ghi']).split(' ').pop()) : ''}${a ? ' · 📷 ' + a : ''}</span></span>›</button>`; }).join('')}</div>`)
+          + (rows.length > 200 ? '<p class="mo">Hiện 200 lần ghi mới nhất, xuất Excel để xem đủ.</p>' : '') : G.trong('Không có dữ liệu trong khoảng này.'));
+      const bl = el.querySelector('#boLoc'); if (bl) bl.onclick = () => veCT(d, '');
+      el.querySelectorAll('[data-r]').forEach((x) => { x.onclick = () => moDong(d[+x.dataset.r]); x.onkeydown = (e) => { if (e.key === 'Enter') moDong(d[+x.dataset.r]); }; }); };
+    const moDong = (r) => { const a = anhCua([r]); const ks = Object.keys(r).filter((k) => !/^Ảnh|^_/.test(k) && r[k] !== '' && r[k] != null);
+      const goc = b.k === 'dinhky' && r['Mã việc'] ? '#/dinhky/' + r['Mã việc'] : b.k === 'phieu' && r['Mã phiếu'] ? '#/phieu/' + encodeURIComponent(r['Mã phiếu']) : '#/' + b.k;
+      G.hop(b.ten + ' · ' + G.ngayVN(ngayCua(r, c)), `${a.length ? `<div class="bc-anh">${a.map((x) => `<img src="${esc(x.url)}" alt="" loading="lazy" onclick="GL.phongAnh(this.src)"><small class="mo">${esc(x.loai)}</small>`).join('')}</div>` : '<p class="mo">Lần ghi này không có ảnh.</p>'}
+        <table class="bang">${ks.map((k) => `<tr><td class="mo">${esc(k)}</td><td>${esc(Array.isArray(r[k]) ? r[k].join(', ') : String(r[k]))}</td></tr>`).join('')}</table>
+        <div class="nhom-nut" style="margin-top:10px">${r['Mã phiếu'] && b.k !== 'phieu' ? `<a class="nut" href="#/phieu/${encodeURIComponent(r['Mã phiếu'])}">Mở phiếu ${esc(r['Mã phiếu'])}</a>` : ''}<a class="nut chinh" href="${goc}">Mở ở màn gốc ›</a></div>`); };
+    veCT(d, '');
+    m.querySelectorAll('.bc-so .so-the').forEach((x) => { x.style.cursor = 'pointer'; x.title = 'Xem các lần ghi tạo ra con số này'; x.onclick = () => { veCT(d, ''); m.querySelector('#ctBC').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
+    m.querySelectorAll('.bc-them tr').forEach((tr) => { const td = tr.querySelector('td'); if (!td) return; tr.style.cursor = 'pointer'; tr.title = 'Xem các lần ghi của dòng này'; tr.onclick = () => { const t = td.textContent.trim(); const r = d.filter((x) => Object.values(x).some((v) => String(Array.isArray(v) ? v.join(', ') : v).includes(t)));
+      veCT(r.length ? r : d, r.length ? t : ''); m.querySelector('#ctBC').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     m.querySelectorAll('[data-ky]').forEach((bt) => { bt.onclick = () => { st.ky = bt.dataset.ky; G.taiLai(); }; });
     ['tu', 'den'].forEach((id) => { const el = m.querySelector('#' + id); if (el) el.onchange = () => { st.tu = m.querySelector('#tu').value; st.den = m.querySelector('#den').value; G.taiLai(); }; });
     m.querySelector('#xuat').onclick = () => G.xuatChon({ ten: `GreenLog_${b.ten}_${tu}_${den}`, tieuDe: `${b.ten} · ${G.ngayVN(tu)} → ${G.ngayVN(den)}`, cot, dong, anh,

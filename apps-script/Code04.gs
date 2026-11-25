@@ -7,6 +7,7 @@ Object.assign(BANG, {
   TuiThuocDua: ['phunbon', 2], BaoTriMay: ['noibo', 2], DanhDauSlide: ['homnay', 2], BaoCaoGM: ['homnay', 3], PhanQuyenViec: ['danhmuc', 3],
   KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2], AnhDanhMuc: ['homnay', 2], AnhDaiDien: ['homnay', 1], LinkViec: ['homnay', 2], LinkViecKetQua: ['homnay', 1],
   NghiNoiBo: ['homnay', 2], KubotaLuot: ['homnay', 2], KubotaChuyen: ['homnay', 2], DotMua: ['homnay', 2], DotMuaGhi: ['homnay', 2], // 0.4.3
+  KhoVatTu: ['noibo', 2], KhoGiaoDich: ['noibo', 2], DungCu: ['noibo', 2], DungCuMuon: ['noibo', 2], KiemTraDC: ['noibo', 2], BaoTriPH: ['noibo', 2], MayHong: ['noibo', 2], // 0.4.6 Kho & tài sản
 });
 BANG.DaoTao = ['homnay', 2];
 /* anh Pháp được ghi các bảng này dù Hôm nay chỉ Xem */

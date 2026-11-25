@@ -170,3 +170,45 @@ header.dau .nut-hd { font-weight: 800; font-size: 18px; margin-right: 6px; }
 @media(max-width:700px){.may2{grid-template-columns:1fr}}
 .o-chuyen-boc{position:relative}.o-chuyen-boc .o-chuyen{width:100%}
 .o-tru{position:absolute;top:-8px;right:-6px;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--vien);background:#fff;font-size:22px;line-height:1;cursor:pointer}
+/* 0.4.6 · Kho & tài sản, tìm nhanh, Trợ lý GreenLog */
+.kho-tab { margin-bottom: 12px; }
+.kho-tab a { padding: 8px 14px; border-radius: 999px; border: 1px solid #D5DED6; color: inherit; text-decoration: none; background: #fff; }
+.kho-tab a.dang { background: var(--xanh-dam); color: #fff; border-color: var(--xanh-dam); }
+.luoi-vt { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 960px) { .luoi-vt { grid-template-columns: repeat(4, 1fr); } }
+.vt-o { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; font: inherit; cursor: pointer; margin: 0; border: 1px solid #E1E7E2; }
+.vt-o.vt-do { border-color: var(--do); } .vt-o.vt-cam { border-color: var(--cam2); }
+.vt-so b { font-size: 26px; } .chip.do { background: var(--do-nhat); color: var(--do); }
+.chon-vt .vt-o { min-height: 64px; }
+.o-kt { width: 52px; height: 52px; border-radius: 12px; border: 1px solid #D5DED6; background: #fff; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; padding: 0; }
+.o-kt small { font-size: 10px; font-weight: 400; color: var(--mo); }
+.o-kt.xanh { background: var(--xanh-nhat); border-color: #9CCB9A; } .o-kt.cam { background: var(--cam-nhat); border-color: var(--cam2); } .o-kt.cho { background: #FFF8E1; } .o-kt.trong { color: #A8B3AA; font-weight: 400; }
+.may-the2 { margin-bottom: 12px; }
+.bc-the { width: 100%; text-align: left; font: inherit; background: #fff; }
+.bc-ct tr[data-r] { cursor: pointer; } .bc-ct tr[data-r]:hover td { background: var(--xanh-nhat); }
+.bc-anh { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+.bc-anh img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; cursor: zoom-in; }
+.tk-muc { width: 100%; text-align: left; font: inherit; background: #fff; }
+.tk-goiy button, .tl-goiy button { white-space: nowrap; }
+.fab-tl { position: fixed; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); width: 60px; height: 60px; border-radius: 50%; border: 0; padding: 2px; background: transparent; box-shadow: 0 8px 22px rgba(18,53,36,.35); z-index: 9; cursor: pointer; }
+.fab-tl svg { display: block; }
+@media (min-width: 960px) { .fab-tl { bottom: 24px; right: 24px; } }
+.robot .mat { transform-origin: 48px 54px; animation: chopMat 5s infinite; }
+@keyframes chopMat { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.15); } }
+.dang-nghi .robot { animation: nghieng 1.2s ease-in-out infinite; transform-origin: 48px 60px; }
+@keyframes nghieng { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-8deg); } }
+.tl-khung { display: flex; flex-direction: column; min-height: calc(100vh - 230px); }
+.tl-ds { flex: 1; display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px; }
+.tl-man { padding-bottom: 40px; }
+.tl-hang { display: flex; gap: 8px; align-items: flex-end; max-width: 92%; }
+.tl-hang.toi { align-self: flex-end; } .tl-hang.toi .tl-bong { background: var(--xanh-dam); color: #fff; border-radius: 18px 18px 4px 18px; }
+.tl-bong { background: #fff; border: 1px solid #E1E7E2; border-radius: 18px 18px 18px 4px; padding: 10px 14px; line-height: 1.5; font-size: 16px; }
+.tl-bong ul { margin: 6px 0 0; padding-left: 2px; list-style: none; } .tl-bong li { margin: 3px 0; }
+.tl-av { flex: none; }
+.tl-goiy { overflow-x: auto; flex-wrap: nowrap; padding: 6px 0; }
+.tl-nhap { display: flex; gap: 6px; align-items: flex-end; position: sticky; bottom: calc(92px + env(safe-area-inset-bottom)); background: var(--nen); padding: 8px 0; z-index: 3; box-shadow: 0 -8px 12px -8px rgba(18,53,36,.15); }
+.tl-nhap textarea { flex: 1; min-height: 48px; max-height: 120px; resize: none; font-size: 17px; border-radius: 16px; padding: 12px; }
+@media (min-width: 960px) { .tl-nhap { bottom: 0; } }
+.vt-o .gian { display: flex; flex-direction: column; gap: 2px; }
+.vt-o .gian b { line-height: 1.3; }
+.bc-the .gian, .tk-muc .gian, .dc-muc .gian { display: flex; flex-direction: column; }

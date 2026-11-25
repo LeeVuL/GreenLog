@@ -164,8 +164,8 @@
   G.viecNoiBo = async (ngay, tt) => {
     const ds = await vnbGoc(ngay, tt); if (S.u.nhom !== 'Nhân viên nội bộ') return ds;
     const nghi = await G.nghiNB(ngay); const toi = S.u.ten.split(' ').pop();
-    return ds.filter((x) => { const c = CHU[x.link]; if (!c || c === toi) return true; return nghi.includes(tenDu(c)); })
-      .map((x) => { const c = CHU[x.link]; if (c && c !== toi) x.phu = ('làm thay ' + c + (x.phu ? ' · ' + x.phu : '')); return x; });
+    return ds.filter((x) => { const c = (G.CHU_NB || CHU)[x.link]; if (!c || c === toi) return true; return nghi.includes(tenDu(c)); })
+      .map((x) => { const c = (G.CHU_NB || CHU)[x.link]; if (c && c !== toi) x.phu = ('làm thay ' + c + (x.phu ? ' · ' + x.phu : '')); return x; });
   };
   /* thẻ "ai nghỉ hôm nay" trên Hôm nay của nội bộ và chuông 09:00 */
   const hnGoc = G.manHomNayMoi;

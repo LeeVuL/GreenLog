@@ -104,7 +104,7 @@
   G.sauVe = () => { if (G._quayLai && CUON[location.hash]) setTimeout(() => window.scrollTo(0, CUON[location.hash]), 30); G._quayLai = false; };
 
   /* ---------- hoàn tác 10 giây ---------- */
-  window.addEventListener('gl-hoan', (e) => {
+  window.addEventListener('gl-hoan', (e) => { if (G._imLang > 0) return; // ghi nền (mốc bảo trì, lịch kiểm tra) không hiện Hoàn tác
     document.querySelectorAll('.bao-hoan').forEach((x) => x.remove());
     const b = G.h(`<div class="bao bao-hoan">Đã lưu <button type="button">↶ Hoàn tác</button><i></i></div>`);
     document.body.appendChild(b); const t = setTimeout(() => b.remove(), 10000);

@@ -66,7 +66,7 @@
   const mo = () => { const x = lay(); if (!x) return; const en = G.lang && G.lang() === 'en'; const [td, buoc, meo] = x;
     G.hop('❓ ' + td, `<ol class="hd-buoc">${buoc.map((b) => `<li>${esc(b)}</li>`).join('')}</ol>${meo ? `<p class="mo">💡 ${esc(meo)}</p>` : ''}<button class="nut rong" id="hdNghe">🔊 ${en ? 'Read aloud' : 'Nghe đọc'}</button>`, (h) => {
       h.querySelector('#hdNghe').onclick = () => { try { const u = new SpeechSynthesisUtterance(buoc.join('. ') + (meo ? '. ' + meo : '')); u.lang = en ? 'en-US' : 'vi-VN'; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { /* bỏ qua */ } }; }); };
-  G.huongDan = mo;
+  G.huongDan = mo; G.HD_TRO = HD;
   const khungFn = G.khung;
   G.khung = function (...a) { const m = khungFn.apply(this, a); try { setTimeout(() => { const dau = document.querySelector('header.dau'); if (!dau || dau.querySelector('.nut-hd') || !lay()) return;
     const b = G.h('<button class="nut-tron nut-hd" title="Hướng dẫn" aria-label="Hướng dẫn">?</button>'); b.onclick = mo; const tao = dau.querySelector('#nutTao'); if (tao) tao.insertAdjacentElement('beforebegin', b); else dau.appendChild(b); }, 0); } catch (e) { /* bỏ qua */ } return m; };
