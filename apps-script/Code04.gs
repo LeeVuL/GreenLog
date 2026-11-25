@@ -6,7 +6,7 @@ Object.assign(BANG, {
   DaoTaoDiemDanh: ['homnay', 2], DaoTaoDeXuat: ['homnay', 2], KetQuaThi: ['homnay', 2], SOPDoc: ['homnay', 2],
   TuiThuocDua: ['phunbon', 2], BaoTriMay: ['noibo', 2], DanhDauSlide: ['homnay', 2], BaoCaoGM: ['homnay', 3], PhanQuyenViec: ['danhmuc', 3],
   KhuPhuTrach: ['congnhan', 3], PhunLai: ['phunbon', 2], AnhDanhMuc: ['homnay', 2], AnhDaiDien: ['homnay', 1], LinkViec: ['homnay', 2], LinkViecKetQua: ['homnay', 1],
-  KubotaLuot: ['homnay', 2], KubotaChuyen: ['homnay', 2], DotMua: ['homnay', 2], DotMuaGhi: ['homnay', 2], // 0.4.3
+  NghiNoiBo: ['homnay', 2], KubotaLuot: ['homnay', 2], KubotaChuyen: ['homnay', 2], DotMua: ['homnay', 2], DotMuaGhi: ['homnay', 2], // 0.4.3
 });
 BANG.DaoTao = ['homnay', 2];
 /* anh Pháp được ghi các bảng này dù Hôm nay chỉ Xem */
@@ -18,6 +18,7 @@ const COT_ANH = { Tuoi: 'Ảnh', ViecHangNgay: 'Ảnh', VeSinhBien: 'Ảnh', Kie
 function canAnh_(bang, dong) {
   const c = COT_ANH[bang]; if (!c || !dong.length) return;
   if (bang === 'TuiThuocDua' && dong.every(function (x) { return x['Loại dòng'] === 'Cây'; })) return;
+  if (bang === 'DongHoNuoc' && dong.every(function (x) { return x['Trạng thái'] === 'Không bơm'; })) return; // mục 94
   if (bang === 'MaySangCat' && dong.every(function (x) { return x['Loại'] === 'Không sàng' || x['Bảo trì'] === 'Đọc đồng hồ giờ' || x['Bảo trì'] === 'Đổ xăng'; })) return;
   const co = function (x) { const v = x[c] != null ? x[c] : x['Ảnh']; return Array.isArray(v) ? v.length > 0 : !!String(v || '').trim(); };
   if (!dong.some(co)) throw new Error('Cần ít nhất 1 ảnh hiện trường cho việc này');

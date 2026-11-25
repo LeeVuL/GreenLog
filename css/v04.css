@@ -168,3 +168,5 @@ header.dau .nut-hd { font-weight: 800; font-size: 18px; margin-right: 6px; }
 .o-chuyen:active{background:var(--chanh)}
 .may2 .may-the{margin:0}
 @media(max-width:700px){.may2{grid-template-columns:1fr}}
+.o-chuyen-boc{position:relative}.o-chuyen-boc .o-chuyen{width:100%}
+.o-tru{position:absolute;top:-8px;right:-6px;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--vien);background:#fff;font-size:22px;line-height:1;cursor:pointer}

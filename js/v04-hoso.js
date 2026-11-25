@@ -53,7 +53,7 @@ table{width:100%;border-collapse:collapse}th{background:#E7EFE3;color:${DK};font
     const cong = (doi) => dd.filter((r) => !doi || r['Đội'] === doi).reduce((a, r) => a + (+r['Công'] || 0), 0);
     const anhTT = (doi) => { const x = d.DuyetCong.find((r) => r['Ngày'] === ngay && r['Đội'] === doi && r['Buổi'] === 'Sáng'); return x ? `<span class="chip g">${esc(String(x['Giờ gửi']).slice(11, 16))}</span>` : '<span class="mu">—</span>'; };
     const vang = dd.filter((r) => !/Có mặt/.test(r['Trạng thái (Có mặt/Vắng/Về sớm)'])).map((r) => `${r['Họ tên']} (${r['Buổi'].toLowerCase()}${r['Lý do'] ? ', ' + r['Lý do'] : ''})`);
-    const dh = (ma) => { const r = d.DongHoNuoc.filter((x) => x['Mã đồng hồ'] === ma).sort((a, b) => (a['Ngày'] < b['Ngày'] ? -1 : 1)); const i = r.findIndex((x) => x['Ngày'] === ngay); return i > 0 ? r[i]['Chỉ số'] - r[i - 1]['Chỉ số'] : null; };
+    const dh = (ma) => { const t = G.dungNuoc(d.DongHoNuoc.filter((x) => x['Mã đồng hồ'] === ma)); return t[ngay] != null ? t[ngay] : null; };
     const n1 = dh('DH01'), n2 = dh('DH02'); const vc = d.VanChuyen.filter((r) => r['Ngày'] === ngay);
     const gv = d.GiaoViecNgay.filter((r) => r['Ngày'] === ngay); const xong = gv.filter((r) => r['Trạng thái'] === 'Xong').length;
     const mua = d.Tuoi.some((r) => r['Ngày'] === ngay && r['Hôm nay mưa'] === 'Có');

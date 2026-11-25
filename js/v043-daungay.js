@@ -17,9 +17,9 @@
   };
   /* việc định kỳ theo đội: mã → chức danh làm */
   const DINH_KY = {
-    'Đội cơ động': { DV01: ['Cắt cỏ'], DV02: ['Bón phân + phun thuốc'], DV03: ['Bón phân + phun thuốc'], DV04: ['Bón phân + phun thuốc'], DV05: ['Bón phân + phun thuốc'],
+    'Đội cơ động': { DV01: ['Cắt cỏ'], DV02: ['Bón phân + phun thuốc'], DV04: ['Bón phân + phun thuốc'], DV05: ['Bón phân + phun thuốc'],
       DV06: ['Bón phân + phun thuốc'], DV38: ['Bón phân + phun thuốc'], DV07: ['Cắt tỉa cây bóng mát'] },
-    'Đội khu vực': { DV08: ['Nhân viên khu vực'], DV37: ['Nhân viên khu vực'], DV42: ['Nhân viên khu vực'] },
+    'Đội khu vực': { DV03: ['Nhân viên khu vực'], DV08: ['Nhân viên khu vực'], DV37: ['Nhân viên khu vực'], DV42: ['Nhân viên khu vực'] },
   };
   G.DN_DINH_KY = DINH_KY;
   const NHOM = ['Việc hằng ngày của đội', 'Việc định kỳ còn lại trong kỳ', 'Kế hoạch tuần, phiếu, việc khác'];
@@ -150,6 +150,19 @@
     }, e.target);
   } };
 
+  /* đánh dấu vị trí định kỳ đã xong (dùng ở Hôm nay và Chốt ngày): con = các vị trí đang làm, sau(n) khi lưu xong */
+  G.xongViTriDK = (ma, con, sau) => G.hop('Vị trí đã xong · ' + G.dvTen(ma), `<p class="mo" style="margin-top:0">Các vị trí đang làm đã được chọn sẵn. Bỏ chọn chỗ chưa xong, chụp ảnh rồi lưu. Chỗ chưa xong mai tự hiện lại để làm tiếp.</p><div id="lv"></div><div class="buoc" style="margin-top:10px"><span>📷</span>Ảnh sau khi làm</div><div id="anh"></div><button class="nut chinh rong" id="luu" style="margin-top:10px">Lưu vị trí đã xong</button>`, (o, dong2) => {
+    const ds = con.map((v) => G.vt(v) || { ma: v, cum: 'Khác', kv: v, ten: v }); const s = { cum: '', mat: 'Cả 3', chon: new Set(con) };
+    G.luoiVT(o.querySelector('#lv'), { ds, st: s, coMat: true, trangThai: () => ({ cls: 'dang', sub: 'đang làm' }), doi: () => {} });
+    const anh = G.oAnh(o.querySelector('#anh'), { toiDa: 6 });
+    o.querySelector('#luu').onclick = (e) => chay(async () => {
+      if (!s.chon.size) throw new Error('Chưa chọn vị trí nào');
+      const a = anh.ds(); if (!a.length) throw new Error('Cần ít nhất 1 ảnh');
+      await API.goi('dinhKy.luu', { viec: ma, trangThai: 'Xong', anh: a, ds: [...s.chon].map((v) => ({ vt: v, kv: (G.vt(v) || {}).kv || '' })), ghiChu: 'Hoàn thành ' + G.ngayVN(hn()) });
+      dong2(); bao(`Đã xong ${s.chon.size} vị trí`); if (sau) sau(s.chon.size);
+    }, e.target);
+  });
+
   /* ---------- CHỐT NGÀY: việc định kỳ → đánh dấu vị trí đã xong (mục 86) ---------- */
   const chotGoc = G.man.chotngay.fn;
   G.man.chotngay.fn = async (...a) => {
@@ -167,21 +180,11 @@
       dong.insertAdjacentHTML('beforeend', `<div class="dn-phu dn-xongvt"><span class="gian">📍 ${con.length ? `Còn <b>${con.length}</b>/${vt.length} vị trí đang làm` : `✓ Đã xong cả ${vt.length} vị trí`}</span>${con.length ? `<button type="button" class="nut nho chinh" data-xvt="${esc(g['Mã'])}">Đánh dấu vị trí xong</button>` : ''}</div>`);
       if (!con.length && !nutX.classList.contains('dang')) nutX.click();
       const b = dong.querySelector('[data-xvt]'); if (!b) return;
-      b.onclick = () => G.hop('Vị trí đã xong · ' + G.dvTen(ma), `<p class="mo" style="margin-top:0">Các vị trí đang làm đã được chọn sẵn. Bỏ chọn chỗ chưa xong, chụp ảnh rồi lưu. Chỗ chưa xong mai tự hiện lại để làm tiếp.</p><div id="lv"></div><div class="buoc" style="margin-top:10px"><span>📷</span>Ảnh sau khi làm</div><div id="anh"></div><button class="nut chinh rong" id="luu" style="margin-top:10px">Lưu vị trí đã xong</button>`, (o, dong2) => {
-        const ds = con.map((v) => G.vt(v) || { ma: v, cum: 'Khác', kv: v, ten: v }); const s = { cum: '', mat: 'Cả 3', chon: new Set(con) };
-        G.luoiVT(o.querySelector('#lv'), { ds, st: s, coMat: true, trangThai: () => ({ cls: 'dang', sub: 'đang làm' }), doi: () => {} });
-        const anh = G.oAnh(o.querySelector('#anh'), { toiDa: 6 });
-        o.querySelector('#luu').onclick = (e) => chay(async () => {
-          if (!s.chon.size) throw new Error('Chưa chọn vị trí nào');
-          const a = anh.ds(); if (!a.length) throw new Error('Cần ít nhất 1 ảnh');
-          await API.goi('dinhKy.luu', { viec: ma, trangThai: 'Xong', anh: a, ds: [...s.chon].map((v) => ({ vt: v, kv: (G.vt(v) || {}).kv || '' })), ghiChu: 'Chốt ngày ' + G.ngayVN(hn()) });
-          dong2(); bao(`Đã xong ${s.chon.size} vị trí`);
-          const conLai = con.length - s.chon.size; const k = conLai ? 'Làm một phần' : 'Xong';
-          const nk = m.querySelector(`[data-kq="${g['Mã']}"][data-k="${k}"]`); if (nk) nk.click();
-          b.closest('.dn-xongvt').querySelector('.gian').innerHTML = conLai ? `📍 Còn <b>${conLai}</b>/${vt.length} vị trí đang làm · mai làm tiếp` : `✓ Đã xong cả ${vt.length} vị trí`;
-          if (!conLai) b.remove();
-        }, e.target);
-      });
+      b.onclick = () => G.xongViTriDK(ma, con, (n) => {
+        const conLai = con.length - n; const k = conLai ? 'Làm một phần' : 'Xong';
+        const nk = m.querySelector(`[data-kq="${g['Mã']}"][data-k="${k}"]`); if (nk) nk.click();
+        b.closest('.dn-xongvt').querySelector('.gian').innerHTML = conLai ? `📍 Còn <b>${conLai}</b>/${vt.length} vị trí đang làm · mai làm tiếp` : `✓ Đã xong cả ${vt.length} vị trí`;
+        if (!conLai) b.remove(); });
     });
   };
 })();

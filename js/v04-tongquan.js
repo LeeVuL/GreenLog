@@ -43,7 +43,7 @@
     const mcK = mc.filter((r) => trongKhoang(r['Ngày'], tu, den)); const bao_ = sum(mcK, (r) => r['Bao']);
     out.muncua = { so: bao_, phu: `= ${so(bao_ * 25, 0)} kg · 1 bao 25 kg`, chuoi: chuoi(mcK, (r) => r['Ngày'], (r) => r['Bao']), dong: mcK.map((r) => Object.assign({ 'kg': r['Bao'] * 25 }, r)), cot: ['Ngày', 'Nguồn', 'Chi tiết', 'Bao', 'kg'] };
     // nước: DH01 sau xử lý, DH02 tổng tưới (gồm sau xử lý)
-    const dung = (ma) => { const r = (d.DongHoNuoc || []).filter((x) => x['Mã đồng hồ'] === ma).sort((a, b) => (a['Ngày'] < b['Ngày'] ? -1 : 1)); const o = {}; for (let i = 1; i < r.length; i++) if (trongKhoang(r[i]['Ngày'], tu, den)) o[r[i]['Ngày']] = Math.max(0, r[i]['Chỉ số'] - r[i - 1]['Chỉ số']); return o; };
+    const dung = (ma) => { const t = G.dungNuoc((d.DongHoNuoc || []).filter((x) => x['Mã đồng hồ'] === ma)); const o = {}; Object.keys(t).forEach((n) => { if (trongKhoang(n, tu, den)) o[n] = t[n]; }); return o; }; // mục 94: bỏ ngày hỏng, thay mới tính lại
     const t1 = dung('DH01'), t2 = dung('DH02'); const ta = Object.values(t1).reduce((a, b) => a + b, 0), tt = Object.values(t2).reduce((a, b) => a + b, 0);
     out.nuoc = { so: ta, tong: tt, tyLe: tt ? Math.round(ta / tt * 100) : 0, phu: `Tái sử dụng ${so(ta, 0)} m³ chiếm tỷ lệ ${tt ? Math.round(ta / tt * 100) : 0}% · Tổng tưới ${so(tt, 0)} m³`, chuoi: t2,
       dong: Object.keys(t2).sort().map((n) => ({ 'Ngày': n, 'Nước sau xử lý (m³)': t1[n] || 0, 'Tổng nước tưới (m³)': t2[n], 'Tái sử dụng (%)': t2[n] ? Math.round((t1[n] || 0) / t2[n] * 100) : 0 })), cot: ['Ngày', 'Nước sau xử lý (m³)', 'Tổng nước tưới (m³)', 'Tái sử dụng (%)'] };

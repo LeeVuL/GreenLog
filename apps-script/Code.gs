@@ -459,7 +459,7 @@ function phieuChuyen_(u, r) {
     if (!p) throw new Error('Không tìm thấy phiếu ' + r.ma);
     let doi;
     if (r.hd === 'nhan') doi = { 'Người nhận': u.ten, 'Giờ nhận': now, 'Trạng thái': 'Đang xử lý' };
-    if (r.hd === 'xong') { if (!anh.length) throw new Error('Cần ảnh sau khi xử lý'); if (p['Chi tiết trồng'] && !anhT.length) throw new Error('Phiếu trồng cây cần ảnh trong khi trồng'); doi = { 'Ảnh sau': anh.join(' | '), 'Ảnh trong': anhT.join(' | '), 'Giờ xong': now, 'Trạng thái': p['Loại'] === 'Chăm sóc cây trong villa' ? 'Đã duyệt' : 'Báo xong' }; }
+    if (r.hd === 'xong') { if (!anh.length) throw new Error('Cần ảnh sau khi xử lý'); if (p['Chi tiết trồng'] && !anhT.length) throw new Error('Phiếu trồng cây cần ảnh trong khi trồng'); doi = { 'Ảnh sau': anh.join(' | '), 'Ảnh trong': anhT.join(' | '), 'Giờ xong': now, 'Trạng thái': (p['Loại'] === 'Chăm sóc cây trong villa' || p['Loại lỗi'] === 'Chăm sóc cây bên trong villa') ? 'Đã duyệt' : 'Báo xong' }; }
     if (r.hd === 'duyet') { doi = { 'Giờ duyệt': now, 'Trạng thái': 'Đã duyệt' }; if (p['Chi tiết trồng']) ghiTrong_(u, p, vh); }
     if (r.hd === 'traLai') doi = { 'Trạng thái': 'Bị trả lại', 'Số lần trả lại': Number(p['Số lần trả lại'] || 0) + 1 };
     capNhat_(vh.getSheetByName('Phieu'), function (x) { return x['Mã phiếu'] === r.ma; }, doi);

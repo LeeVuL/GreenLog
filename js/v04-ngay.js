@@ -102,7 +102,7 @@
     const st = G.manHomNayMoi.loc || 'chua';
     // danh sách việc: tổ trưởng = việc giao trong ngày; nội bộ = việc nội bộ theo lịch; Pháp = xem
     let viec = [];
-    if (laTT) viec = gv.map((g) => ({ ten: g['Nội dung'], phu: [g['Vị trí'], String(g['Người'] || '').split(', ').filter(Boolean).length + ' người'].filter(Boolean).join(' · '), tt: g['Trạng thái'] === 'Xong' ? 'xong' : g['Trạng thái'] === 'Đang làm' ? 'dang' : 'chua', ma: g['Mã'] }));
+    if (laTT) viec = G.viecTT ? await G.viecTT(gv) : gv.map((g) => ({ ten: g['Nội dung'], phu: g['Người'], tt: g['Trạng thái'] === 'Xong' ? 'xong' : g['Trạng thái'] === 'Đang làm' ? 'dang' : 'chua', ma: g['Mã'] })); // mục 93/95: trạng thái theo dữ liệu thật
     const laNB = S.u.nhom === 'Nhân viên nội bộ'; let kca = null;
     if (laNB) { viec = await G.viecNoiBo(hn(), tt); kca = (await G.doc('NgayLamViec', { 'Ngày': hn(), 'Loại': 'Kết thúc ca' })).find((x) => x['Người'] === S.u.ten); }
     const n = { chua: viec.filter((x) => x.tt === 'chua').length, dang: viec.filter((x) => x.tt === 'dang').length, xong: viec.filter((x) => x.tt === 'xong').length };
@@ -122,13 +122,14 @@
     html += su.map((x) => `<a class="the the-mo" href="#/nb/noithat" style="display:block;color:inherit">🪴 <b>${esc(x['Mô tả'])}</b><div class="mo">Phiếu setup · hạn ${esc(G.gioVN(x['Hạn']))}</div></a>`).join('');
     if (viec.length) {
       html += `<div class="loc-tt">${[['chua', 'Chưa làm'], ['dang', 'Đang làm'], ['xong', 'Xong']].map(([k, t]) => `<button data-loc="${k}" class="${st === k ? 'dang' : ''}">${t} (${n[k]})</button>`).join('')}</div>`;
-      html += viec.filter((x) => x.tt === st).map((x) => (x.link ? `<div class="the-viec"><a href="#/${x.link}" style="display:flex;gap:10px;align-items:center;flex:1;color:inherit;text-decoration:none"><span class="bt">${x.tt === 'xong' ? '✅' : x.tt === 'dang' ? '◐' : '⬜'}</span><span class="gian"><b>${esc(x.ten)}</b><span class="mo">${esc(x.phu)}</span></span></a>${laNB && x.tt === 'chua' ? `<button class="nut nho" data-bd="${esc(x.link)}" data-ten="${esc(x.ten)}">▶ Bắt đầu</button>` : '›'}</div>`
+      html += viec.filter((x) => x.tt === st).map((x) => (x.tt2 ? G.dongTT(x) : x.link ? `<div class="the-viec"><a href="#/${x.link}" style="display:flex;gap:10px;align-items:center;flex:1;color:inherit;text-decoration:none"><span class="bt">${x.tt === 'xong' ? '✅' : x.tt === 'dang' ? '◐' : '⬜'}</span><span class="gian"><b>${esc(x.ten)}</b><span class="mo">${esc(x.phu)}</span></span></a>${laNB && x.tt === 'chua' ? `<button class="nut nho" data-bd="${esc(x.link)}" data-ten="${esc(x.ten)}">▶ Bắt đầu</button>` : '›'}</div>`
         : `<div class="the-viec"><button class="tick-gv" data-gv="${esc(x.ma)}" style="background:none;border:0;font-size:24px">${x.tt === 'xong' ? '✅' : x.tt === 'dang' ? '◐' : '⬜'}</button><span class="gian" data-ctgv="${esc(x.ma)}" style="cursor:pointer"><b>${esc(x.ten)}</b><span class="mo">${esc(x.phu)}</span></span><button class="nut nho" data-ps="1">＋ Phát sinh</button></div>`)).join('') || G.trong('Không có việc ở mục này.');
     }
     m.innerHTML = html;
     m.querySelectorAll('[data-loc]').forEach((b) => { b.onclick = () => { G.manHomNayMoi.loc = b.dataset.loc; G.taiLai(); }; });
     m.querySelectorAll('[data-bd]').forEach((b) => { b.onclick = () => chay(async () => { await G.batDauViecNB(b.dataset.bd, b.dataset.ten); G.taiLai(); }, b); });
-    m.querySelectorAll('[data-gv]').forEach((b) => { b.onclick = () => chay(async () => { const g = gv.find((x) => x['Mã'] === b.dataset.gv); const moi = g['Trạng thái'] === 'Xong' ? 'Chưa làm' : g['Trạng thái'] === 'Đang làm' ? 'Xong' : 'Đang làm';
+    if (laTT && G.ganTT) G.ganTT(m, gv, viec);
+    if (!G.ganTT) m.querySelectorAll('[data-gv]').forEach((b) => { b.onclick = () => chay(async () => { const g = gv.find((x) => x['Mã'] === b.dataset.gv); const moi = g['Trạng thái'] === 'Xong' ? 'Chưa làm' : g['Trạng thái'] === 'Đang làm' ? 'Xong' : 'Đang làm';
       await API.goi('sua', { bang: 'GiaoViecNgay', khoa: { 'Mã': g['Mã'] }, doi: { 'Trạng thái': moi, 'Giờ cập nhật': API.bayGio() } }); G.taiLai(); }); });
     m.querySelectorAll('[data-ps]').forEach((b) => { b.onclick = () => { location.hash = '#/phatsinh'; }; });
     m.querySelectorAll('[data-ctgv]').forEach((b) => { b.onclick = () => { const g = gv.find((x) => x['Mã'] === b.dataset.ctgv); if (!g) return; const ng = String(g['Người'] || '').split(', ').filter(Boolean); // mục 85: chạm để xem chi tiết

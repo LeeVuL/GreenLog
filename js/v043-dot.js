@@ -196,10 +196,10 @@
     const kq = await goi(act, r, ...x);
     try {
       if (act === 'phieu.chuyen' && r && r.hd === 'xong') { const p = (await G.doc('Phieu', { 'Mã phiếu': r.ma }))[0];
-        if (p && p['Loại'] === 'Chăm sóc cây trong villa' && p['Mã vị trí']) {
+        if (p && (p['Loại'] === 'Chăm sóc cây trong villa' || p['Loại lỗi'] === 'Chăm sóc cây bên trong villa') && p['Mã vị trí']) {
           const tk = await G.doc('TickDinhKy', { 'Kỳ': S.dm.ky.ten, 'Mã việc': 'DV42' }).catch(() => []); const lai = tk.some((y) => y['Mã vị trí'] === p['Mã vị trí'] && (y['Trạng thái'] || 'Xong') === 'Xong');
           await goi('dinhKy.luu', { viec: 'DV42', trangThai: 'Xong', anh: r.anh, ghiChu: 'Theo phiếu ' + r.ma, ds: [{ vt: p['Mã vị trí'], kv: G.vt(p['Mã vị trí']).kv, lyDo: lai ? (p['Lý do làm thêm'] || 'Khách yêu cầu') : '' }] }); } }
-      if (act === 'dinhKy.luu' && r && r.viec === 'DV42' && !/^Theo phiếu/.test(r.ghiChu || '')) { const mo = (await G.doc('Phieu', { 'Loại': 'Chăm sóc cây trong villa' })).filter((p) => !/Đã duyệt|Báo xong/.test(p['Trạng thái']) && r.ds.some((d) => d.vt === p['Mã vị trí']));
+      if (act === 'dinhKy.luu' && r && r.viec === 'DV42' && !/^Theo phiếu/.test(r.ghiChu || '')) { const mo = (await G.doc('Phieu', {})).filter((p) => p['Loại'] === 'Chăm sóc cây trong villa' || p['Loại lỗi'] === 'Chăm sóc cây bên trong villa').filter((p) => !/Đã duyệt|Báo xong/.test(p['Trạng thái']) && r.ds.some((d) => d.vt === p['Mã vị trí']));
         for (const p of mo) await goi('phieu.chuyen', { ma: p['Mã phiếu'], hd: 'xong', anh: r.anh, ghiChu: 'Tổ trưởng đã ghi trực tiếp' }); }
     } catch (e) { /* bỏ qua */ }
     return kq;

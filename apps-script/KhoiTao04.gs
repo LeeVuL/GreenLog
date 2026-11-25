@@ -1,5 +1,6 @@
 /* GreenLog 0.4 – tạo các trang dữ liệu mới (chỉ thêm cái còn thiếu, chạy lại không sao). Cột còn thiếu được ghiLo_ tự thêm khi ghi. */
 const TRANG_04 = {
+  NghiNoiBo: ['Ngày', 'Người', 'Người ghi', 'Giờ ghi'],
   KubotaLuot: ['Mã', 'Ngày', 'Người', 'Giờ nhận', 'Đồng hồ nhận', 'Ảnh nhận', 'Giờ trả', 'Đồng hồ trả', 'Ảnh trả', 'Số giờ', 'Dầu (lít)', 'Trạng thái', 'Nhận bàn giao từ', 'Bàn giao cho', 'Giờ chạy không ghi'],
   KubotaChuyen: ['Mã', 'Ngày', 'Giờ', 'Mã lượt', 'Loại hàng', 'Bộ phận', 'Người ghi'],
   DotMua: ['Mã đợt', 'Loại', 'Năm', 'Giai đoạn', 'Giai đoạn tên', 'Bắt đầu', 'Hạn', 'Kết thúc', 'Trạng thái', 'Người khởi chạy', 'Tóm tắt'],
@@ -21,7 +22,7 @@ const TRANG_04 = {
 function khoiTao04() {
   const vh = vh_(); const log = [];
   Object.keys(TRANG_04).forEach(function (t) { if (!vh.getSheetByName(t)) { const sh = vh.insertSheet(t); sh.getRange(1, 1, 1, TRANG_04[t].length).setValues([TRANG_04[t]]).setFontWeight('bold'); sh.setFrozenRows(1); log.push('Thêm trang ' + t); } });
-  [['CayNoiThat', 'Ảnh'], ['CayNoiThat', 'Ghi chú'], ['MaySangCat', 'Loại'], ['MaySangCat', 'Lý do'], ['MaySangCat', 'Mã lượt'], ['BatThuong', 'Mã BT'], ['BatThuong', 'Trạng thái'], ['BatThuong', 'Mã phiếu'], ['Phieu', 'Yêu cầu làm lại'], ['Phieu', 'Mã BT'], ['Phieu', 'Lý do làm thêm'], ['GiaoViecNgay', 'Mã vị trí']].forEach(function (x) { themCot_(vh, x[0], x[1], function () { return ''; }, log); });
+  [['CayNoiThat', 'Ảnh'], ['CayNoiThat', 'Ghi chú'], ['MaySangCat', 'Loại'], ['MaySangCat', 'Lý do'], ['MaySangCat', 'Mã lượt'], ['BatThuong', 'Mã BT'], ['BatThuong', 'Trạng thái'], ['BatThuong', 'Mã phiếu'], ['Phieu', 'Yêu cầu làm lại'], ['Phieu', 'Mã BT'], ['Phieu', 'Lý do làm thêm'], ['GiaoViecNgay', 'Mã vị trí'], ['DongHoNuoc', 'Trạng thái'], ['DongHoNuoc', 'Ghi chú']].forEach(function (x) { themCot_(vh, x[0], x[1], function () { return ''; }, log); });
   chuyen042_(vh, log);
   console.log(log.join('\n') || 'Đủ trang 0.4'); return log;
 }

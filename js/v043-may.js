@@ -36,7 +36,6 @@
     if (k.mo) { // bàn giao: lượt trước tự đóng bằng số đồng hồ của người nhận
       const sg = Math.max(0, Math.round((dh - (+k.mo['Đồng hồ nhận'] || dh)) * 10) / 10);
       await API.goi('sua', { bang: 'KubotaLuot', khoa: { 'Mã': k.mo['Mã'] }, doi: { 'Trạng thái': 'Đã trả', 'Giờ trả': g, 'Đồng hồ trả': dh, 'Ảnh trả': v.anh.join(' | '), 'Số giờ': sg, 'Bàn giao cho': S.u.ten } });
-      await dungSang(k.mo['Mã'], g);
     }
     const lech = !k.mo && k.dongHo && dh - k.dongHo >= 0.2 ? Math.round((dh - k.dongHo) * 10) / 10 : 0;
     await API.goi('ghi', { bang: 'KubotaLuot', dong: { 'Mã': G.ma('KB'), 'Ngày': hn(), 'Người': S.u.ten, 'Giờ nhận': g, 'Đồng hồ nhận': dh, 'Ảnh nhận': v.anh.join(' | '), 'Trạng thái': 'Đang dùng',
@@ -44,76 +43,74 @@
     bao(k.mo ? `Đã nhận bàn giao · đã báo ${k.mo['Người']} và tổ trưởng` : 'Đã nhận máy'); G.taiLai();
   }
   async function traMay(k) {
-    const sang = await sangDang(k.mo['Mã']);
-    const v = await formDongHo('Trả máy Kubota', k.mo['Đồng hồ nhận'] || '', [{ k: 'dau', nhan: 'Đổ dầu diesel (lít, nếu có)', loai: 'so' }]
-      .concat(sang ? [{ k: 'kts', nhan: 'Sàng cát xong lúc', loai: 'chu', gt: gio() }] : [])); if (!v) return;
+    const v = await formDongHo('Trả máy Kubota', k.mo['Đồng hồ nhận'] || '', [{ k: 'dau', nhan: 'Đổ dầu diesel (lít, nếu có)', loai: 'so' }]); if (!v) return;
     const dh = +v.dh; const g = gio();
     if (dh < +k.mo['Đồng hồ nhận']) return bao('Số đồng hồ nhỏ hơn lúc nhận máy (' + k.mo['Đồng hồ nhận'] + ')', true);
     await API.goi('sua', { bang: 'KubotaLuot', khoa: { 'Mã': k.mo['Mã'] }, doi: { 'Trạng thái': 'Đã trả', 'Giờ trả': g, 'Đồng hồ trả': dh, 'Ảnh trả': v.anh.join(' | '), 'Số giờ': Math.round((dh - (+k.mo['Đồng hồ nhận'])) * 10) / 10, 'Dầu (lít)': v.dau || '' } });
-    if (sang) await dungSang(k.mo['Mã'], /^\d{1,2}:\d{2}$/.test(v.kts || '') ? v.kts : g, !/^\d{1,2}:\d{2}$/.test(v.kts || ''));
     bao('Đã trả máy'); G.taiLai();
   }
-  const sangDang = async (maLuot) => (await G.doc('MaySangCat', { 'Ngày': hn() })).find((x) => x['Máy'] === 'Sand Man' && x['Bảo trì'] === 'Vận hành' && x['Giờ bắt đầu'] && !x['Giờ kết thúc'] && (!maLuot || !x['Mã lượt'] || x['Mã lượt'] === maLuot));
-  async function dungSang(maLuot, kt, uoc) {
-    const s = await sangDang(maLuot); if (!s) return;
-    await API.goi('sua', { bang: 'MaySangCat', khoa: { 'Ngày': hn(), 'Máy': 'Sand Man', 'Giờ bắt đầu': s['Giờ bắt đầu'] }, doi: { 'Giờ kết thúc': kt, 'Số giờ': soGio(s['Giờ bắt đầu'], kt), 'Ghi chú': [s['Ghi chú'], uoc ? 'giờ kết thúc ước tính' : ''].filter(Boolean).join(' · ') } });
-  }
+  /* mục 101: sàng cát là phần riêng, 2 máy sàng Sand Man và H.Barber; Kubota chỉ ghi vận chuyển */
+  const MAY_SANG = ['Sand Man', 'H.Barber'];
+  G.MAY_SANG = MAY_SANG;
 
   async function manMay() {
-    const m = G.khung('Máy bãi biển', 'Kubota · Sand Man', '#/viec');
+    const m = G.khung('Máy bãi biển', 'Sàng cát · Kubota vận chuyển', '#/viec');
     const [k, sc] = await Promise.all([G.kubota(), G.doc('MaySangCat', { 'Ngày': { tu: G.congNgay(hn(), -90) } })]);
     const dung = duocDung(); const toi = k.mo && k.mo['Người'] === S.u.ten;
-    const sang = sc.find((x) => x['Ngày'] === hn() && x['Máy'] === 'Sand Man' && x['Bảo trì'] === 'Vận hành' && x['Giờ bắt đầu'] && !x['Giờ kết thúc']);
+    const laSang = (x) => MAY_SANG.includes(x['Máy']) && x['Bảo trì'] === 'Vận hành';
+    const dangSang = sc.filter((x) => x['Ngày'] === hn() && laSang(x) && x['Giờ bắt đầu'] && !x['Giờ kết thúc']);
+    const sangNay = sc.filter((x) => x['Ngày'] === hn() && laSang(x));
     const ch = k.mo ? k.chuyen.filter((x) => x['Mã lượt'] === k.mo['Mã']) : [];
     const dem = (h) => ch.filter((x) => x['Loại hàng'] === h).length;
-    /* bảo trì: Kubota theo đồng hồ, Sand Man theo tổng giờ sàng */
     const btCuoi = (may) => sc.filter((x) => x['Máy'] === may && /Bảo trì|Sửa/.test(x['Bảo trì'] || '')).slice(-1)[0];
     const btK = btCuoi('Kubota'); const dauTien = k.luot.map((x) => +x['Đồng hồ nhận']).filter((x) => x > 0).reduce((a, b) => Math.min(a, b), Infinity);
-    const dhBT = btK ? (k.luot.filter((x) => x['Ngày'] <= btK['Ngày']).map((x) => +x['Đồng hồ trả'] || 0).reduce((a, b) => Math.max(a, b), 0) || dauTien) : dauTien; // chưa có lần bảo trì nào: tính từ lần ghi đầu tiên
+    const dhBT = btK ? (k.luot.filter((x) => x['Ngày'] <= btK['Ngày']).map((x) => +x['Đồng hồ trả'] || 0).reduce((a, b) => Math.max(a, b), 0) || dauTien) : dauTien;
     const gioK = isFinite(dhBT) ? Math.round((k.dongHo - dhBT) * 10) / 10 : 0;
-    const btS = btCuoi('Sand Man'); const gioS = Math.round(sc.filter((x) => x['Máy'] === 'Sand Man' && x['Bảo trì'] === 'Vận hành' && (!btS || x['Ngày'] > btS['Ngày'])).reduce((a, x) => a + (+x['Số giờ'] || 0), 0) * 10) / 10;
-    const sangNay = sc.filter((x) => x['Ngày'] === hn() && x['Máy'] === 'Sand Man' && x['Bảo trì'] === 'Vận hành');
+    const gioS = (may) => { const b = btCuoi(may); return Math.round(sc.filter((x) => x['Máy'] === may && laSang(x) && (!b || x['Ngày'] > b['Ngày'])).reduce((a, x) => a + (+x['Số giờ'] || 0), 0) * 10) / 10; };
     const khong = sc.find((x) => x['Ngày'] === hn() && x['Loại'] === 'Không sàng');
     const luotHTML = k.homNay.map((x) => { const c = k.chuyen.filter((y) => y['Mã lượt'] === x['Mã']); const tom = HANG.map((h) => [h, c.filter((y) => y['Loại hàng'] === h).length]).filter((y) => y[1]).map((y) => y[0] + ' ' + y[1]).join(', ');
       return `<div class="muc"><div class="gian"><b>${esc(x['Giờ nhận'])}–${esc(x['Giờ trả'] || 'đang dùng')} · ${esc(x['Người'])}</b><div class="mo">${x['Số giờ'] ? esc(x['Số giờ']) + ' giờ máy · ' : ''}${esc(tom || 'chưa ghi chuyến')}${x['Bàn giao cho'] ? ' · giao cho ' + esc(x['Bàn giao cho']) : ''}${x['Giờ chạy không ghi'] ? ` · <b style="color:var(--do)">⚠ ${esc(x['Giờ chạy không ghi'])} giờ máy chạy không ghi trước lượt này</b>` : ''}</div></div></div>`; }).join('');
     m.innerHTML = `<div class="luoi2 may2">
-      <div class="the may-the" id="theKubota"><div class="hang"><h2 class="gian" style="margin:0">🚜 Kubota</h2><span class="chip ${k.mo ? 'do' : 'xanh'}">${k.mo ? '🔴 Đang dùng' : '🟢 Máy rảnh'}</span></div>
+      <div class="the may-the"><div class="hang"><h2 class="gian" style="margin:0">🏖 Sàng cát</h2><span class="chip ${dangSang.length ? 'cam' : sangNay.length ? 'xanh' : ''}">${dangSang.length ? 'Đang sàng' : sangNay.length ? 'Đã sàng' : khong ? 'Không sàng' : 'Chưa sàng'}</span></div>
+        ${dangSang.map((x) => `<div class="the the-mo" style="margin:8px 0"><b>${esc(x['Máy'])} đang sàng</b><div class="mo">${esc(x['Đoạn bãi'] || '')} · từ ${esc(x['Giờ bắt đầu'])} · ${esc(x['Người ghi'] || '')}</div>${dung ? `<button class="nut chinh rong" data-kts="${esc(x['Máy'])}|${esc(x['Giờ bắt đầu'])}" style="margin-top:8px">■ Kết thúc sàng ${esc(x['Máy'])}</button>` : ''}</div>`).join('')}
+        ${sangNay.filter((x) => x['Giờ kết thúc']).map((x) => `<div class="mo">✓ ${esc(x['Máy'])} ${esc(x['Giờ bắt đầu'])}–${esc(x['Giờ kết thúc'])} · ${esc(x['Đoạn bãi'] || '')}</div>`).join('')}
+        ${dung && !khong ? '<button class="nut chinh rong" id="bdSang" style="min-height:56px;margin-top:8px">▶ Bắt đầu sàng cát</button>' : ''}
+        <div class="may-trangthai" style="margin-top:8px"></div>
+        <div class="mo">Bảo trì: ${MAY_SANG.map((x) => `${x} ${gioS(x)} giờ`).join(' · ')} từ lần trước · lịch ngày 10, 20, 30</div>
+        ${dung ? '<button class="nut nho" id="xangS" style="margin-top:8px">⛽ Ghi đổ xăng máy sàng</button>' : ''}</div>
+      <div class="the may-the" id="theKubota"><div class="hang"><h2 class="gian" style="margin:0">🚜 Kubota · vận chuyển</h2><span class="chip ${k.mo ? 'do' : 'xanh'}">${k.mo ? '🔴 Đang dùng' : '🟢 Máy rảnh'}</span></div>
         ${k.mo ? `<div class="mo" style="margin:4px 0 8px">${esc(k.mo['Người'])} · từ ${esc(k.mo['Giờ nhận'])} · ${ch.length} chuyến${k.mo['Nhận bàn giao từ'] ? ' · nhận bàn giao từ ' + esc(k.mo['Nhận bàn giao từ']) : ''}</div>` : `<div class="mo" style="margin:4px 0 8px">Đồng hồ: ${k.dongHo || '—'} giờ</div>`}
         ${dung && !k.mo ? '<button class="nut chinh rong" id="nhan" style="min-height:56px">Nhận máy</button>' : ''}
         ${dung && k.mo && !toi ? `<button class="nut rong" id="nhan" style="min-height:56px">Nhận bàn giao từ ${esc(String(k.mo['Người']).split(' ').slice(-1)[0])}</button>` : ''}
-        ${toi ? `<div class="mo" style="margin:6px 0">Chạm 1 lần = 1 chuyến:</div><div class="luoi-chuyen">${HANG.map((h) => `<button type="button" class="o-chuyen" data-h="${esc(h)}"><b>${dem(h)}</b><span>${esc(h)}</span></button>`).join('')}</div>
-          ${ch.length ? '<button type="button" class="nut nho" id="boCh" style="margin-top:6px">↶ Bỏ chuyến vừa ghi</button>' : ''}
-          <div class="nhom-nut" style="margin-top:10px">${sang ? `<button class="nut rong" id="ktSang">■ Kết thúc sàng cát (từ ${esc(sang['Giờ bắt đầu'])})</button>` : khong ? '' : '<button class="nut rong" id="bdSang">🏖 Sàng cát ▶</button>'}<button class="nut chinh rong" id="tra">Trả máy</button></div>` : ''}
-        <div class="mo" style="margin-top:10px">Bảo trì: ${gioK} / ${MOC_BT} giờ máy từ lần trước${gioK >= MOC_BT ? ' · <b style="color:var(--do)">đến hạn</b>' : ''} · lịch ngày 9, 19, 29</div></div>
-      <div class="the may-the"><div class="hang"><h2 class="gian" style="margin:0">🏖 Sand Man</h2><span class="chip ${sang ? 'cam' : sangNay.length ? 'xanh' : ''}">${sang ? 'Đang sàng' : sangNay.length ? 'Đã sàng' : khong ? 'Không sàng' : 'Chưa sàng'}</span></div>
-        <div class="mo" style="margin:4px 0 8px">${sangNay.length ? sangNay.map((x) => `${esc(x['Giờ bắt đầu'])}–${esc(x['Giờ kết thúc'] || '…')} · ${esc(x['Đoạn bãi'] || '')}`).join('<br>') : 'Sàng cát bấm trên thẻ Kubota (Kubota kéo Sand Man).'}</div>
-        <div class="may-trangthai"></div>
-        <div class="mo">Bảo trì: ${gioS} giờ sàng từ lần trước · lịch ngày 10, 20, 30</div>
-        ${dung ? '<button class="nut nho" id="xangS" style="margin-top:8px">⛽ Ghi đổ xăng Sand Man</button>' : ''}</div></div>
+        ${toi ? `<div class="mo" style="margin:6px 0">Chạm 1 lần = 1 chuyến · bấm − nếu lỡ tay:</div><div class="luoi-chuyen">${HANG.map((h) => `<div class="o-chuyen-boc"><button type="button" class="o-chuyen" data-h="${esc(h)}"><b>${dem(h)}</b><span>${esc(h)}</span></button>${dem(h) ? `<button type="button" class="o-tru" data-tru="${esc(h)}" aria-label="Bớt 1 chuyến">−</button>` : ''}</div>`).join('')}</div>
+          <button class="nut chinh rong" id="tra" style="margin-top:10px">Trả máy</button>` : ''}
+        <div class="mo" style="margin-top:10px">Bảo trì: ${gioK} / ${MOC_BT} giờ máy từ lần trước${gioK >= MOC_BT ? ' · <b style="color:var(--do)">đến hạn</b>' : ''} · lịch ngày 9, 19, 29</div></div></div>
       ${k.homNay.length ? `<h3 class="tieu-nhom">Kubota hôm nay (${k.homNay.length} lượt)</h3><div class="ds">${luotHTML}</div>` : ''}
       ${dung ? '<button class="nut" id="bt" style="margin-top:10px">🔧 Ghi bảo trì</button>' : ''}`;
-    const q1 = (s) => m.querySelector(s);
+    const q1 = (sel) => m.querySelector(sel);
     if (q1('#nhan')) q1('#nhan').onclick = () => nhanMay(k);
     if (q1('#tra')) q1('#tra').onclick = () => traMay(k);
     m.querySelectorAll('[data-h]').forEach((b) => { b.onclick = () => chay(async () => {
       let bp = ''; if (b.dataset.h === 'Hỗ trợ bộ phận khác') { const x = await G.chonDS('Bộ phận nào? (bỏ qua cũng được)', S.dm.boPhan || []); bp = x ? x.ten : ''; }
       await API.goi('ghi', { bang: 'KubotaChuyen', dong: { 'Mã': G.ma('CH'), 'Ngày': hn(), 'Giờ': gio(), 'Mã lượt': k.mo['Mã'], 'Loại hàng': b.dataset.h, 'Bộ phận': bp, 'Người ghi': S.u.ten } });
-      b.querySelector('b').textContent = +b.querySelector('b').textContent + 1; bao('+1 chuyến · ' + b.dataset.h); }, b); });
-    if (q1('#boCh')) q1('#boCh').onclick = (e) => chay(async () => { const c = ch.slice(-1)[0]; if (!c) return; await API.goi('xoa', { bang: 'KubotaChuyen', khoa: { 'Mã': c['Mã'] } }); bao('Đã bỏ 1 chuyến ' + c['Loại hàng']); G.taiLai(); }, e.target);
-    if (q1('#bdSang')) q1('#bdSang').onclick = () => G.hop('🏖 Bắt đầu sàng cát', '<div id="f"></div><button class="nut chinh rong" id="l">▶ Bắt đầu lúc này</button>', (o, dong) => {
-      const lay = G.form(o.querySelector('#f'), [{ k: 'bai', nhan: 'Khu vực bãi', loai: 'nhieu', ds: (S.dm.diemkhac || []).filter((x) => x.loai === 'Bãi biển').map((x) => x.ten), bb: true }]);
-      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await API.goi('ghi', { bang: 'MaySangCat', dong: { 'Ngày': '', 'Máy': 'Sand Man', 'Bảo trì': 'Vận hành', 'Giờ bắt đầu': gio(), 'Giờ kết thúc': '', 'Đoạn bãi': v.bai, 'Mã lượt': k.mo['Mã'], 'Người ghi': '' } }); dong(); bao('Đã bắt đầu sàng'); G.taiLai(); }, e.target); });
-    if (q1('#ktSang')) q1('#ktSang').onclick = () => G.hop('■ Kết thúc sàng cát', '<div id="f"></div><button class="nut chinh rong" id="l">■ Kết thúc lúc này</button>', (o, dong) => {
-      const lay = G.form(o.querySelector('#f'), [{ k: 'anh', nhan: 'Ảnh bãi sau khi sàng', loai: 'anh', toiDa: 3 }]);
-      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); const kt = gio(); await API.goi('sua', { bang: 'MaySangCat', khoa: { 'Ngày': hn(), 'Máy': 'Sand Man', 'Giờ bắt đầu': sang['Giờ bắt đầu'] }, doi: { 'Giờ kết thúc': kt, 'Số giờ': soGio(sang['Giờ bắt đầu'], kt), 'Ảnh': v.anh.join(' | ') } }); dong(); bao('Đã kết thúc sàng'); G.taiLai(); }, e.target); });
-    if (q1('#xangS')) q1('#xangS').onclick = () => G.hop('⛽ Đổ xăng Sand Man', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
-      const lay = G.form(o.querySelector('#f'), [{ k: 'l', nhan: 'Số lít xăng', loai: 'so', bb: true }]);
-      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await API.goi('ghi', { bang: 'MaySangCat', dong: { 'Ngày': '', 'Máy': 'Sand Man', 'Bảo trì': 'Đổ xăng', 'Nhiên liệu (lít)': v.l, 'Người ghi': '' } }); dong(); bao('Đã ghi đổ xăng'); }, e.target); });
+      bao('+1 chuyến · ' + b.dataset.h); G.taiLai(); }, b); });
+    m.querySelectorAll('[data-tru]').forEach((b) => { b.onclick = () => chay(async () => { const c = ch.filter((x) => x['Loại hàng'] === b.dataset.tru).slice(-1)[0]; if (!c) return;
+      await API.goi('xoa', { bang: 'KubotaChuyen', khoa: { 'Mã': c['Mã'] } }); bao('−1 chuyến · ' + b.dataset.tru); G.taiLai(); }, b); });
+    if (q1('#bdSang')) q1('#bdSang').onclick = () => G.hop('▶ Bắt đầu sàng cát', '<div id="f"></div><button class="nut chinh rong" id="l">▶ Bắt đầu lúc này</button>', (o, dong) => {
+      const ranh = MAY_SANG.filter((x) => !dangSang.some((y) => y['Máy'] === x));
+      const lay = G.form(o.querySelector('#f'), [{ k: 'may', nhan: 'Máy sàng', loai: 'chips', ds: ranh, bb: true, gt: ranh[0] }, { k: 'bai', nhan: 'Khu vực bãi', loai: 'nhieu', ds: (S.dm.diemkhac || []).filter((x) => x.loai === 'Bãi biển').map((x) => x.ten), bb: true }]);
+      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await API.goi('ghi', { bang: 'MaySangCat', dong: { 'Ngày': '', 'Máy': v.may, 'Bảo trì': 'Vận hành', 'Giờ bắt đầu': gio(), 'Giờ kết thúc': '', 'Đoạn bãi': v.bai, 'Người ghi': '' } }); dong(); bao('Đã bắt đầu sàng · ' + v.may); G.taiLai(); }, e.target); });
+    m.querySelectorAll('[data-kts]').forEach((b) => { b.onclick = () => { const [may, gbd] = b.dataset.kts.split('|');
+      G.hop('■ Kết thúc sàng · ' + may, '<div id="f"></div><button class="nut chinh rong" id="l">■ Kết thúc lúc này</button>', (o, dong) => {
+        const lay = G.form(o.querySelector('#f'), [{ k: 'anh', nhan: 'Ảnh bãi sau khi sàng', loai: 'anh', toiDa: 3 }]);
+        o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); const kt = gio(); await API.goi('sua', { bang: 'MaySangCat', khoa: { 'Ngày': hn(), 'Máy': may, 'Giờ bắt đầu': gbd }, doi: { 'Giờ kết thúc': kt, 'Số giờ': soGio(gbd, kt), 'Ảnh': v.anh.join(' | ') } }); dong(); bao('Đã kết thúc sàng'); G.taiLai(); }, e.target); }); }; });
+    if (q1('#xangS')) q1('#xangS').onclick = () => G.hop('⛽ Đổ xăng máy sàng', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
+      const lay = G.form(o.querySelector('#f'), [{ k: 'may', nhan: 'Máy', loai: 'chips', ds: MAY_SANG, bb: true, gt: MAY_SANG[0] }, { k: 'l', nhan: 'Số lít xăng', loai: 'so', bb: true }]);
+      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await API.goi('ghi', { bang: 'MaySangCat', dong: { 'Ngày': '', 'Máy': v.may, 'Bảo trì': 'Đổ xăng', 'Nhiên liệu (lít)': v.l, 'Người ghi': '' } }); dong(); bao('Đã ghi đổ xăng'); }, e.target); });
     if (q1('#bt')) q1('#bt').onclick = () => G.hop('🔧 Ghi bảo trì', '<div id="f"></div><button class="nut chinh rong" id="l">Lưu</button>', (o, dong) => {
-      const lay = G.form(o.querySelector('#f'), [{ k: 'Máy', nhan: 'Máy', loai: 'chips', ds: ['Kubota', 'Sand Man'], bb: true }, { k: 'Bảo trì', nhan: 'Loại', loai: 'chips', ds: ['Bảo trì định kỳ', 'Sửa chữa'], bb: true }, { k: 'Ảnh', nhan: 'Ảnh', loai: 'anh', toiDa: 3 }, { k: 'Ghi chú', nhan: 'Ghi chú', loai: 'mota' }]);
+      const lay = G.form(o.querySelector('#f'), [{ k: 'Máy', nhan: 'Máy', loai: 'chips', ds: MAY_SANG.concat(['Kubota']), bb: true }, { k: 'Bảo trì', nhan: 'Loại', loai: 'chips', ds: ['Bảo trì định kỳ', 'Sửa chữa'], bb: true }, { k: 'Ảnh', nhan: 'Ảnh', loai: 'anh', toiDa: 3 }, { k: 'Ghi chú', nhan: 'Ghi chú', loai: 'mota' }]);
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); await API.goi('ghi', { bang: 'MaySangCat', dong: Object.assign({ 'Ngày': '', 'Người ghi': '' }, v) }); dong(); bao('Đã lưu'); G.taiLai(); }, e.target); });
-    /* giữ phần "Hôm nay không sàng được" (mục 73) trên thẻ Sand Man */
-    if (G.ganKhongSang) G.ganKhongSang(m.querySelector('.may-trangthai'), dung && !sang && !sangNay.length);
+    if (G.ganKhongSang) G.ganKhongSang(m.querySelector('.may-trangthai'), dung && !dangSang.length && !sangNay.length);
   }
 
   /* thay màn máy cũ; anh Pháp không vào được việc nội bộ (mục 92) */
