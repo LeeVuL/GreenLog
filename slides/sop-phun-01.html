@@ -34,9 +34,10 @@
   .nut { position: fixed; bottom: 14px; display: flex; gap: 8px; right: 14px; z-index: 5; }
   .nut button { border: 0; border-radius: 99px; padding: 10px 16px; font: inherit; font-weight: 700; background: var(--chanh); color: var(--rung); cursor: pointer; }
   .nut button.phu { background: #fff; }
-  [data-en] { display: none; }
-  body.en [data-vi] { display: none; }
-  body.en [data-en] { display: revert; }
+  [data-en] { display: none !important; }
+  body.en [data-vi] { display: none !important; }
+  body.en [data-en] { display: revert !important; }
+  body.en .the b[data-en] { display: block !important; }
   @media print { .nut { display: none; } .slide { display: flex !important; page-break-after: always; width: 100vw; } .khung { position: static; display: block; } }
 </style>
 </head>
@@ -65,7 +66,7 @@
   <span class="nhan" data-vi>Buổi 1</span><span class="nhan" data-en>Session 1</span>
   <h2 data-vi>Nguyên tắc 4 ĐÚNG</h2><h2 data-en>The 4 RIGHTS</h2>
   <div class="luoi" style="--c:2">
-    <div class="the"><b data-vi>Đúng thuốc</b><b data-en>Right product</b><span data-vi>Chỉ dùng thuốc trong danh mục app. Thuốc lạ phải chờ Trưởng bộ phận duyệt.</span><span data-en>Only products in the app catalogue. New ones wait for Mr Vu's approval.</span></div>
+    <div class="the"><b data-vi>Đúng thuốc</b><b data-en>Right product</b><span data-vi>Chỉ dùng thuốc trong danh mục app. Thuốc lạ phải chờ Trưởng bộ phận duyệt.</span><span data-en>Only products in the app catalogue. New ones wait for the Landscape Manager's approval.</span></div>
     <div class="the"><b data-vi>Đúng liều</b><b data-en>Right dose</b><span data-vi>Theo liều bình 16 lít trên app. Không tự tăng liều.</span><span data-en>The 16-litre dose in the app. Never increase it.</span></div>
     <div class="the"><b data-vi>Đúng lúc</b><b data-en>Right time</b><span data-vi>Dịch hại mới chớm · trước 9h hoặc sau 16h · không mưa, gió nhẹ.</span><span data-en>Pests just starting · before 9:00 or after 16:00 · no rain, light wind.</span></div>
     <div class="the"><b data-vi>Đúng cách</b><b data-en>Right way</b><span data-vi>Ướt đều tán, cả mặt dưới lá, không để chảy giọt xuống đất.</span><span data-en>Wet the whole canopy incl. undersides, no dripping.</span></div>
@@ -133,7 +134,7 @@
     <li>Guests approach, strong wind, rain → <b>stop at once</b>.</li>
     <li>No eating, drinking or smoking while mixing or spraying.</li>
     <li><b>Decis</b>: never near fish or aquatic ponds.</li>
-    <li>Near Vị Garden: tell Mr Vu first. The app blocks harvest until re-entry ends.</li>
+    <li>Near Vị Garden: tell the Landscape Manager first. The app blocks harvest until re-entry ends.</li>
   </ul>
 </section>
 
@@ -155,7 +156,7 @@
     <div class="the"><b data-vi>Hít phải</b><b data-en>Inhaled</b><span data-vi>Ra chỗ thoáng, ngồi nghỉ, báo tổ trưởng.</span><span data-en>Move to fresh air, sit down, tell the team leader.</span></div>
     <div class="the"><b data-vi>Nuốt phải</b><b data-en>Swallowed</b><span data-vi>Không tự gây nôn nếu nhãn không hướng dẫn. Gọi 115, mang theo chai hoặc ảnh nhãn.</span><span data-en>Do not induce vomiting unless the label says so. Call 115, bring the bottle or a label photo.</span></div>
   </div>
-  <div class="canh"><p data-vi>Mọi trường hợp: báo tổ trưởng và Trưởng bộ phận ngay, ghi bằng nút ⚠ Báo khó khăn.</p><p data-en>Always tell the team leader and Mr Vu at once and record it with ⚠ Report challenge.</p></div>
+  <div class="canh"><p data-vi>Mọi trường hợp: báo tổ trưởng và Trưởng bộ phận ngay, ghi bằng nút ⚠ Báo khó khăn.</p><p data-en>Always tell the team leader and the Landscape Manager at once and record it with ⚠ Report challenge.</p></div>
 </section>
 
 <section class="slide toi">

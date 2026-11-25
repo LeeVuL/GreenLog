@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SOP-NT-01 · Chăm sóc cây nội thất</title>
+<style>
+  :root { --rung: #123524; --rung2: #1F4D2B; --chanh: #C9E265; --kem: #F4F6EE; --cam: #E07A2E; --do: #C0392B; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #0c2418; font-family: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  .khung { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .slide { display: none; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; background: var(--kem); color: var(--rung); padding: 4.5% 6%; position: relative; overflow: hidden; }
+  .slide.dang { display: flex; flex-direction: column; }
+  .slide.toi { background: var(--rung); color: #fff; }
+  .slide h1 { font-size: clamp(22px, 4.6vw, 64px); margin: 0 0 .3em; line-height: 1.1; }
+  .slide h2 { font-size: clamp(18px, 3.2vw, 44px); margin: 0 0 .5em; line-height: 1.15; }
+  .slide p, .slide li { font-size: clamp(13px, 1.9vw, 27px); line-height: 1.45; }
+  .slide ul, .slide ol { margin: 0; padding-left: 1.2em; }
+  .slide li { margin: .25em 0; }
+  .nhan { display: inline-block; background: var(--chanh); color: var(--rung); font-weight: 700; border-radius: 99px; padding: .2em .8em; font-size: clamp(11px, 1.4vw, 20px); margin-bottom: 1em; }
+  .so { position: absolute; right: 3%; bottom: 3%; font-size: clamp(10px, 1.2vw, 16px); opacity: .6; }
+  .chan { position: absolute; left: 6%; bottom: 3%; font-size: clamp(10px, 1.2vw, 16px); opacity: .6; }
+  .luoi { display: grid; grid-template-columns: repeat(var(--c, 2), 1fr); gap: 3%; flex: 1; align-content: start; }
+  .the { background: #fff; border-radius: 18px; padding: 5% 6%; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+  .toi .the { background: var(--rung2); }
+  .the b { display: block; font-size: clamp(14px, 2.1vw, 30px); margin-bottom: .2em; }
+  .the span { font-size: clamp(12px, 1.6vw, 22px); opacity: .85; }
+  .buoc { display: flex; gap: 2%; align-items: stretch; margin: 2% 0; }
+  .buoc > div { flex: 1; background: #fff; border-radius: 16px; padding: 3% 2%; text-align: center; border-top: 8px solid var(--chanh); }
+  .buoc i { display: block; font-style: normal; font-size: clamp(22px, 4vw, 56px); font-weight: 800; color: var(--rung2); }
+  .buoc span { font-size: clamp(11px, 1.5vw, 21px); }
+  .canh { background: #FDECEA; border-left: 8px solid var(--do); border-radius: 12px; padding: 2% 3%; margin-top: 2%; }
+  .canh p { margin: 0; }
+  .nut { position: fixed; bottom: 14px; display: flex; gap: 8px; right: 14px; z-index: 5; }
+  .nut button { border: 0; border-radius: 99px; padding: 10px 16px; font: inherit; font-weight: 700; background: var(--chanh); color: var(--rung); cursor: pointer; }
+  .nut button.phu { background: #fff; }
+  [data-en] { display: none !important; }
+  body.en [data-vi] { display: none !important; }
+  body.en [data-en] { display: revert !important; }
+  body.en .the b[data-en] { display: block !important; }
+  @media print { .nut { display: none; } .slide { display: flex !important; page-break-after: always; width: 100vw; } .khung { position: static; display: block; } }
+</style>
+</head>
+<body>
+<div class="khung" id="khung">
+
+<section class="slide toi">
+  <span class="nhan">SOP-NT-01 · <span data-vi>Bản 1</span><span data-en>Version 1</span></span>
+  <h1 data-vi>Chăm sóc cây nội thất theo chuẩn resort 5 sao</h1>
+  <h1 data-en>Indoor plant care to 5-star resort standard</h1>
+  <p data-vi>Bộ phận Cảnh quan · Mövenpick Resort Waverly Phu Quoc<br>5 buổi × 50 phút</p>
+  <p data-en>Landscape Department · Mövenpick Resort Waverly Phu Quoc<br>5 sessions × 50 minutes</p>
+  <div class="chan">GreenLog</div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>5 buổi học</h2><h2 data-en>5 sessions</h2>
+  <ol data-vi>
+    <li><b>Buổi 1</b>: Chuẩn 5 sao, biết cây, ánh sáng và vị trí</li>
+    <li><b>Buổi 2</b>: Tưới nước đúng cách, thực hành kiểm tra đất</li>
+    <li><b>Buổi 3</b>: Bón phân; lau lá, cắt tỉa, vệ sinh chậu</li>
+    <li><b>Buổi 4</b>: Cây bất thường, sâu bệnh, báo trên app</li>
+    <li><b>Buổi 5</b>: Thay cây theo phiếu, làm việc ở khu khách, ghi app</li>
+  </ol>
+  <ol data-en>
+    <li><b>Session 1</b>: 5-star standard, plants, light and position</li>
+    <li><b>Session 2</b>: Watering correctly, soil-check practice</li>
+    <li><b>Session 3</b>: Fertilising; cleaning leaves, pruning, pots</li>
+    <li><b>Session 4</b>: Abnormal plants, pests, reporting in the app</li>
+    <li><b>Session 5</b>: Replacing by ticket, guest areas, app records</li>
+  </ol>
+</section>
+
+<section class="slide">
+  <span class="nhan" data-vi>Buổi 1</span><span class="nhan" data-en>Session 1</span>
+  <h2 data-vi>Chuẩn một chậu cây đạt</h2><h2 data-en>What a good pot looks like</h2>
+  <div class="luoi" style="--c:3">
+    <div class="the"><b data-vi>Lá</b><b data-en>Leaves</b><span data-vi>Sạch, xanh, không bụi, không lá vàng, lá rách.</span><span data-en>Clean, green, no dust, no yellow or torn leaves.</span></div>
+    <div class="the"><b data-vi>Mặt chậu</b><b data-en>Soil surface</b><span data-vi>Không lá rụng, rác, tàn thuốc; sỏi phủ mặt san đều.</span><span data-en>No fallen leaves, rubbish or cigarette ends; stones levelled.</span></div>
+    <div class="the"><b data-vi>Chậu, đĩa, sàn</b><b data-en>Pot, saucer, floor</b><span data-vi>Sạch, không cặn, không nước đọng, sàn khô.</span><span data-en>Clean, no scale, no standing water, floor dry.</span></div>
+    <div class="the"><b data-vi>Dáng cây</b><b data-en>Shape</b><span data-vi>Thẳng, cân đối, mặt đẹp quay ra lối khách.</span><span data-en>Upright, balanced, best side to guests.</span></div>
+    <div class="the"><b data-vi>Mùi, côn trùng</b><b data-en>Smell, insects</b><span data-vi>Không mùi hôi, không muỗi, không mốc.</span><span data-en>No smell, no mosquitoes, no mould.</span></div>
+    <div class="the"><b data-vi>Không sửa được ngay</b><b data-en>Cannot fix now</b><span data-vi>Báo trên app, không bỏ qua.</span><span data-en>Report it in the app, never ignore it.</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Biết cây mình chăm</h2><h2 data-en>Know your plants</h2>
+  <div class="luoi" style="--c:2">
+    <div class="the"><b data-vi>Ưa ẩm, sáng nhẹ</b><b data-en>Like moisture, soft light</b><span data-vi>Ráng Tổ Phụng, Dương Xỉ, Lan Ý.</span><span data-en>Bird's nest fern, Boston fern, Peace lily.</span></div>
+    <div class="the"><b data-vi>Chịu khô, rất sợ úng</b><b data-en>Drought tolerant, hate wet feet</b><span data-vi>Lưỡi Hổ, Kim Tiền.</span><span data-en>Snake plant, ZZ plant.</span></div>
+    <div class="the"><b data-vi>Lá màu, sáng vừa</b><b data-en>Coloured leaves, medium light</b><span data-vi>Bạch Mã Hoàng Tử, Vạn Niên Thanh, Đại Phú Gia.</span><span data-en>Aglaonema, Chinese evergreen, Dumb cane.</span></div>
+    <div class="the"><b data-vi>Cau bụi trong villa</b><b data-en>Areca palm in villas</b><span data-vi>Ưa sáng, tưới vừa, khô chóp lá khi phòng lạnh khô.</span><span data-en>Likes light, moderate water, tips dry in dry rooms.</span></div>
+  </div>
+  <div class="canh"><p data-vi>⚠ Nhựa Đại Phú Gia, Lan Ý, Vạn Niên Thanh gây ngứa: đeo găng khi cắt, rửa tay sau khi làm.</p><p data-en>⚠ Dumb cane, Peace lily and Chinese evergreen sap irritates: wear gloves when pruning, wash hands afterwards.</p></div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Ánh sáng và vị trí</h2><h2 data-en>Light and position</h2>
+  <ul data-vi>
+    <li>Ánh sáng <b>gián tiếp</b>. Không sát kính có nắng trưa chiếu thẳng.</li>
+    <li>Không sát cửa gió máy lạnh, quạt, máy sưởi.</li>
+    <li>Thiếu sáng: thân vươn dài, lá nhỏ, nhạt màu. Dư nắng: đốm cháy nâu.</li>
+    <li>Mỗi tuần <b>xoay chậu ¼ vòng</b>, rồi quay mặt đẹp ra khách.</li>
+    <li>Chỗ thiếu sáng: luân chuyển cây về vườn ươm nội thất phục hồi.</li>
+  </ul>
+  <ul data-en>
+    <li><b>Indirect</b> light. Never right against glass in midday sun.</li>
+    <li>Away from air-con vents, fans and heaters.</li>
+    <li>Too little light: stretched stems, small pale leaves. Too much sun: brown burn spots.</li>
+    <li>Every week <b>turn the pot ¼ turn</b>, then best side back to guests.</li>
+    <li>Low-light spots: rotate plants back to the indoor nursery to recover.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <span class="nhan" data-vi>Buổi 2</span><span class="nhan" data-en>Session 2</span>
+  <h2 data-vi>Kiểm tra đất trước khi tưới</h2><h2 data-en>Check the soil before watering</h2>
+  <div class="buoc">
+    <div><i>1</i><span data-vi>Cắm ngón tay sâu khoảng 3 cm (2 đốt)</span><span data-en>Push a finger about 3 cm deep (2 knuckles)</span></div>
+    <div><i>2</i><span data-vi>Khô → tưới</span><span data-en>Dry → water</span></div>
+    <div><i>3</i><span data-vi>Còn ẩm → KHÔNG tưới</span><span data-en>Still moist → do NOT water</span></div>
+  </div>
+  <div class="canh"><p data-vi>Không tưới theo thói quen "ngày nào cũng tưới". Tưới thừa là nguyên nhân chết cây số 1 trong nhà.</p><p data-en>Never water "every day out of habit". Overwatering is the number one killer of indoor plants.</p></div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Mỗi loại cây tưới khác nhau</h2><h2 data-en>Each plant drinks differently</h2>
+  <div class="luoi" style="--c:3">
+    <div class="the"><b data-vi>Lưỡi Hổ, Kim Tiền</b><b data-en>Snake plant, ZZ</b><span data-vi>Đất khô gần hết chậu mới tưới · thường 10–14 ngày.</span><span data-en>Water only when almost dry · usually 10–14 days.</span></div>
+    <div class="the"><b data-vi>Ráng, Dương Xỉ, Lan Ý</b><b data-en>Ferns, Peace lily</b><span data-vi>Ẩm đều, không sũng. Lan Ý rũ lá = thiếu nước. Không đổ nước vào nõn Ráng Tổ Phụng.</span><span data-en>Evenly moist, never soggy. Drooping Peace lily = thirsty. Never pour into the fern rosette.</span></div>
+    <div class="the"><b data-vi>Cây khác, Cau bụi</b><b data-en>Other plants, Areca</b><span data-vi>Tưới khi 2–3 cm đất mặt đã khô.</span><span data-en>Water when the top 2–3 cm is dry.</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Tưới đúng cách</h2><h2 data-en>Watering the right way</h2>
+  <ul data-vi>
+    <li>Tưới <b>chậm, đều</b> quanh gốc đến khi nước vừa thấm xuống đĩa.</li>
+    <li>Chậu không lỗ thoát: tưới đúng lượng trên bảng của điểm đó.</li>
+    <li>Sau <b>15–30 phút đổ hết nước đọng</b> trong đĩa.</li>
+    <li>Nước sạch, để nguội bằng nhiệt độ phòng. Không nước đá, nước nóng, nước xà phòng.</li>
+    <li>Sàn gỗ, thảm: lót khăn dưới bình tưới, nước rơi lau ngay.</li>
+    <li>Ghi app: Cây nội thất → điểm → Ghi → Tưới nước, số chậu, ảnh.</li>
+  </ul>
+  <ul data-en>
+    <li>Water <b>slowly and evenly</b> around the base until water just reaches the saucer.</li>
+    <li>Pots without drainage: give exactly the amount on the point card.</li>
+    <li>After <b>15–30 minutes empty the saucer</b>.</li>
+    <li>Clean water at room temperature. No ice, hot or soapy water.</li>
+    <li>Wooden floors, carpet: towel under the can, wipe drips at once.</li>
+    <li>Record: Indoor plants → point → Log → Watering, pots, photo.</li>
+  </ul>
+</section>
+
+<section class="slide toi">
+  <h2 data-vi>Thực hành</h2><h2 data-en>Practice</h2>
+  <ul data-vi>
+    <li>Mỗi học viên kiểm tra đất 3 chậu khác loại, nói "tưới" hay "không tưới".</li>
+    <li>Tưới 1 chậu đến khi nước vừa xuống đĩa, đổ nước đọng.</li>
+    <li>Ghi lần tưới trên app có ảnh.</li>
+  </ul>
+  <ul data-en>
+    <li>Each trainee checks the soil of 3 different plants and says "water" or "don't".</li>
+    <li>Water one pot until it reaches the saucer, then empty the saucer.</li>
+    <li>Record the watering in the app with a photo.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <span class="nhan" data-vi>Buổi 3</span><span class="nhan" data-en>Session 3</span>
+  <h2 data-vi>Bón phân</h2><h2 data-en>Fertilising</h2>
+  <ul data-vi>
+    <li>Chỉ phân trong danh mục app, <b>liều theo app, pha loãng</b>.</li>
+    <li>Thường 4–6 tuần một lần khi cây ra lá mới.</li>
+    <li><b>Không bón</b>: cây yếu, cây bệnh, cây mới thay chậu dưới 4 tuần.</li>
+    <li>Đất khô: <b>tưới nước trước</b>, rồi mới bón.</li>
+    <li>Phun phân bón lá: chỉ ở nơi không có khách, không có nội thất, tốt nhất ở vườn ươm.</li>
+    <li>Ghi app tên phân; app hỏi lượng lấy trong kho để tự trừ kho.</li>
+  </ul>
+  <ul data-en>
+    <li>Only catalogue products, <b>app dose, always weak</b>.</li>
+    <li>Usually every 4–6 weeks while new leaves grow.</li>
+    <li><b>Do not feed</b>: weak, sick or recently repotted (under 4 weeks) plants.</li>
+    <li>Dry soil: <b>water first</b>, then feed.</li>
+    <li>Foliar feed only away from guests and furniture, ideally at the nursery.</li>
+    <li>Record the product; the app asks how much you took from the store.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Lau lá</h2><h2 data-en>Cleaning leaves</h2>
+  <ul data-vi>
+    <li>Khăn tái chế của nhà giặt, làm ẩm nước sạch, <b>vắt thật ráo</b>.</li>
+    <li>Tay đỡ dưới lá, lau nhẹ từ cuống ra chóp, <b>lau cả mặt dưới</b>.</li>
+    <li>Đổi mặt khăn sau mỗi chậu.</li>
+    <li>Lá nhỏ, dương xỉ: không lau, chỉ rũ nhẹ bụi.</li>
+  </ul>
+  <ul data-en>
+    <li>Recycled laundry cloth, dampened with clean water, <b>wrung out well</b>.</li>
+    <li>Support the leaf from below, wipe from stem to tip, <b>including the underside</b>.</li>
+    <li>Fresh side of the cloth for each pot.</li>
+    <li>Small leaves, ferns: do not wipe, just shake off dust.</li>
+  </ul>
+  <div class="canh"><p data-vi>Không hóa chất tẩy rửa, không dầu bóng lá. Khăn đã lau cây bệnh: bỏ túi riêng gửi giặt, không dùng tiếp.</p><p data-en>No cleaning chemicals, no leaf shine. Cloths used on sick plants: separate bag for the laundry, never reused.</p></div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Cắt tỉa và vệ sinh chậu</h2><h2 data-en>Pruning and cleaning pots</h2>
+  <div class="luoi" style="--c:2">
+    <div class="the"><b data-vi>Cắt tỉa</b><b data-en>Pruning</b><span data-vi>Kéo sạch, cắt lá vàng sát cuống; cháy chóp thì cắt theo dáng lá.</span><span data-en>Clean shears, cut yellow leaves at the stalk; burnt tips trimmed to the leaf shape.</span></div>
+    <div class="the"><b data-vi>Sau cây bệnh</b><b data-en>After a sick plant</b><span data-vi>Lau kéo bằng cồn rồi mới sang cây khác.</span><span data-en>Wipe shears with alcohol before the next plant.</span></div>
+    <div class="the"><b data-vi>Mặt chậu</b><b data-en>Soil surface</b><span data-vi>Nhặt lá, rác; san đá phủ mặt. Mốc trắng: báo app (thường do tưới thừa).</span><span data-en>Pick up leaves and rubbish; level stones. White mould: report it (usually overwatering).</span></div>
+    <div class="the"><b data-vi>Chậu, đĩa, sàn</b><b data-en>Pot, saucer, floor</b><span data-vi>Lau vết nước, cặn trắng; kiểm tra đĩa nứt; lau khô sàn.</span><span data-en>Wipe marks and scale; check for cracks; dry the floor.</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <span class="nhan" data-vi>Buổi 4</span><span class="nhan" data-en>Session 4</span>
+  <h2 data-vi>Nhận biết cây bất thường</h2><h2 data-en>Recognising problems</h2>
+  <div class="luoi" style="--c:3">
+    <div class="the"><b data-vi>Rệp sáp</b><b data-en>Mealybugs</b><span data-vi>Bông trắng ở nách lá, mặt dưới lá, lá dính.</span><span data-en>White cotton in leaf joints and undersides, sticky leaves.</span></div>
+    <div class="the"><b data-vi>Nhện đỏ</b><b data-en>Spider mites</b><span data-vi>Chấm vàng li ti, tơ mịn mặt dưới lá.</span><span data-en>Tiny yellow speckles, fine webbing underneath.</span></div>
+    <div class="the"><b data-vi>Thối rễ</b><b data-en>Root rot</b><span data-vi>Đất sũng, mùi hôi, gốc mềm, lá vàng rũ dù đất ướt.</span><span data-en>Soggy soil, bad smell, soft base, yellow leaves despite wet soil.</span></div>
+    <div class="the"><b data-vi>Ốc sên, sâu</b><b data-en>Snails, caterpillars</b><span data-vi>Lá thủng lỗ, vết nhớt.</span><span data-en>Holes in leaves, slime trails.</span></div>
+    <div class="the"><b data-vi>Đốm lá</b><b data-en>Leaf spot</b><span data-vi>Đốm nâu, đen viền vàng lan dần.</span><span data-en>Brown or black spots with yellow halos, spreading.</span></div>
+    <div class="the"><b data-vi>Chăm sai</b><b data-en>Care errors</b><span data-vi>Thiếu sáng, thiếu nước, thừa nước, thừa phân.</span><span data-en>Too little light or water, too much water or fertiliser.</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Phát hiện thì làm gì?</h2><h2 data-en>What to do</h2>
+  <div class="buoc">
+    <div><i>1</i><span data-vi>Chụp ảnh rõ chỗ bệnh</span><span data-en>Clear photo of the problem</span></div>
+    <div><i>2</i><span data-vi>App: Cây bất thường → Có → thêm từng cây, tình trạng, ảnh</span><span data-en>App: Abnormal plant → Yes → add each plant, condition, photo</span></div>
+    <div><i>3</i><span data-vi>Trưởng bộ phận chọn: Theo dõi hoặc Giao xử lý (tạo phiếu)</span><span data-en>Landscape Manager: Monitor or Assign (creates a ticket)</span></div>
+    <div><i>4</i><span data-vi>Làm theo phiếu, Báo xong có ảnh</span><span data-en>Follow the ticket, Report done with a photo</span></div>
+  </div>
+  <div class="canh"><p data-vi>⛔ KHÔNG tự phun thuốc trong khu khách, trong phòng, trong villa. Cây nặng đưa về vườn ươm nội thất cách ly, đưa cây dự phòng ra thay.</p><p data-en>⛔ NEVER spray pesticides in guest areas, rooms or villas. Badly affected plants go to the indoor nursery for isolation; a healthy spare replaces them.</p></div>
+</section>
+
+<section class="slide toi">
+  <h2 data-vi>Thực hành</h2><h2 data-en>Practice</h2>
+  <ul data-vi>
+    <li>Xem ảnh mẫu: gọi đúng tên rệp sáp, nhện đỏ, thối rễ, đốm lá.</li>
+    <li>Mỗi học viên báo thử một cây bất thường trên app (2 cây, mỗi cây một tình trạng).</li>
+  </ul>
+  <ul data-en>
+    <li>Look at sample photos: name mealybugs, spider mites, root rot, leaf spot.</li>
+    <li>Each trainee reports a test abnormal plant in the app (2 plants, each with its own condition).</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <span class="nhan" data-vi>Buổi 5</span><span class="nhan" data-en>Session 5</span>
+  <h2 data-vi>Thay cây, setup theo phiếu</h2><h2 data-en>Replacing and setting up by ticket</h2>
+  <ul data-vi>
+    <li>Làm theo phiếu: loại cây, số chậu, khu vực, hạn.</li>
+    <li>Chọn cây ở vườn ươm: lá sạch, không sâu bệnh, dáng cân đối, cao vừa vị trí.</li>
+    <li>Chuyển bằng xe đẩy có lót hoặc bọc đáy chậu; không kéo lê, không rơi đất.</li>
+    <li>Đặt thẳng, mặt đẹp ra khách, có tấm lót chống thấm trên sàn gỗ, thảm.</li>
+    <li>Ảnh trước và sau; ghi tên cây, số chậu thực tế, vị trí → Báo xong.</li>
+    <li>Cây trong villa: chỉ vào khi HK báo phòng đang dọn hoặc theo phiếu.</li>
+  </ul>
+  <ul data-en>
+    <li>Follow the ticket: plant type, number of pots, area, deadline.</li>
+    <li>Pick nursery plants: clean, pest-free, balanced, right height.</li>
+    <li>Move on a lined trolley or wrap the base; never drag, never drop soil.</li>
+    <li>Upright, best side to guests, waterproof mat on wood or carpet.</li>
+    <li>Before and after photos; record actual plant, pots, location → Report done.</li>
+    <li>Villa plants: only when HK says the room is being cleaned, or by ticket.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Làm việc ở khu có khách</h2><h2 data-en>Working in guest areas</h2>
+  <div class="luoi" style="--c:2">
+    <div class="the"><b data-vi>Giờ làm</b><b data-en>Timing</b><span data-vi>Giờ vắng khách; khách đến thì tạm dừng, nhường đường.</span><span data-en>Quiet hours; pause and give way when guests come.</span></div>
+    <div class="the"><b data-vi>Tác phong</b><b data-en>Manners</b><span data-vi>Đồng phục gọn, thẻ tên, mỉm cười, nói nhỏ, không dùng điện thoại trước khách.</span><span data-en>Neat uniform, badge, smile, speak softly, no phone in front of guests.</span></div>
+    <div class="the"><b data-vi>Khách hỏi</b><b data-en>Guest questions</b><span data-vi>Biết tên cây thì nói ngắn; không chắc thì mời quản lý.</span><span data-en>Give the name if you know it; otherwise invite a manager.</span></div>
+    <div class="the"><b data-vi>An toàn</b><b data-en>Safety</b><span data-vi>Không trèo ghế, bàn của khách; thang chữ A có người giữ, có biển báo.</span><span data-en>Never climb guest furniture; A-frame ladder held, with a sign.</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2 data-vi>Ghi app và kiểm tra</h2><h2 data-en>App records and checks</h2>
+  <ul data-vi>
+    <li>Làm xong điểm nào <b>ghi ngay</b> điểm đó, ảnh thấy rõ cây.</li>
+    <li>Hôm nay hiện điểm đến hạn; quá hạn màu đỏ.</li>
+    <li>17:30 bấm Kết thúc ca xem còn sót việc gì.</li>
+    <li>Trưởng bộ phận xem ảnh: 📌 Đưa vào họp hoặc ↺ Yêu cầu làm lại → làm lại ngay trong ngày.</li>
+    <li>7 ngày sau khóa học: chấm điểm hiện trường theo chuẩn 5 sao.</li>
+  </ul>
+  <ul data-en>
+    <li>Record each point <b>straight away</b>, photo showing the plant.</li>
+    <li>Today shows due points; overdue in red.</li>
+    <li>17:30 tap End of shift to see anything missed.</li>
+    <li>The Landscape Manager reviews photos: 📌 Add to meeting or ↺ Ask for redo → redo the same day.</li>
+    <li>7 days after the course: site scoring against the 5-star standard.</li>
+  </ul>
+</section>
+
+<section class="slide toi">
+  <h2 data-vi>Kiểm tra cuối lớp</h2><h2 data-en>End-of-class check</h2>
+  <ul data-vi>
+    <li>Câu hỏi nhanh: giảng viên bốc ngẫu nhiên người trả lời (không chấm điểm).</li>
+    <li>Đề thi nhanh 10 câu (tùy chọn) trên app, xáo câu mỗi lần.</li>
+    <li>Thực hành tại một điểm thật: kiểm tra đất, tưới, lau lá, cắt lá vàng, ghi app.</li>
+    <li>7 ngày sau: Trưởng bộ phận chấm điểm hiện trường theo SOP này.</li>
+  </ul>
+  <ul data-en>
+    <li>Quick questions: the trainer picks people at random (not graded).</li>
+    <li>Optional 10-question quiz in the app, reshuffled each time.</li>
+    <li>Practice at a real point: soil check, watering, wiping, cutting yellow leaves, app record.</li>
+    <li>7 days later: the Landscape Manager scores the site against this SOP.</li>
+  </ul>
+  <div class="chan">GreenLog · SOP-NT-01</div>
+</section>
+
+</div>
+<div class="nut"><button class="phu" id="ngonngu">EN</button><button class="phu" id="lui">‹</button><button id="toi">›</button></div>
+<script>
+  const ds = [...document.querySelectorAll('.slide')]; let i = 0;
+  const q = new URLSearchParams(location.search); if (q.get('lang') === 'en') document.body.classList.add('en');
+  try { if (!q.get('lang') && localStorage.getItem('gl_lang') === '"en"') document.body.classList.add('en'); } catch (e) {}
+  const nn = document.getElementById('ngonngu');
+  const ve = () => { ds.forEach((s, k) => { s.classList.toggle('dang', k === i); let so = s.querySelector('.so'); if (!so) { so = document.createElement('div'); so.className = 'so'; s.appendChild(so); } so.textContent = (k + 1) + ' / ' + ds.length; }); nn.textContent = document.body.classList.contains('en') ? 'VI' : 'EN'; };
+  const di = (d) => { i = Math.max(0, Math.min(ds.length - 1, i + d)); ve(); };
+  document.getElementById('toi').onclick = () => di(1); document.getElementById('lui').onclick = () => di(-1);
+  nn.onclick = () => { document.body.classList.toggle('en'); ve(); };
+  document.addEventListener('keydown', (e) => { if (['ArrowRight', 'PageDown', ' '].includes(e.key)) di(1); if (['ArrowLeft', 'PageUp'].includes(e.key)) di(-1); });
+  let x0 = null; document.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }); document.addEventListener('touchend', (e) => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 40) di(dx < 0 ? 1 : -1); x0 = null; });
+  document.getElementById('khung').addEventListener('click', (e) => { if (e.clientX > innerWidth / 2) di(1); else di(-1); });
+  ve();
+</script>
+</body>
+</html>

@@ -57,10 +57,10 @@
   const ND_EN = `## 1. Purpose and scope
 - Help staff mix and spray plant protection products at the correct dose, safely for themselves, guests and the resort environment.
 - Applies to every pesticide and foliar fertiliser spray with the 16-litre electric sprayer across the resort.
-- Done by: the Fertilising + spraying crew (Mobile Team). Checked by: the team leader. New products approved by: Mr Vu.
+- Done by: the Fertilising + spraying crew (Mobile Team). Checked by: the team leader. New products approved by: the Landscape Manager.
 
 ## 2. The 4 RIGHTS
-- Right product: only products in the app's Product catalogue. Anything new must be proposed and approved by Mr Vu.
+- Right product: only products in the app's Product catalogue. Anything new must be proposed and approved by the Landscape Manager.
 - Right dose: the 16-litre tank dose shown in the app. Never add "a bit more to be sure".
 - Right time: when pests first appear, early morning (before 9:00) or late afternoon (after 16:00), no rain, light wind.
 - Right way: wet the whole canopy evenly, including leaf undersides, without dripping onto the ground.
@@ -87,7 +87,7 @@
 - Stop immediately if guests approach, the wind picks up or rain starts.
 - No eating, drinking or smoking while mixing or spraying.
 - Never use Decis near fish or aquatic ponds — it is highly toxic to fish.
-- Near Vị Garden: tell Mr Vu first. The app blocks harvesting until the re-entry period ends.
+- Near Vị Garden: tell the Landscape Manager first. The app blocks harvesting until the re-entry period ends.
 
 ## 6. After spraying
 - Rinse the tank 3 times and spray the rinse water back onto the area just treated. Never pour it into drains, ponds or the beach.
@@ -100,7 +100,7 @@
 - In the eyes: rinse with clean running water for at least 15 minutes.
 - Inhaled, dizzy or nauseous: move to fresh air, sit down, tell the team leader.
 - Swallowed: do not induce vomiting unless the label says so. Call 115 and take the bottle/sachet or a photo of the label to the medical facility.
-- Always tell the team leader and Mr Vu straight away and record it with the ⚠ Report challenge button.
+- Always tell the team leader and the Landscape Manager straight away and record it with the ⚠ Report challenge button.
 
 ## 8. After the course
 - Each trainee mixes one tank using the app's suggested formula, checked by the team leader.
