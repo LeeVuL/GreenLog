@@ -98,13 +98,15 @@
     const daGuiHTML = () => (gv.length ? `<div class="the the-xanh"><b>Đã gửi kế hoạch ${esc(String(gv[0]['Giờ giao']).slice(11, 16))} · ${gv.length} việc</b><div class="mo">Chạm việc để xem người và vị trí</div>
       ${gv.map((g) => `<div class="the-viec" data-xem="${esc(g['Mã'])}" style="margin:6px 0 0;cursor:pointer"><span class="gian"><b>${esc(g['Nội dung'])}</b><span class="mo">${esc([g['Vị trí'], String(g['Người'] || '').split(', ').filter(Boolean).length + ' người'].filter(Boolean).join(' · '))}</span></span>›</div>`).join('')}</div>` : '');
 
-    m.innerHTML = `<div class="the ${daDD ? 'the-xanh' : 'the-do'}"><div class="buoc"><span>1</span>Điểm danh sáng + ảnh tập thể</div>${daDD ? `<p style="margin:0">✓ Đã gửi · ${cm.length} người có mặt</p>` : '<a class="nut chinh rong" href="#/diemdanh">Điểm danh ngay</a>'}</div>
+    const ddS = dc.find((x) => x['Đội'] === doi); const daDuyet = ddS && ddS['Khóa'] === 'Có';
+    m.innerHTML = `<div class="the ${daDuyet ? 'the-xanh' : daDD ? 'the-mo' : 'the-do'}"><div class="buoc"><span>1</span>Điểm danh sáng + ảnh tập thể</div>${daDD ? `<p style="margin:0"><b>${daDuyet ? '✓ Trưởng bộ phận đã duyệt' : '✓ Đã gửi · chờ Trưởng bộ phận duyệt'}</b></p><p class="mo" style="margin:4px 0 0">${cm.length} người có mặt · gửi lúc ${esc(String(ddS['Giờ gửi'] || '').slice(11, 16))}${daDuyet ? '' : ' · cần sửa thì bấm Điểm danh'}</p>${daDuyet ? '' : '<a class="nut nho" href="#/diemdanh" data-dd-bdn="1" style="margin-top:6px">Xem, sửa điểm danh</a>'}` : '<a class="nut chinh rong" href="#/diemdanh" data-dd-bdn="1">Điểm danh ngay</a>'}</div>
       <div class="the"><div class="buoc"><span>2</span>Việc hôm nay của đội</div><p class="mo" style="margin-top:0">Tick việc làm hôm nay. App tự điền người theo chức danh, chạm Sửa để đổi người.</p>
         <div id="dnDS">${[0, 1, 2].map(nhomHTML).join('') || '<p class="mo">Đã giao hết việc hôm nay.</p>'}</div>
         <button type="button" class="nut nho" id="themViec" style="margin-top:10px">＋ Thêm việc khác</button></div>
       ${daGuiHTML()}
       <div style="height:80px"></div>
       <div class="thanh-duoi"><button class="nut chinh" id="gui">${nutGui()}</button></div>`;
+    m.querySelectorAll('[data-dd-bdn]').forEach((x) => { x.onclick = () => { G._ddVe = '#/batdaungay'; G._ddBuoi = 'Sáng'; }; });
     const nut = m.querySelector('#gui');
     const veDong = (i) => { const el = m.querySelector(`[data-row="${i}"]`); if (el) el.innerHTML = dongHTML(ds[i], i); nut.textContent = nutGui(); };
     const veNhom = (n) => { const el = m.querySelector(`[data-nhom="${n}"]`); if (el) el.outerHTML = nhomHTML(n); nut.textContent = nutGui(); };
@@ -188,3 +190,5 @@
     });
   };
 })();
+/* 0.4.7b: rời màn điểm danh mà không gửi thì bỏ lệnh quay về Bắt đầu ngày */
+window.addEventListener('hashchange', () => { if (!/^#\/(diemdanh|batdaungay)/.test(location.hash)) window.GL._ddVe = null; });

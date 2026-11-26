@@ -381,6 +381,7 @@
     }
     const m = G.khung('Điểm danh', S.u.doi || (q('diemdanh') >= 3 ? 'Duyệt công từng buổi' : ''));
     const st = manDiemDanh.st || (manDiemDanh.st = { ngay: API.ngay(), buoi: new Date().getHours() < 12 ? 'Sáng' : 'Chiều' });
+    if (G._ddBuoi) { st.buoi = G._ddBuoi; st.ngay = API.ngay(); G._ddBuoi = null; } // 0.4.7b: mở từ Bắt đầu ngày thì vào thẳng buổi sáng
     if (q('diemdanh') < 3) st.ngay = API.ngay();
     const d = await API.goi('docNhieu', { ds: [{ bang: 'DiemDanh', loc: { 'Ngày': st.ngay, 'Buổi': st.buoi } }, { bang: 'DuyetCong', loc: { 'Ngày': st.ngay, 'Buổi': st.buoi } }] });
     const rows = d.DiemDanh; const duyet = d.DuyetCong;
@@ -469,7 +470,7 @@
           o.querySelector('#ok').onclick = (e) => chay(async () => {
             const a = anh.kiemTra();
             await API.goi('diemDanh.gui', { ngay: st.ngay, buoi: st.buoi, doi: st.doiDD, anh: a.length ? a : API.dsAnh(daGui && daGui['Ảnh tập thể']), ds: sua.map((x) => Object.assign({ ma: x.ma }, tt[x.ma])) });
-            dong(); bao('Đã gửi, chờ Trưởng bộ phận duyệt'); manDiemDanh();
+            dong(); bao('Đã gửi, chờ Trưởng bộ phận duyệt'); if (G._ddVe) { const v = G._ddVe; G._ddVe = null; location.hash = v; } else manDiemDanh();
           }, e.target);
         });
       };
