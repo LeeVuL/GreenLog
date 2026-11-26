@@ -73,7 +73,13 @@
     m.innerHTML = '<div class="the mo">Đang tổng hợp…</div>';
     const c = b.ngay || 'Ngày'; const ds0 = [{ bang: b.bang, gioiHan: 20000 }].concat(b.ct ? [{ bang: 'NhatKyPhunBonChiTiet', gioiHan: 40000 }] : []).concat(b.extra || []);
     const x = await G.docNhieu(ds0);
-    const d = (x[b.bang] || []).filter((r) => { const n = ngayCua(r, c); return n >= tu && n <= den && (!b.loc || Object.keys(b.loc).every((k) => r[k] === b.loc[k])); });
+    const d0 = (x[b.bang] || []).filter((r) => { const n = ngayCua(r, c); return n >= tu && n <= den && (!b.loc || Object.keys(b.loc).every((k) => r[k] === b.loc[k])); });
+    /* mục 141: lọc chọn lọc theo người, đội, vị trí, trạng thái, chữ → số liệu, chi tiết và file xuất đều theo bộ lọc */
+    st.f = st.k === b.k ? (st.f || {}) : {}; st.chu = st.k === b.k ? (st.chu || '') : ''; st.k = b.k;
+    const LOC_COT = ['Đội', 'Người ghi', 'Người', 'Người tick', 'Người phun', 'Người giữ', 'Họ tên', 'Giao cho', 'Cụm', 'Mã vị trí', 'Vườn', 'Máy', 'Trạng thái', 'Loại', 'Loại việc', 'Nhóm cây', 'Tên cây', 'Bộ phận nhận', 'Nguồn', 'Buổi', 'Mã việc'];
+    const locCo = LOC_COT.map((k) => [k, [...new Set(d0.map((r) => r[k]).filter((v) => v !== '' && v != null).map(String))].sort()]).filter(([, v]) => v.length > 1).slice(0, 6);
+    const d = d0.filter((r) => Object.keys(st.f).every((k) => !st.f[k] || String(r[k] == null ? '' : r[k]) === st.f[k]) && (!st.chu || Object.values(r).join(' ').toLowerCase().includes(st.chu.toLowerCase())));
+    const tenLoc = (k, v) => (k === 'Mã vị trí' && G.tenVT ? G.tenVT(v) : k === 'Mã việc' ? dvTen(v) : v);
     const ma = new Set(d.map((r) => r['Mã NK'])); const ct = b.ct ? (x.NhatKyPhunBonChiTiet || []).filter((r) => ma.has(r['Mã NK'])) : [];
     const cs = b.cs(d, ct, x); const them = b.them ? b.them(d, ct, x) : '';
     const cot = b.cot || [...new Set(d.flatMap((r) => Object.keys(r)))].filter((k) => !/^Ảnh|^_/.test(k));
@@ -83,7 +89,11 @@
     const theoNgay = b.gt ? tong(d, (r) => ngayCua(r, c), b.gt) : dem(d, (r) => ngayCua(r, c)); const nks = Object.keys(theoNgay).sort(); const mx = Math.max(1, ...Object.values(theoNgay));
     const tomHtml = `<div class="bc-so">${cs.map(([l, v]) => `<div class="the so-the"><div><small>${esc(l)}</small><b>${esc(String(v))}</b></div></div>`).join('')}</div>`;
     m.innerHTML = `<div class="hang" style="gap:6px;flex-wrap:wrap;margin-bottom:10px"><div class="chon">${KY.map(([k, t]) => `<button data-ky="${k}" class="${st.ky === k ? 'dang' : ''}">${t}</button>`).join('')}</div>
-      ${st.ky === 'tuy' ? `<input type="date" id="tu" value="${tu}" style="max-width:160px"> → <input type="date" id="den" value="${den}" style="max-width:160px">` : ''}<button class="nut chinh" id="xuat" style="margin-left:auto">⬇ Xuất báo cáo</button></div>
+      ${st.ky === 'tuy' ? `<input type="date" id="tu" value="${tu}" style="max-width:160px"> → <input type="date" id="den" value="${den}" style="max-width:160px">` : ''}<button class="nut chinh" id="xuat" style="margin-left:auto">⬇ Xuất báo cáo${d.length !== d0.length ? ' (' + d.length + ' dòng đã lọc)' : ''}</button></div>
+      <details class="the bc-loc" ${Object.values(st.f).some(Boolean) || st.chu ? 'open' : ''}><summary><b>🔎 Lọc chọn lọc</b> <span class="mo">${d.length}/${d0.length} lần ghi${Object.values(st.f).some(Boolean) || st.chu ? ' · đang lọc' : ''}</span></summary>
+        <div class="hang" style="gap:8px;flex-wrap:wrap;margin-top:8px">${locCo.map(([k, v]) => `<label class="o"><span>${esc(k === 'Mã vị trí' ? 'Vị trí' : k === 'Mã việc' ? 'Việc' : k)}</span><select data-loc="${esc(k)}"><option value="">Tất cả</option>${v.slice(0, 80).map((x) => `<option value="${esc(x)}" ${st.f[k] === x ? 'selected' : ''}>${esc(tenLoc(k, x))}</option>`).join('')}</select></label>`).join('')}
+        <label class="o gian"><span>Tìm chữ</span><input id="locChu" value="${esc(st.chu)}" placeholder="vd: Villa 25, tên người, tên cây"></label></div>
+        <div class="nhom-nut"><button class="nut chinh" id="locOk">Lọc</button><button class="nut" id="locBo">Bỏ lọc</button></div></details>
       ${tomHtml}
       ${nks.length > 1 ? `<div class="the"><b>Theo ngày${b.dvt ? ' (' + b.dvt + ')' : ' (lần ghi)'}</b><div class="bc-cot">${nks.map((n) => `<div title="${n}: ${theoNgay[n]}"><i style="height:${Math.round(theoNgay[n] / mx * 100)}%"></i><small>${n.slice(8)}</small></div>`).join('')}</div></div>` : ''}
       ${them ? `<div class="the bc-them">${them}</div>` : ''}
@@ -101,12 +111,16 @@
       const goc = b.k === 'dinhky' && r['Mã việc'] ? '#/dinhky/' + r['Mã việc'] : b.k === 'phieu' && r['Mã phiếu'] ? '#/phieu/' + encodeURIComponent(r['Mã phiếu']) : '#/' + b.k;
       G.hop(b.ten + ' · ' + G.ngayVN(ngayCua(r, c)), `${a.length ? `<div class="bc-anh">${a.map((x) => `<img src="${esc(x.url)}" alt="" loading="lazy" onclick="GL.phongAnh(this.src)"><small class="mo">${esc(x.loai)}</small>`).join('')}</div>` : '<p class="mo">Lần ghi này không có ảnh.</p>'}
         <table class="bang">${ks.map((k) => `<tr><td class="mo">${esc(k)}</td><td>${esc(Array.isArray(r[k]) ? r[k].join(', ') : String(r[k]))}</td></tr>`).join('')}</table>
-        <div class="nhom-nut" style="margin-top:10px">${r['Mã phiếu'] && b.k !== 'phieu' ? `<a class="nut" href="#/phieu/${encodeURIComponent(r['Mã phiếu'])}">Mở phiếu ${esc(r['Mã phiếu'])}</a>` : ''}<a class="nut chinh" href="${goc}">Mở ở màn gốc ›</a></div>`); };
+        <div class="nhom-nut" style="margin-top:10px">${r['Mã phiếu'] && b.k !== 'phieu' ? `<a class="nut" href="#/phieu/${encodeURIComponent(r['Mã phiếu'])}">Mở phiếu ${esc(r['Mã phiếu'])}</a>` : ''}<button class="nut" data-ls="1">🕘 Lịch sử</button><a class="nut chinh" href="${goc}">Mở ở màn gốc ›</a></div>`, (o) => { const l = o.querySelector('[data-ls]'); if (l) l.onclick = () => G.lichSuCua && G.lichSuCua(r, b.bang); }); };
     veCT(d, '');
     m.querySelectorAll('.bc-so .so-the').forEach((x) => { x.style.cursor = 'pointer'; x.title = 'Xem các lần ghi tạo ra con số này'; x.onclick = () => { veCT(d, ''); m.querySelector('#ctBC').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     m.querySelectorAll('.bc-them tr').forEach((tr) => { const td = tr.querySelector('td'); if (!td) return; tr.style.cursor = 'pointer'; tr.title = 'Xem các lần ghi của dòng này'; tr.onclick = () => { const t = td.textContent.trim(); const r = d.filter((x) => Object.values(x).some((v) => String(Array.isArray(v) ? v.join(', ') : v).includes(t)));
       veCT(r.length ? r : d, r.length ? t : ''); m.querySelector('#ctBC').scrollIntoView({ behavior: 'smooth', block: 'start' }); }; });
     m.querySelectorAll('[data-ky]').forEach((bt) => { bt.onclick = () => { st.ky = bt.dataset.ky; G.taiLai(); }; });
+    const lo = m.querySelector('#locOk'); if (lo) lo.onclick = () => { m.querySelectorAll('[data-loc]').forEach((s) => { st.f[s.dataset.loc] = s.value; }); st.chu = m.querySelector('#locChu').value.trim(); G.taiLai(); };
+    const lc = m.querySelector('#locChu'); if (lc) lc.onkeydown = (e) => { if (e.key === 'Enter') lo.click(); };
+    m.querySelectorAll('[data-loc]').forEach((s) => { s.onchange = () => lo.click(); });
+    const lb = m.querySelector('#locBo'); if (lb) lb.onclick = () => { st.f = {}; st.chu = ''; G.taiLai(); };
     ['tu', 'den'].forEach((id) => { const el = m.querySelector('#' + id); if (el) el.onchange = () => { st.tu = m.querySelector('#tu').value; st.den = m.querySelector('#den').value; G.taiLai(); }; });
     m.querySelector('#xuat').onclick = () => G.xuatChon({ ten: `GreenLog_${b.ten}_${tu}_${den}`, tieuDe: `${b.ten} · ${G.ngayVN(tu)} → ${G.ngayVN(den)}`, cot, dong, anh,
       sheets: [{ ten: 'Tóm tắt', hang: [['Chỉ số', 'Giá trị']].concat(cs.map(([l, v]) => [l, typeof v === 'number' ? v : String(v)])) }],

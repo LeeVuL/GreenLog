@@ -36,6 +36,7 @@ function khoiTao04() {
   Object.keys(TRANG_04).forEach(function (t) { if (!vh.getSheetByName(t)) { const sh = vh.insertSheet(t); sh.getRange(1, 1, 1, TRANG_04[t].length).setValues([TRANG_04[t]]).setFontWeight('bold'); sh.setFrozenRows(1); log.push('Thêm trang ' + t); } });
   [['CayNoiThat', 'Ảnh'], ['CayNoiThat', 'Ghi chú'], ['MaySangCat', 'Loại'], ['MaySangCat', 'Lý do'], ['MaySangCat', 'Mã lượt'], ['BatThuong', 'Mã BT'], ['BatThuong', 'Trạng thái'], ['BatThuong', 'Mã phiếu'], ['Phieu', 'Yêu cầu làm lại'], ['Phieu', 'Mã BT'], ['Phieu', 'Lý do làm thêm'], ['GiaoViecNgay', 'Mã vị trí'], ['DongHoNuoc', 'Trạng thái'], ['DongHoNuoc', 'Ghi chú']].forEach(function (x) { themCot_(vh, x[0], x[1], function () { return ''; }, log); });
   chuyen042_(vh, log);
+  viTriPhieu048_(log);
   console.log(log.join('\n') || 'Đủ trang 0.4'); return log;
 }
 /* 0.4.2: tách vườn ươm cây nội thất sang trang riêng; đổi tên Vườn ươm sân vườn → Vườn ươm cây bụi */
@@ -51,4 +52,17 @@ function chuyen042_(vh, log) {
     h.forEach(function (x, i) { if (String(x).indexOf('anh Vũ') >= 0) { h[i] = String(x).replace('anh Vũ', 'Trưởng bộ phận'); doi = true; } }); if (doi) { r.setValues([h]); log.push('Đổi tên cột trang ' + t.getName()); } });
   vh.createTextFinder('Chờ anh duyệt kết thúc').replaceAllWith('Chờ Trưởng bộ phận duyệt kết thúc'); vh.createTextFinder('anh Vũ').replaceAllWith('Trưởng bộ phận');
   log.push('Vườn ươm: chuyển ' + sang.length + ' dòng sang VuonUomNoiThat, đổi tên vườn ươm cây bụi');
+}
+
+/* 0.4.8 · mục 143: 11 vị trí chỉ dùng cho phiếu giao việc (Áp dụng 8 việc chính = Không, không vào việc định kỳ).
+   App cũng tự thêm khi khởi động; hàm này ghi vào trang ViTri để báo cáo, Excel có đủ tên. Nhóm lỗi mới (mục 144) do app sắp lại khi đọc. */
+function viTriPhieu048_(log) {
+  const sh = nen_().getSheetByName('ViTri'); if (!sh) return;
+  const v = sh.getDataRange().getValues(); const ma = v.map(function (r) { return r[0]; }); const ten = v.map(function (r) { return r[3]; });
+  const DS = [['VT265', 'Vườn ươm', 'Vườn ươm', 'Vườn ươm cây nội thất'], ['VT266', 'Vườn ươm', 'Vườn ươm', 'Vườn ươm cây bụi'], ['VT267', 'Islander', 'Islander', 'Islander'],
+    ['VT268', 'Ký túc xá', 'Ký túc xá', 'KTX khu vực bãi bóng chuyền'], ['VT269', 'Ký túc xá', 'Ký túc xá', 'KTX trước cổng'], ['VT270', 'Ký túc xá', 'Ký túc xá', 'KTX dãy Crowne'],
+    ['VT271', 'Ký túc xá', 'Ký túc xá', 'KTX dãy Movenpick'], ['VT272', 'Ký túc xá', 'Ký túc xá', 'KTX sân chính'], ['VT273', 'Khu kỹ thuật cây xanh', 'Khu kỹ thuật cây xanh', 'Hầm bơm cây xanh'],
+    ['VT274', 'Vị Garden', 'Vị Garden', 'Vị Garden'], ['VT275', 'Khu kỹ thuật cây xanh', 'Khu kỹ thuật cây xanh', 'Bãi rác cây xanh giai đoạn 2']];
+  const them = DS.filter(function (r) { return ma.indexOf(r[0]) < 0 && ten.indexOf(r[3]) < 0; }).map(function (r) { const x = r.concat(['Không', 'Chỉ dùng cho phiếu giao việc']); while (x.length < v[0].length) x.push(''); return x.slice(0, Math.max(6, v[0].length)); });
+  if (them.length) { sh.getRange(sh.getLastRow() + 1, 1, them.length, them[0].length).setValues(them); log.push('Thêm ' + them.length + ' vị trí chỉ dùng cho phiếu'); }
 }

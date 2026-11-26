@@ -107,7 +107,7 @@
   window.addEventListener('gl-hoan', (e) => { if (G._imLang > 0) return; // ghi nền (mốc bảo trì, lịch kiểm tra) không hiện Hoàn tác
     document.querySelectorAll('.bao-hoan').forEach((x) => x.remove());
     const b = G.h(`<div class="bao bao-hoan">Đã lưu <button type="button">↶ Hoàn tác</button><i></i></div>`);
-    document.body.appendChild(b); const t = setTimeout(() => b.remove(), 10000);
+    document.body.appendChild(b); const t = setTimeout(() => b.remove(), 6000);
     b.querySelector('button').onclick = () => G.chay(async () => { clearTimeout(t); b.remove(); await API.goi('hoanTac', { ma: e.detail }); G.bao('Đã hoàn tác'); if (G.taiLai) G.taiLai(); });
   });
 

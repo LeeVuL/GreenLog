@@ -11,7 +11,7 @@
 
   /* báo cáo theo từng việc: bỏ các việc nội bộ */
   const BC = G.BC_VIEC; const DU = BC ? BC.slice() : [];
-  const apBC = () => { if (!BC) return; const nb = S.u && S.u.nhom === 'Nhân viên nội bộ'; BC.length = 0; DU.filter((b) => !(laPhap() && laNB(b)) && !(nb && !laNB(b) && b.k !== 'daotao')).forEach((b) => BC.push(b)); };
+  const apBC = () => { if (!BC) return; BC.forEach((b) => { if (!DU.includes(b)) DU.push(b); }); /* 0.4.8: giữ các mục báo cáo thêm sau (0.4.7+) */ const nb = S.u && S.u.nhom === 'Nhân viên nội bộ'; BC.length = 0; DU.filter((b) => !(laPhap() && laNB(b)) && !(nb && !laNB(b) && b.k !== 'daotao')).forEach((b) => BC.push(b)); };
   if (G.man.bcviec) { const f = G.man.bcviec.fn; G.man.bcviec.fn = async (...a) => { apBC(); return f(...a); }; }
   const khungGoc = G.khung;
   G.khung = function (...a) { const m = khungGoc.apply(this, a); apBC(); return m; };

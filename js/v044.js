@@ -170,7 +170,7 @@
   /* thẻ "ai nghỉ hôm nay" trên Hôm nay của nội bộ và chuông 09:00 */
   const hnGoc = G.manHomNayMoi;
   G.manHomNayMoi = async (...a) => { await hnGoc(...a); if (S.u.nhom !== 'Nhân viên nội bộ') return; const m = document.getElementById('noiDung'); if (!m || m.querySelector('.the-nghi')) return;
-    const nghi = await G.nghiNB(); const ban = nb2().filter((t) => t !== S.u.ten);
+    const nghi = await G.nghiNB(); const ban = nb2().filter((t) => t !== S.u.ten); if (m.querySelector('.the-nghi')) return;
     m.querySelector('.chao') && m.querySelector('.chao').insertAdjacentHTML('afterend', `<div class="the the-nghi hang" style="flex-wrap:wrap;gap:8px"><b class="gian">Hôm nay: ${ban.map((t) => `${esc(t.split(' ').pop())} ${nghi.includes(t) ? '<span class="chip cam">nghỉ</span>' : '<span class="chip xanh">đi làm</span>'}`).join(' ')}</b>
       ${ban.map((t) => `<button class="nut nho" data-nghi="${esc(t)}">${nghi.includes(t) ? esc(t.split(' ').pop()) + ' đi làm lại' : esc(t.split(' ').pop()) + ' nghỉ, tôi làm thay'}</button>`).join('')}</div>`);
     m.querySelectorAll('[data-nghi]').forEach((b) => { b.onclick = () => chay(async () => { const t = b.dataset.nghi;
