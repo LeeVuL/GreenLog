@@ -301,18 +301,56 @@
   const lieu16 = (ten) => { const t = (S.dm.thuoc || []).find((x) => (x.tenNgan || x.ten) === ten); const m = String((t && t.lieu16) || '').match(/([\d.,]+)\s*(ml|g)/i); return m ? { so: num(m[1]), dvt: m[2].toLowerCase() } : null; };
   const maViecTen = (ten) => { const t = String(ten || '').trim().toLowerCase(); const v = (S.dm.dauviec || []).find((x) => String(x.ten).toLowerCase() === t); return v ? v.ma : null; };
   /* khối nhập phân / thuốc gắn vào khung lưu */
+  const thuocCua = (ten) => (S.dm.thuoc || []).find((x) => (x.tenNgan || x.ten) === ten || x.ten === ten);
+  const laPhanLa = (ten) => { const t = thuocCua(ten) || {}; return /lá|kích|atonik|vitamin|vi lượng|N3M/i.test((t.nhom || '') + ' ' + ten); };
+  /* công thức mặc định cho việc phun: lần trước của việc này → công thức pha sẵn đúng nhóm cây → trống */
+  const ctMacDinh = (viec) => { const cu = API.LS.get('pb47_' + viec, null); if (cu && Array.isArray(cu.ds) && cu.ds.length) return { ten: 'Công thức lần trước', ds: cu.ds };
+    const nhom = (PHUN[viec] || '').toLowerCase(); const ct = (S.dm.congThuc || []).filter((r) => r['Đang dùng'] !== 'Không' && /Phun/.test(r['Loại'] || 'Phun thuốc'));
+    const ma = [...new Set(ct.map((r) => r['Mã CT']))]; const hop1 = ma.find((m) => String((ct.find((r) => r['Mã CT'] === m) || {})['Tên công thức'] || '').toLowerCase().includes(nhom)) || ma[0];
+    if (!hop1) return { ten: '', ds: [{ sp: '', lieu: '', dvt: 'ml' }] }; const r = ct.filter((x) => x['Mã CT'] === hop1);
+    return { ten: r[0]['Tên công thức'], ds: r.map((x) => { const t = thuocCua(x['Sản phẩm']); return { sp: t ? (t.tenNgan || t.ten) : x['Sản phẩm'], lieu: x['Liều / bình'], dvt: x['ĐVT'] || 'ml' }; }) }; };
+  const dsCT = () => { const ct = (S.dm.congThuc || []).filter((r) => r['Đang dùng'] !== 'Không'); const o = {}; ct.forEach((r) => { (o[r['Mã CT']] = o[r['Mã CT']] || { ten: r['Tên công thức'], ds: [] }).ds.push(r); }); return o; };
+  const dongThuoc = (x, i) => `<div class="hang pb-dong" data-i="${i}" style="gap:6px;align-items:flex-end;margin-top:6px"><label class="o gian" style="margin:0"><span>${i ? '' : 'Thuốc / phân bón lá'}</span><input list="pb47ds" data-pb="sp" value="${esc(x.sp || '')}" placeholder="Chạm để chọn"></label>
+    <label class="o" style="margin:0;width:92px"><span>${i ? '' : 'Liều / bình'}</span><input type="number" inputmode="decimal" step="any" data-pb="lieu" value="${esc(x.lieu || '')}"></label><label class="o" style="margin:0;width:70px"><span>${i ? '' : 'Đơn vị'}</span><select data-pb="dvt"><option ${x.dvt !== 'g' ? 'selected' : ''}>ml</option><option ${x.dvt === 'g' ? 'selected' : ''}>g</option></select></label><button type="button" class="nut nho" data-xoa="${i}" title="Bỏ" style="margin-bottom:2px">✕</button></div>`;
   const khoiPB = (viec, n) => { const bon = !!BON[viec]; const cu = API.LS.get('pb47_' + viec, {}) || {};
-    return `<div class="the pb47" data-viec="${viec}" style="background:#F4F8EC;border-color:#CFE0B4;margin:10px 0"><b>${bon ? '🌱 Phân đã bón' : '🧴 Thuốc đã phun'}</b> <span class="mo">· tổng cho ${n} vị trí, app tự chia đều vào nhật ký từng vị trí</span>
-      <label class="o" style="margin-top:8px"><span>${bon ? 'Loại phân' : 'Thuốc / phân bón lá'}</span><input list="pb47ds" data-pb="sp" value="${esc(cu.sp || '')}" placeholder="Chạm để chọn"><datalist id="pb47ds">${(bon ? dsPhan() : dsThuoc()).map((t) => `<option value="${esc(t)}">`).join('')}</datalist></label>
-      ${bon ? `<div class="hang" style="gap:8px"><label class="o gian"><span>Tổng lượng</span><input type="number" inputmode="decimal" data-pb="sl" step="0.5" min="0"></label><label class="o" style="width:150px"><span>Đơn vị</span><select data-pb="dv"><option ${cu.dv === 'kg' ? 'selected' : ''}>kg</option><option ${cu.dv !== 'kg' ? 'selected' : ''}>Bao (25 kg)</option></select></label></div>`
-        : `<div class="hang" style="gap:8px"><label class="o gian"><span>Số bình 16 lít</span><input type="number" inputmode="decimal" data-pb="binh" step="1" min="0"></label><label class="o gian"><span>Liều / bình</span><input type="number" inputmode="decimal" data-pb="lieu" step="any" value="${esc(cu.lieu || '')}"></label><label class="o" style="width:90px"><span>Đơn vị</span><select data-pb="dvt"><option ${cu.dvt !== 'g' ? 'selected' : ''}>ml</option><option ${cu.dvt === 'g' ? 'selected' : ''}>g</option></select></label></div>`}
-      <label class="hang" style="gap:6px;margin-top:4px"><input type="checkbox" data-pb="ko"> <span class="mo">Lượt này không dùng ${bon ? 'phân' : 'thuốc'}</span></label></div>`; };
+    if (bon) return `<div class="the pb47" data-viec="${viec}" style="background:#F4F8EC;border-color:#CFE0B4;margin:10px 0"><b>🌱 Phân đã bón</b> <span class="mo">· tổng cho ${n} vị trí, app tự chia đều vào nhật ký từng vị trí</span>
+      <label class="o" style="margin-top:8px"><span>Loại phân</span><input list="pb47ds" data-pb="sp" value="${esc(cu.sp || '')}" placeholder="Chạm để chọn"><datalist id="pb47ds">${dsPhan().map((t) => `<option value="${esc(t)}">`).join('')}</datalist></label>
+      <div class="hang" style="gap:8px"><label class="o gian"><span>Tổng lượng</span><input type="number" inputmode="decimal" data-pb="sl" step="0.5" min="0"></label><label class="o" style="width:150px"><span>Đơn vị</span><select data-pb="dv"><option ${cu.dv === 'kg' ? 'selected' : ''}>kg</option><option ${cu.dv !== 'kg' ? 'selected' : ''}>Bao (25 kg)</option></select></label></div>
+      <label class="hang" style="gap:6px;margin-top:4px"><input type="checkbox" data-pb="ko"> <span class="mo">Lượt này không dùng phân</span></label></div>`;
+    const md = ctMacDinh(viec); const cts = dsCT();
+    return `<div class="the pb47" data-viec="${viec}" style="background:#F4F8EC;border-color:#CFE0B4;margin:10px 0"><b>🧴 Thuốc đã phun</b> <span class="mo">· công thức điền sẵn, chỉ sửa khi cần · app tự tính tổng và chia đều vào nhật ký từng vị trí</span>
+      ${Object.keys(cts).length ? `<div class="chon" style="margin:8px 0 2px">${Object.entries(cts).map(([m, c]) => `<button type="button" data-ct="${esc(m)}" class="${c.ten === md.ten ? 'dang' : ''}">${esc(c.ten)}</button>`).join('')}</div>` : ''}
+      <div class="mo" data-pb="tenct" style="margin-top:4px">${md.ten ? 'Đang dùng: ' + esc(md.ten) : ''}</div>
+      <datalist id="pb47ds">${dsThuoc().map((t) => `<option value="${esc(t)}">`).join('')}</datalist><div data-pb="ds">${md.ds.map(dongThuoc).join('')}</div>
+      <button type="button" class="nut nho" data-them="1" style="margin-top:6px">＋ Thêm thuốc</button>
+      <label class="o" style="margin-top:8px"><span>Số bình 16 lít đã phun</span><input type="number" inputmode="decimal" data-pb="binh" step="1" min="0"></label>
+      <div data-pb="canh" class="mo" style="color:var(--do)"></div><div data-pb="tong" class="mo"></div>
+      <label class="hang" style="gap:6px;margin-top:4px"><input type="checkbox" data-pb="ko"> <span class="mo">Lượt này không dùng thuốc</span></label></div>`; };
+  /* điền liều khi chọn thuốc, cảnh báo pha kỵ, tính tổng */
+  const docDong = (el) => [...el.querySelectorAll('.pb-dong')].map((d) => ({ sp: d.querySelector('[data-pb="sp"]').value.trim(), lieu: d.querySelector('[data-pb="lieu"]').value, dvt: d.querySelector('[data-pb="dvt"]').value }));
+  const capNhatPB = (el) => { if (!el || BON[el.dataset.viec]) return; const ds = docDong(el).filter((x) => x.sp); const binh = num((el.querySelector('[data-pb="binh"]') || {}).value);
+    const canh = []; ds.forEach((a, i) => ds.forEach((b, k) => { if (k <= i) return; const ta = thuocCua(a.sp) || {}; const tb = thuocCua(b.sp) || {}; const ky = (t, o) => { const kp = String(t.khongPha || '').toLowerCase(); return kp && (kp.includes(String(o.sp).toLowerCase().split(' ')[0]) || (/phân bón lá/.test(kp) && laPhanLa(o.sp))); };
+      if (ky(ta, b) || ky(tb, a)) canh.push(`⚠ ${a.sp} và ${b.sp} không nên pha chung: ${ta.khongPha || tb.khongPha}`); }));
+    ds.forEach((a) => { const t = thuocCua(a.sp) || {}; if (/hồ|thủy sinh|cá/i.test(t.khongPha || '') && /DV0[456]/.test(el.dataset.viec)) canh.push(`⚠ ${a.sp}: ${t.khongPha}`); });
+    el.querySelector('[data-pb="canh"]').innerHTML = canh.map(esc).join('<br>');
+    const cl = Math.max(0, ...ds.map((a) => +((thuocCua(a.sp) || {}).cachLy) || 0));
+    el.querySelector('[data-pb="tong"]').innerHTML = binh > 0 && ds.length ? 'Tổng: ' + ds.map((a) => `${esc(a.sp)} ${so(num(a.lieu) * binh)} ${esc(a.dvt)}`).join(' · ') + (cl ? ` · cách ly ${cl} ngày` : '') : ''; };
+  const ganPB = (el) => { if (!el || el.dataset.gan) return; el.dataset.gan = '1';
+    el.addEventListener('input', (e) => { const sp = e.target.closest('[data-pb="sp"]'); if (sp) { const d = sp.closest('.pb-dong'); const l = lieu16(sp.value.trim()); if (d && l) { d.querySelector('[data-pb="lieu"]').value = l.so; d.querySelector('[data-pb="dvt"]').value = l.dvt; } } capNhatPB(el); });
+    el.addEventListener('change', () => capNhatPB(el));
+    el.addEventListener('click', (e) => { const b = e.target.closest('[data-them],[data-xoa],[data-ct]'); if (!b) return; const ds = docDong(el);
+      if (b.dataset.them) ds.push({ sp: '', lieu: '', dvt: 'ml' }); if (b.dataset.xoa != null) ds.splice(+b.dataset.xoa, 1);
+      if (b.dataset.ct) { const c = dsCT()[b.dataset.ct]; ds.splice(0, ds.length, ...c.ds.map((x) => { const t = thuocCua(x['Sản phẩm']); return { sp: t ? (t.tenNgan || t.ten) : x['Sản phẩm'], lieu: x['Liều / bình'], dvt: x['ĐVT'] || 'ml' }; }));
+        el.querySelectorAll('[data-ct]').forEach((y) => y.classList.toggle('dang', y === b)); el.querySelector('[data-pb="tenct"]').textContent = 'Đang dùng: ' + c.ten; }
+      el.querySelector('[data-pb="ds"]').innerHTML = (ds.length ? ds : [{ sp: '', lieu: '', dvt: 'ml' }]).map(dongThuoc).join(''); capNhatPB(el); });
+    capNhatPB(el); };
   const docPB = (el) => { if (!el) return null; const v = (k) => { const x = el.querySelector(`[data-pb="${k}"]`); return x ? (x.type === 'checkbox' ? x.checked : x.value) : ''; };
     const viec = el.dataset.viec; if (v('ko')) return { ko: true, viec };
-    const sp = String(v('sp')).trim(); if (!sp) throw new Error(BON[viec] ? 'Chọn loại phân đã bón' : 'Chọn thuốc đã phun');
-    if (BON[viec]) { const sl = num(v('sl')); if (!(sl > 0)) throw new Error('Nhập tổng lượng phân'); const kg = /Bao/.test(v('dv')) ? sl * 25 : sl; API.LS.set('pb47_' + viec, { sp, dv: v('dv') }); return { viec, bon: true, sp, kg }; }
-    const binh = num(v('binh')); const lieu = num(v('lieu')); if (!(binh > 0)) throw new Error('Nhập số bình đã phun'); if (!(lieu > 0)) throw new Error('Nhập liều mỗi bình');
-    API.LS.set('pb47_' + viec, { sp, lieu, dvt: v('dvt') }); return { viec, bon: false, sp, binh, lieu, dvt: v('dvt'), tong: binh * lieu }; };
+    if (BON[viec]) { const sp = String(v('sp')).trim(); if (!sp) throw new Error('Chọn loại phân đã bón'); const sl = num(v('sl')); if (!(sl > 0)) throw new Error('Nhập tổng lượng phân'); const kg = /Bao/.test(v('dv')) ? sl * 25 : sl; API.LS.set('pb47_' + viec, { sp, dv: v('dv') }); return { viec, bon: true, sp, kg }; }
+    const ds = docDong(el).filter((x) => x.sp); if (!ds.length) throw new Error('Chọn thuốc đã phun'); const thieu = ds.find((x) => !(num(x.lieu) > 0)); if (thieu) throw new Error('Nhập liều mỗi bình cho ' + thieu.sp);
+    const binh = num(v('binh')); if (!(binh > 0)) throw new Error('Nhập số bình đã phun');
+    API.LS.set('pb47_' + viec, { ds }); const ds2 = ds.map((x) => Object.assign({}, x, { lieu: num(x.lieu), tong: num(x.lieu) * binh }));
+    return { viec, bon: false, ds: ds2, binh, sp: ds2.map((x) => x.sp).join(' + '), cachLy: Math.max(0, ...ds2.map((a) => +((thuocCua(a.sp) || {}).cachLy) || 0)) }; };
   /* gắn vào khung lưu: "Ảnh và lưu · Hoàn thành", "Vị trí đã xong · …", "Bước 3/3 · Ảnh và lưu" */
   const hopGoc = G.hop;
   G.hop = function (tieu, html, sau, ...r) {
@@ -322,7 +360,7 @@
         if (/^Vị trí đã xong · /.test(t)) { viec = maViecTen(t.replace(/^Vị trí đã xong · /, '')); }
         else if (/^Ảnh và lưu · Hoàn thành|^Bước 3\/3/.test(t)) { const b = o.querySelector('.the b'); viec = b ? maViecTen(b.textContent) : null; const m = (o.querySelector('.the .mo') || {}).textContent || ''; n = +((m.match(/^(\d+) vị trí/) || [])[1]) || 0; }
         if (viec && (BON[viec] || PHUN[viec])) {
-          const luu = o.querySelector('#luu'); if (luu) { luu.insertAdjacentHTML('beforebegin', khoiPB(viec, n || 'các')); G._pbHop = o; }
+          const luu = o.querySelector('#luu'); if (luu) { luu.insertAdjacentHTML('beforebegin', khoiPB(viec, n || 'các')); G._pbHop = o; ganPB(o.querySelector('.pb47')); }
         }
       } catch (e) { console.warn(e); }
       return sau ? sau(o, dong, ...x) : undefined;
@@ -331,19 +369,20 @@
   /* ghi nhật ký phun bón: một dòng cho MỖI vị trí, lượng chia đều; có món trong kho thì trừ kho (nội bộ) */
   G.ghiPhanThuoc = async (pb, dsVT, anh, nguon) => {
     if (!pb || pb.ko || !dsVT.length) return; const n = dsVT.length; const luot = G.ma('LB');
-    const loai = pb.bon ? 'Bón gốc' : /lá|kích|atonik|vitamin|vi lượng/i.test(pb.sp) ? 'Phun phân bón lá' : 'Phun thuốc';
-    const nhom = (BON[pb.viec] || PHUN[pb.viec] || '');
+    const sp = pb.bon ? [{ sp: pb.sp, lieu: '', dvt: 'kg', tong: pb.kg }] : pb.ds;
+    const loai = pb.bon ? 'Bón gốc' : sp.every((x) => laPhanLa(x.sp)) ? 'Phun phân bón lá' : 'Phun thuốc';
+    const nhom = (BON[pb.viec] || PHUN[pb.viec] || ''); const tom = pb.bon ? so(pb.kg) + ' kg ' + pb.sp : sp.map((x) => `${x.sp} ${so(x.tong)} ${x.dvt}`).join(' + ') + ` (${so(pb.binh)} bình)`;
     for (const vt of dsVT) {
       const v = G.vt(vt) || {}; const nk = await imLang(() => API.goi('ghi', { bang: 'NhatKyPhunBon', dong: { 'Mã NK': '', 'Ngày giờ': API.bayGio().slice(0, 16), [loaiPB]: loai, 'Nhóm cây': nhom, 'Cụm': v.cum || '', 'Mã vị trí': vt, 'Vị trí chi tiết': G.tenVT(vt),
-        'Số bình': pb.bon ? '' : Math.round(pb.binh / n * 100) / 100, 'Ảnh': anh || [], 'Ghi chú': `${nguon || ''} · lượt ${luot}: tổng ${pb.bon ? so(pb.kg) + ' kg' : so(pb.tong) + ' ' + pb.dvt + ' (' + so(pb.binh) + ' bình)'} chia ${n} vị trí`, 'Mã lượt': luot, 'Người ghi': '' } }));
-      await imLang(() => API.goi('ghiNhieu', { bang: 'NhatKyPhunBonChiTiet', dong: [{ 'Mã NK': nk['Mã NK'], 'STT': 1, 'Sản phẩm': pb.sp, 'Liều / bình': pb.bon ? '' : pb.lieu, 'ĐVT': pb.bon ? 'kg' : pb.dvt, 'Tổng lượng': Math.round((pb.bon ? pb.kg : pb.tong) / n * 1000) / 1000 }] }));
+        'Số bình': pb.bon ? '' : Math.round(pb.binh / n * 100) / 100, 'Cách ly dài nhất (ngày)': pb.bon ? '' : (pb.cachLy || ''), 'Hết cách ly': !pb.bon && pb.cachLy ? G.congNgay(hn(), pb.cachLy) : '', 'Ảnh': anh || [], 'Ghi chú': `${nguon || ''} · lượt ${luot}: tổng ${tom} chia ${n} vị trí`, 'Mã lượt': luot, 'Người ghi': '' } }));
+      await imLang(() => API.goi('ghiNhieu', { bang: 'NhatKyPhunBonChiTiet', dong: sp.map((x, k) => ({ 'Mã NK': nk['Mã NK'], 'STT': k + 1, 'Sản phẩm': x.sp, 'Liều / bình': pb.bon ? '' : x.lieu, 'ĐVT': x.dvt, 'Tổng lượng': Math.round(x.tong / n * 1000) / 1000 })) }));
     }
-    if (q('noibo') >= 2 && K().taiKho) { try { const k = await K().taiKho(); const vt = k.vt.find((x) => String(x['Tên']).toLowerCase().includes(pb.sp.toLowerCase().split(' ')[0]));
-      if (vt) { const sl = pb.bon ? (/bao/i.test(vt['ĐVT']) ? pb.kg / 25 : pb.kg) : (/lít/i.test(vt['ĐVT']) ? pb.tong / 1000 : pb.tong); await imLang(() => K().xuatKho(vt, Math.round(sl * 100) / 100, (pb.bon ? 'Bón phân ' : 'Phun ') + nhom, luot)); } } catch (e) { /* bỏ qua */ } }
-    bao(`Đã ghi nhật ký ${pb.bon ? 'bón phân' : 'phun'}: ${pb.bon ? so(pb.kg) + ' kg ' : so(pb.tong) + ' ' + pb.dvt + ' '}${pb.sp} · ${n} vị trí`);
+    if (q('noibo') >= 2 && K().taiKho) { try { const k = await K().taiKho(); for (const x of sp) { const vt = k.vt.find((y) => String(y['Tên']).toLowerCase().includes(x.sp.toLowerCase().split(' ')[0]));
+      if (vt) { const sl = pb.bon ? (/bao/i.test(vt['ĐVT']) ? x.tong / 25 : x.tong) : (/lít/i.test(vt['ĐVT']) ? x.tong / 1000 : x.tong); await imLang(() => K().xuatKho(vt, Math.round(sl * 100) / 100, (pb.bon ? 'Bón phân ' : 'Phun ') + nhom, luot)); } } } catch (e) { /* bỏ qua */ } }
+    bao(`Đã ghi nhật ký ${pb.bon ? 'bón phân' : 'phun'}: ${tom} · ${n} vị trí`);
   };
   const hoiPB = (viec, n) => new Promise((ok) => { let xong = false;
-    hopGoc(BON[viec] ? 'Phân đã bón · ' + G.dvTen(viec) : 'Thuốc đã phun · ' + G.dvTen(viec), `${khoiPB(viec, n)}<button class="nut chinh rong" id="l">Lưu</button>`, (o, dong) => {
+    hopGoc(BON[viec] ? 'Phân đã bón · ' + G.dvTen(viec) : 'Thuốc đã phun · ' + G.dvTen(viec), `${khoiPB(viec, n)}<button class="nut chinh rong" id="l">Lưu</button>`, (o, dong) => { ganPB(o.querySelector('.pb47'));
       o.querySelector('#l').onclick = () => { try { const v = docPB(o.querySelector('.pb47')); xong = true; dong(); ok(v); } catch (e) { bao(e.message, true); } };
     });
     const kt = setInterval(() => { if (!document.querySelector('.lop-phu .pb47')) { clearInterval(kt); if (!xong) ok(null); } }, 400);
