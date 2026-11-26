@@ -11,7 +11,7 @@
 
   /* việc hằng ngày theo đội: [mã, tên hiển thị (rỗng = theo danh mục), chức danh làm] */
   const HANG_NGAY = {
-    'Đội cơ động': [['CD01', 'Hỗ trợ vệ sinh bãi biển đầu ca sáng', [], true], ['CN04', 'Vận chuyển rác cắt tỉa, vật tư', ['Vận chuyển']]], // 0.4.7 mục 124
+    'Đội cơ động': [['CD01', 'Hỗ trợ vệ sinh bãi biển đầu ca sáng', ['Vận chuyển'], 2], ['CN04', 'Vận chuyển rác cắt tỉa, vật tư', ['Vận chuyển']]], // 0.4.7 mục 124
     'Đội khu vực': [['DV10', '', ['Nhân viên khu vực']], ['DV11', '', ['Nhân viên khu vực']], ['DV09', '', ['Nhân viên khu vực']],
       ['DV17', 'Vườn ươm cây bụi: tưới, vệ sinh', ['vườn ươm']], ['DV12', '', ['Tổ trưởng']]],
   };
@@ -41,7 +41,7 @@
   G.goiYNgay = async (doi, ngay) => {
     const khac = (await goiYGoc(doi, ngay)).map((x) => Object.assign(x, { nhom: 2 }));
     const out = [];
-    (HANG_NGAY[doi] || []).forEach(([ma, ten, cd, tatCa]) => { if (G.qv(ma) >= 2 || /^CD/.test(ma)) out.push({ nhom: 0, nguon: 'Hằng ngày', nd: ten || G.dvTen(ma), ma: 'HN:' + ma + ':' + (ngay || hn()), cd, tatCa }); });
+    (HANG_NGAY[doi] || []).forEach(([ma, ten, cd, toiDa]) => { if (G.qv(ma) >= 2 || /^CD/.test(ma)) out.push({ nhom: 0, nguon: 'Hằng ngày', nd: ten || G.dvTen(ma), ma: 'HN:' + ma + ':' + (ngay || hn()), cd, toiDa }); });
     const dk = DINH_KY[doi] || {}; const maDK = Object.keys(dk).filter((ma) => G.qv(ma) >= 2 && S.dm.dauviec.some((v) => v.ma === ma));
     if (maDK.length) {
       const k = (S.dm.ky || {}).ten; let ticks = []; let dangTat = [];
@@ -61,10 +61,9 @@
 
   const khopCD = (cn, cd) => { const c = String((cn && cn.cd) || '').toLowerCase(); return cd.some((x) => (/vườn ươm/i.test(x) ? /vườn ươm/.test(c) : c === x.toLowerCase())); };
   const goiYNguoi = (x, cm) => {
-    if (x.tatCa) return cm.map((r) => r['Họ tên']);
     if (!x.cd) return [];
     const cn = S.dm.congnhan || [];
-    return cm.filter((r) => { const c = cn.find((n) => n.ma === r['Mã CN']) || cn.find((n) => n.ten === r['Họ tên']); return khopCD(c, x.cd); }).map((r) => r['Họ tên']);
+    const ds = cm.filter((r) => { const c = cn.find((n) => n.ma === r['Mã CN']) || cn.find((n) => n.ten === r['Họ tên']); return khopCD(c, x.cd); }).map((r) => r['Họ tên']); return x.toiDa ? ds.slice(0, x.toiDa) : ds;
   };
   const ngan = (t) => String(t).split(' ').slice(-2).join(' ');
 
