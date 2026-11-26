@@ -44,7 +44,7 @@
 
   /* ---------- Chế độ thật ---------- */
   /* Mất sóng vẫn lưu: lệnh ghi được xếp hàng trên máy (mỗi lệnh một mã), tự gửi lại khi có mạng; máy chủ bỏ qua mã đã nhận */
-  const GHI = ['ghi', 'ghiNhieu', 'thayNhom', 'sua', 'dinhKy.luu', 'phieu.tao', 'phieu.chuyen', 'diemDanh.gui', 'diemDanh.tuDiem', 'vanChuyen.gui'];
+  const GHI = ['ghi', 'ghiNhieu', 'thayNhom', 'sua', 'dinhKy.luu', 'phieu.tao', 'phieu.chuyen', 'diemDanh.gui', 'diemDanh.tuDiem', 'diemDanh.huyTuDiem', 'vanChuyen.gui'];
   const hang = () => LS.get('hang', []);
   async function guiMot(action, body, cid) {
     const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -263,7 +263,14 @@
     async 'diemDanh.tuDiem'(u, r) {
       const d = await dm(); const cn = d.congnhan.find((x) => x.ten === u.ten);
       if (!cn) throw new Error('Không có tên trong danh sách công nhân');
+      if (r.buoi === 'Chiều' && bayGio().slice(11, 16) < '13:00') throw new Error('Điểm danh buổi chiều mở từ 13:00.');
       return ghiDD(u, { ngay: ngay(), buoi: r.buoi, doi: 'Quản lý nhà thầu', ds: [{ ma: cn.ma, tt: 'Có mặt' }] });
+    },
+    async 'diemDanh.huyTuDiem'(u, r) {
+      const d = await dm(); const cn = d.congnhan.find((x) => x.ten === u.ten); if (!cn) throw new Error('Không có tên trong danh sách công nhân');
+      const hn = ngay(); if (tb('DuyetCong').some((x) => x['Ngày'] === hn && x['Buổi'] === r.buoi && x['Đội'] === 'Quản lý nhà thầu' && x['Khóa'] === 'Có')) throw new Error('Trưởng bộ phận đã duyệt buổi này, không hủy được.');
+      luuTb('DiemDanh', tb('DiemDanh').filter((x) => !(x['Ngày'] === hn && x['Buổi'] === r.buoi && x['Mã CN'] === cn.ma)));
+      luuTb('DuyetCong', tb('DuyetCong').filter((x) => !(x['Ngày'] === hn && x['Buổi'] === r.buoi && x['Đội'] === 'Quản lý nhà thầu'))); return { ok: true };
     },
     async 'diemDanh.duyet'(u, r) {
       can(u, 'diemdanh', 3);

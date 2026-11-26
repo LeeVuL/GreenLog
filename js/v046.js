@@ -96,7 +96,8 @@
   /* ---------- kiểm tra dụng cụ ngẫu nhiên: đủ 4 lần/tháng, 4 chặng 1–7, 8–14, 15–21, 22–cuối tháng ---------- */
   const chang = (d) => { const n = +d.slice(8, 10); return n <= 7 ? 1 : n <= 14 ? 2 : n <= 21 ? 3 : 4; };
   const cuoiChang = (d) => { const c = chang(d); if (c < 4) return d.slice(0, 8) + String(c * 7).padStart(2, '0'); const x = new Date(+d.slice(0, 4), +d.slice(5, 7), 0); return d.slice(0, 8) + String(x.getDate()).padStart(2, '0'); };
-  G.ktDungCu = async (nguoi) => {
+  const dangKT = {}; G.ktDungCu = (nguoi) => (dangKT[nguoi] = dangKT[nguoi] || ktDungCu1(nguoi).finally(() => { setTimeout(() => { delete dangKT[nguoi]; }, 1500); }));
+  const ktDungCu1 = async (nguoi) => {
     const thang = hn().slice(0, 7); const rows = (await G.doc('KiemTraDC', { 'Tháng': thang }).catch(() => [])).filter((x) => x['Người'] === nguoi);
     const homNay = rows.find((x) => x['Ngày giao'] === hn()); if (homNay) return homNay;
     if (gio() < '09:00') return null; const nghi = await G.nghiNB().catch(() => []); if (nghi.includes(nguoi)) return null;
@@ -149,7 +150,7 @@
     const k = await taiKho(); const ds = k.vt.map((v) => { const t = ton(k.gd, v['Mã VT']); return { v, t, tt: ttVT(v, t), nd: duNgay(k.gd, v['Mã VT'], t) }; });
     const thu = { do: 0, cam: 1, xanh: 2 }; const nhom = {}; ds.sort((a, b) => thu[a.tt[0]] - thu[b.tt[0]]).forEach((x) => { (nhom[x.v['Nhóm'] || 'Khác'] = nhom[x.v['Nhóm'] || 'Khác'] || []).push(x); });
     const sap = ds.filter((x) => x.tt[0] !== 'xanh');
-    o.innerHTML = `<div class="nhom-nut" style="margin-bottom:10px">${laAnh() ? '<button class="nut chinh" id="nhap">＋ Nhập kho</button><button class="nut" id="moiVT">＋ Vật tư mới</button>' : ''}${laNB() ? '<button class="nut chinh" id="lay">Lấy đồ</button>' : ''}</div>
+    o.innerHTML = `<div class="nhom-nut" style="margin-bottom:10px">${laAnh() ? '<button class="nut chinh" id="nhap">＋ Nhập kho</button><button class="nut" id="moiVT">＋ Vật tư mới</button>' : ''}${laNB() ? '<button class="nut chinh" id="lay">📤 Xuất kho</button>' : ''}</div>
       ${sap.length ? `<div class="the the-do"><b>${sap.length} món sắp hết hoặc đã hết</b><div class="mo">${sap.map((x) => esc(x.v['Tên'])).join(', ')}</div></div>` : ''}
       ${ds.length ? Object.keys(nhom).map((n) => `<h3 class="tieu-nhom">${esc(n)}</h3><div class="luoi-vt">${nhom[n].map((x) => `<button type="button" class="the vt-o vt-${x.tt[0]}" data-vt="${esc(x.v['Mã VT'])}">
         <span class="gian"><b>${esc(x.v['Tên'])}</b><small class="mo">${esc(x.v['Vị trí kho'] || '')}${x.v['Người dùng'] ? ' · ' + esc(x.v['Người dùng']) : ''}</small></span>
@@ -162,16 +163,16 @@
     if (b('lay')) b('lay').onclick = () => formLay(k, null);
     o.querySelectorAll('[data-vt]').forEach((x) => { x.onclick = () => theVT(k, x.dataset.vt); });
   }
-  const chonVTHtml = (ds, k) => `<div class="luoi-vt chon-vt">${ds.map((v) => `<button type="button" class="the vt-o" data-c="${esc(v['Mã VT'])}"><b>${esc(v['Tên'])}</b><small class="mo">Còn ${so(ton(k.gd, v['Mã VT']))} ${esc(v['ĐVT'])}</small></button>`).join('')}</div>`;
+  const chonVTHtml = (ds, k) => `<div class="luoi-vt vt-chon">${ds.map((v) => `<button type="button" class="the vt-o" data-c="${esc(v['Mã VT'])}"><b>${esc(v['Tên'])}</b><small class="mo">Còn ${so(ton(k.gd, v['Mã VT']))} ${esc(v['ĐVT'])}</small></button>`).join('')}</div>`;
   const oSo = (v, gt) => `<div class="hang so-nut" style="gap:10px;justify-content:center;margin:12px 0"><button type="button" class="nut" data-d="-1" style="min-width:56px;font-size:22px">−</button><input type="number" inputmode="decimal" id="sl" value="${gt || buoc(v['ĐVT'])}" step="${buoc(v['ĐVT'])}" min="0" style="max-width:110px;text-align:center;font-size:22px"><b>${esc(v['ĐVT'])}</b><button type="button" class="nut" data-d="1" style="min-width:56px;font-size:22px">＋</button></div>`;
   const ganSo = (o, v) => o.querySelectorAll('[data-d]').forEach((n) => { n.onclick = () => { const i = o.querySelector('#sl'); i.value = Math.max(0, Math.round((num(i.value) + +n.dataset.d * buoc(v['ĐVT'])) * 10) / 10); }; });
   function formLay(k, ma) {
     const toi = ngan(S.u.ten); const ds = k.vt.filter((v) => !v['Người dùng'] || v['Người dùng'] === 'Chung' || v['Người dùng'] === toi);
-    G.hop('Lấy đồ trong kho', `<div id="b1">${ma ? '' : '<p class="mo" style="margin-top:0">Bấm vào món vừa lấy:</p>' + chonVTHtml(ds, k)}</div><div id="b2"></div>`, (o, dong) => {
+    G.hop('📤 Xuất kho', `<div id="b1">${ma ? '' : '<p class="mo" style="margin-top:0">Bấm vào món cần xuất:</p>' + chonVTHtml(ds, k)}</div><div id="b2"></div>`, (o, dong) => {
       const chon = (m) => { const v = k.vt.find((x) => x['Mã VT'] === m); o.querySelector('#b1').innerHTML = `<div class="the"><b>${esc(v['Tên'])}</b><div class="mo">Còn ${so(ton(k.gd, m))} ${esc(v['ĐVT'])}</div></div>`;
         o.querySelector('#b2').innerHTML = oSo(v) + `<label class="o"><span>Dùng cho việc gì (không bắt buộc)</span><input id="vi" placeholder="Ví dụ: thay chậu sảnh"></label><button class="nut chinh rong" id="l">Lưu</button>`; ganSo(o, v);
         o.querySelector('#l').onclick = (e) => chay(async () => { const sl = num(o.querySelector('#sl').value); if (!(sl > 0)) throw new Error('Nhập số lượng');
-          await xuatKho(v, sl, o.querySelector('#vi').value.trim(), ''); dong(); bao('Đã ghi lấy ' + so(sl) + ' ' + v['ĐVT'] + ' ' + v['Tên']); G.taiLai(); }, e.target); };
+          await xuatKho(v, sl, o.querySelector('#vi').value.trim(), ''); dong(); bao('Đã xuất kho ' + so(sl) + ' ' + v['ĐVT'] + ' ' + v['Tên']); G.taiLai(); }, e.target); };
       o.querySelectorAll('[data-c]').forEach((x) => { x.onclick = () => chon(x.dataset.c); }); if (ma) chon(ma);
     });
   }
@@ -180,9 +181,9 @@
     G.hop('＋ Nhập kho', `<div id="b1">${ma ? '' : '<p class="mo" style="margin-top:0">Chọn món nhập về:</p>' + chonVTHtml(k.vt, k)}</div><div id="b2"></div>`, (o, dong) => {
       const chon = (m) => { const v = k.vt.find((x) => x['Mã VT'] === m); o.querySelector('#b1').innerHTML = `<div class="the"><b>${esc(v['Tên'])}</b><div class="mo">Đang còn ${so(ton(k.gd, m))} ${esc(v['ĐVT'])}</div></div>`;
         o.querySelector('#b2').innerHTML = oSo(v) + '<div id="f"></div><button class="nut chinh rong" id="l">Lưu nhập kho</button>'; ganSo(o, v);
-        const lay = G.form(o.querySelector('#f'), [{ k: 'anh', nhan: 'Ảnh phiếu nhập hoặc hàng (không bắt buộc)', loai: 'anh', toiDa: 2 }, { k: 'gia', nhan: 'Đơn giá (không bắt buộc)', loai: 'so' }, { k: 'gc', nhan: 'Ghi chú', loai: 'mota' }]);
+        const lay = G.form(o.querySelector('#f'), [{ k: 'nguon', nhan: 'Nguồn hàng', loai: 'chips', ds: ['Công ty mua', 'Trưởng bộ phận tự mua'], bb: true, gt: 'Công ty mua' }, { k: 'gia', nhan: 'Đơn giá mỗi ' + v['ĐVT'] + ' (VNĐ)', loai: 'so', bb: true }, { k: 'anh', nhan: 'Ảnh hàng hoặc hóa đơn', loai: 'anh', toiDa: 3 }, { k: 'gc', nhan: 'Ghi chú', loai: 'mota' }]);
         o.querySelector('#l').onclick = (e) => chay(async () => { const sl = num(o.querySelector('#sl').value); if (!(sl > 0)) throw new Error('Nhập số lượng'); const x = lay();
-          await API.goi('ghi', { bang: 'KhoGiaoDich', dong: { 'Mã GD': G.ma('GD'), 'Ngày': '', 'Giờ': API.bayGio(), 'Mã VT': m, 'Tên VT': v['Tên'], 'Loại': 'Nhập', 'Số lượng': sl, 'Đơn giá': x.gia || '', 'Việc': '', 'Mã ghi gốc': '', 'Người': '', 'Ảnh': x.anh, 'Ghi chú': x.gc } });
+          await API.goi('ghi', { bang: 'KhoGiaoDich', dong: { 'Mã GD': G.ma('GD'), 'Ngày': '', 'Giờ': API.bayGio(), 'Mã VT': m, 'Tên VT': v['Tên'], 'Loại': 'Nhập', 'Số lượng': sl, 'Đơn giá': x.gia || '', 'Nguồn': x.nguon, 'Thành tiền': Math.round(sl * num(x.gia)), 'Việc': '', 'Mã ghi gốc': '', 'Người': '', 'Ảnh': x.anh, 'Ghi chú': x.gc } });
           dong(); bao('Đã nhập ' + so(sl) + ' ' + v['ĐVT']); G.taiLai(); }, e.target); };
       o.querySelectorAll('[data-c]').forEach((x) => { x.onclick = () => chon(x.dataset.c); }); if (ma) chon(ma);
     });
@@ -203,7 +204,7 @@
     const thang = hn().slice(0, 7); const dungT = ls.filter((x) => x['Loại'] === 'Xuất' && String(x['Ngày']).startsWith(thang)).reduce((a, x) => a + num(x['Số lượng']), 0);
     G.hop(v['Tên'], `<div class="luoi2"><div class="the"><small class="mo">Còn trong kho</small><div class="so-lon">${so(t)} ${esc(v['ĐVT'])}</div></div><div class="the"><small class="mo">Đã dùng tháng này</small><div class="so-lon">${so(dungT)} ${esc(v['ĐVT'])}</div></div></div>
       <p class="mo">${esc(v['Nhóm'] || '')} · tối thiểu ${so(v['Tồn tối thiểu'])} ${esc(v['ĐVT'])}${v['Vị trí kho'] ? ' · để ở ' + esc(v['Vị trí kho']) : ''}${nd != null ? ' · đủ dùng khoảng ' + nd + ' ngày' : ''}</p>
-      <div class="nhom-nut">${laNB() ? '<button class="nut chinh" id="lay">Lấy đồ</button>' : ''}${laAnh() ? '<button class="nut chinh" id="nhap">＋ Nhập</button><button class="nut" id="sua">Sửa</button><button class="nut" id="kk">Kiểm kê</button>' : ''}</div>
+      <div class="nhom-nut">${laNB() ? '<button class="nut chinh" id="lay">📤 Xuất kho</button>' : ''}${laAnh() ? '<button class="nut chinh" id="nhap">＋ Nhập kho</button><button class="nut" id="sua">Sửa</button><button class="nut" id="kk">Kiểm kê</button>' : ''}</div>
       <h3 class="tieu-nhom">Lịch sử</h3><div class="ds">${ls.map((x) => `<div class="muc"><div class="gian"><b>${esc(x['Loại'])}${x['Việc'] ? ' · ' + esc(x['Việc']) : ''}</b><div class="mo">${G.ngayVN(x['Ngày'])} ${esc(String(x['Giờ'] || '').slice(11, 16))} · ${esc(x['Người'])}</div></div><b>${x['Loại'] === 'Xuất' ? '−' : x['Loại'] === 'Kiểm kê' && num(x['Số lượng']) < 0 ? '' : '+'}${so(x['Số lượng'])}</b></div>`).join('') || G.trong('Chưa có')}</div>`, (o, dong) => {
       const b = (id) => o.querySelector('#' + id);
       if (b('lay')) b('lay').onclick = () => { dong(); formLay(k, ma); };
@@ -214,6 +215,7 @@
         chay(async () => { await API.goi('ghi', { bang: 'KhoGiaoDich', dong: { 'Mã GD': G.ma('GD'), 'Ngày': '', 'Giờ': API.bayGio(), 'Mã VT': ma, 'Tên VT': v['Tên'], 'Loại': 'Kiểm kê', 'Số lượng': lech, 'Việc': '', 'Mã ghi gốc': '', 'Người': '', 'Ảnh': '', 'Ghi chú': ly } }); dong(); bao('Đã điều chỉnh theo số đếm thực tế'); G.taiLai(); }); };
     });
   }
+  G._kho = { taiKho, ton, ttVT, duNgay, xuatKho, formLay, formNhap, formVT, theVT, manVatTu, manMay, formKiemTra, formHongDC, nb2, tenDu, ngan, NHOM_VT, VIEC_VT, MAY };
   /* tự trừ kho khi nội bộ ghi việc: hỏi một lần "đã dùng vật tư gì" (bỏ qua được); đổ xăng máy sàng thì trừ thẳng */
   const goiGoc = API.goi;
   API.goi = async function (hd, r) {
@@ -378,7 +380,7 @@
         ['VT09', 'Chế phẩm vi sinh EM', 'Thuốc, chế phẩm', 'lít', 2, 'Nghị', 'nb/rac', 'Tủ thuốc có khóa', 3, 0.5], ['VT10', 'Găng tay bảo hộ', 'Bảo hộ', 'đôi', 6, 'Chung', '', 'Kệ xám', 16, 1]];
       LS('KhoVatTu', VT.map((x) => ({ 'Mã VT': x[0], 'Tên': x[1], 'Nhóm': x[2], 'ĐVT': x[3], 'Tồn tối thiểu': String(x[4]), 'Người dùng': x[5], 'Dùng cho': x[6], 'Vị trí kho': x[7], 'Trạng thái': 'Đang dùng', 'Ảnh': '' })));
       const gd = []; VT.forEach((x, i) => { gd.push({ 'Mã GD': 'GD-N' + i, 'Ngày': n(25), 'Giờ': n(25) + ' 08:00:00', 'Mã VT': x[0], 'Tên VT': x[1], 'Loại': 'Nhập', 'Số lượng': String(Math.round((x[8] + 10 * x[9]) * 10) / 10), 'Việc': '', 'Mã ghi gốc': '', 'Người': 'Lê Vũ', 'Ảnh': '', 'Ghi chú': 'Tồn đầu' });
-        for (let d = 20; d >= 1; d -= 2) if (x[9]) gd.push({ 'Mã GD': 'GD-X' + i + '-' + d, 'Ngày': n(d), 'Giờ': n(d) + ' 09:30:00', 'Mã VT': x[0], 'Tên VT': x[1], 'Loại': 'Xuất', 'Số lượng': String(x[9]), 'Việc': (VIEC_VT.find((v) => v[0] === x[6].split(',')[0]) || [, 'Lấy đồ'])[1], 'Mã ghi gốc': '', 'Người': x[5] === 'Nghị' ? 'Lê Hữu Nghị' : 'Nguyễn Tấn Hiệp', 'Ảnh': '', 'Ghi chú': '' }); });
+        for (let d = 20; d >= 1; d -= 2) if (x[9]) gd.push({ 'Mã GD': 'GD-X' + i + '-' + d, 'Ngày': n(d), 'Giờ': n(d) + ' 09:30:00', 'Mã VT': x[0], 'Tên VT': x[1], 'Loại': 'Xuất', 'Số lượng': String(x[9]), 'Việc': (VIEC_VT.find((v) => v[0] === x[6].split(',')[0]) || [, 'Xuất kho'])[1], 'Mã ghi gốc': '', 'Người': x[5] === 'Nghị' ? 'Lê Hữu Nghị' : 'Nguyễn Tấn Hiệp', 'Ảnh': '', 'Ghi chú': '' }); });
       LS('KhoGiaoDich', gd);
       const DC = [['DC-01', 'Kéo cắt tỉa', 'Riêng', 'Hiệp'], ['DC-02', 'Bình tưới 8 lít', 'Riêng', 'Hiệp'], ['DC-03', 'Cào bãi biển', 'Riêng', 'Hiệp'], ['DC-04', 'Ủng, găng bảo hộ', 'Riêng', 'Hiệp'],
         ['DC-05', 'Cuốc', 'Riêng', 'Nghị'], ['DC-06', 'Xẻng', 'Riêng', 'Nghị'], ['DC-07', 'Bình tưới 8 lít', 'Riêng', 'Nghị'], ['DC-08', 'Kéo cắt tỉa', 'Riêng', 'Nghị'],
@@ -465,7 +467,7 @@
 
   /* =========================== 109: TRỢ LÝ GREENLOG =========================== */
   Object.assign(G.HD_TRO || {}, {
-    'kho/vattu': { vi: ['Vật tư', ['Thẻ đỏ, cam là món đã hết, sắp hết.', 'Lấy đồ lẻ: bấm Lấy đồ, chọn hình, bấm ＋ − rồi Lưu.', 'Phân, giá thể… dùng khi ghi việc thì app hỏi một lần và tự trừ kho.', 'Trưởng bộ phận bấm ＋ Nhập kho khi có hàng về.'], 'Bấm vào một món để xem lịch sử nhập, xuất.'],
+    'kho/vattu': { vi: ['Vật tư', ['Thẻ đỏ, cam là món đã hết, sắp hết.', 'Xuất kho: bấm Xuất kho, chọn món, bấm ＋ − rồi Lưu.', 'Phân, giá thể… dùng khi ghi việc thì app hỏi một lần và tự trừ kho.', 'Trưởng bộ phận bấm ＋ Nhập kho khi có hàng về.'], 'Bấm vào một món để xem lịch sử nhập, xuất.'],
       en: ['Supplies', ['Red and orange cards are out or low.', 'Loose items: tap Take items, pick the picture, set ＋ − and Save.', 'Fertiliser, potting mix… used while logging a job are deducted after one quick question.', 'The Landscape Manager taps ＋ Stock in when goods arrive.'], 'Tap an item to see its in / out history.'] },
     'kho/dungcu': { vi: ['Dụng cụ', ['Dụng cụ riêng nằm dưới tên người giữ.', 'Đồ dùng chung: bấm Mượn khi lấy, bấm Trả khi cất.', 'Hỏng, mất: bấm Báo hỏng, mất, chụp ảnh, ghi lý do.', 'Ngày có thẻ Kiểm tra dụng cụ: bày đồ ra, chụp 1 ảnh, bấm Gửi.'], 'Mỗi tháng kiểm tra đủ 4 lần, ngày do app chọn ngẫu nhiên.'],
       en: ['Tools', ['Personal tools are listed under the holder.', 'Shared tools: tap Borrow when you take one, Return when you put it back.', 'Damaged or lost: tap Report, add a photo and the reason.', 'On a Tool check day: lay out your tools, take 1 photo, tap Send.'], 'Four random checks a month.'] },
@@ -502,7 +504,7 @@
       return { chu: khop.length ? 'Trong kho còn:' : 'Các món sắp hết, đã hết:', dong: r.slice(0, 8).map((x) => `${x.tt[1].slice(0, 2)} ${x.v['Tên']}: ${so(x.t)} ${x.v['ĐVT']}${x.nd != null ? ' · đủ khoảng ' + x.nd + ' ngày' : ''}`), nut: [['Mở Kho', '#/kho/vattu']] }; } },
     { ten: 'baohong', khop: (t) => /bao hong|hong roi|hu roi|may hong|khong no|broken|report fault|breakdown/.test(t), lam: async () => ({ chu: 'Anh chị mở Máy móc, bấm ⚠ Báo hỏng ở máy bị hỏng, chụp ảnh chỗ hỏng rồi Gửi.', nut: [['⚠ Báo hỏng máy', '#/kho/may']] }) },
     { ten: 'muon', khop: (t) => /\bmuon\b|\btra\b.*(thang|xe rua|cua|dung cu)|dung cu|borrow|tool/.test(t) && q('noibo') >= 1, lam: async () => ({ chu: 'Vào Dụng cụ, bấm Mượn ở món cần dùng. Cất lại thì bấm Trả.', nut: [['🧰 Mở Dụng cụ', '#/kho/dungcu']] }) },
-    { ten: 'lay', khop: (t) => /lay do|lay vat tu|lay phan|xuat kho/.test(t) && q('noibo') >= 1, lam: async () => ({ chu: 'Vào Vật tư, bấm Lấy đồ, chọn hình món vừa lấy, bấm ＋ − cho đúng số rồi Lưu.', nut: [['📦 Mở Vật tư', '#/kho/vattu']] }) },
+    { ten: 'lay', khop: (t) => /lay do|lay vat tu|lay phan|xuat kho/.test(t) && q('noibo') >= 1, lam: async () => ({ chu: 'Vào Vật tư, bấm 📤 Xuất kho, chọn món cần xuất, bấm ＋ − cho đúng số rồi Lưu.', nut: [['📦 Mở Vật tư', '#/kho/vattu']] }) },
     { ten: 'cay', khop: (t) => /cay (nay|gi)|ten cay|benh gi|bi gi|la vang|sau an|nhan dien|what plant|disease|identify/.test(t), lam: async () => ({ chu: 'Chụp ảnh cây ở màn AI hỗ trợ: Nhận diện cây cho biết tên, Phân tích triệu chứng cho biết bệnh và cách xử lý.', nut: [['📷 Mở AI hỗ trợ', '#/ai']] }) },
     { ten: 'lancuoi', khop: (t) => /lan cuoi|khi nao|bao gio|hom nao|last time|when/.test(t) && /villa|vi tri|khu|residences|hotel|ktx/.test(t) && !laNB(), lam: async (t) => {
       const kv = {}; (S.dm.vitri || []).forEach((v) => { const k = v.kv || v.ten; (kv[k] = kv[k] || []).push(v.ma); });
@@ -529,6 +531,7 @@
       if (!r || r.d < 0.8) return null; return { chu: r.x[0] + ':', dong: r.x[1].map((s, i) => `${i + 1}. ${s}`).concat(r.x[2] ? ['💡 ' + r.x[2]] : []), nut: [['Làm ngay', '#/' + (r.k === 'anh' ? '' : r.k)]] }; } },
     { ten: 'chao', khop: (t) => /^(xin )?chao|^hello|^hi\b|cam on|thank/.test(t), lam: async (t) => ({ chu: /cam on|thank/.test(t) ? 'Dạ không có gì, cần gì anh chị cứ hỏi em nhé.' : `Chào ${ngan(S.u.ten)}, em là Trợ lý GreenLog. Anh chị cần xem gì?` }) },
   ];
+  G._tim = { bo, moRong, diem, Y, kyCua, PHAM_VI, MAY, tiepTheo }; G.moKetQuaTim = (x) => moKetQua(x);
   const cauGoiY = () => (laNB() ? ['Hôm nay còn việc gì?', 'Kho sắp hết gì?', 'Máy sàng còn bao nhiêu giờ thì bảo trì?', 'Tuần này thu gom bao nhiêu kg?', 'Báo hỏng máy sàng', 'Mượn thang']
     : laAnh() ? ['Hôm nay ai nghỉ?', 'Việc nào còn trễ?', 'Kho sắp hết gì?', 'Villa 25 cắt cỏ lần cuối khi nào?', 'Tháng này thu gom bao nhiêu kg rác hữu cơ?', 'Máy sàng còn bao nhiêu giờ thì bảo trì?']
       : ['Hôm nay còn việc gì?', 'Villa 25 cắt cỏ lần cuối khi nào?', 'Tháng này vận chuyển bao nhiêu chuyến?', 'Kubota đang rảnh không?', 'Cách tạo phiếu giao việc']);

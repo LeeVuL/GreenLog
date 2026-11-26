@@ -69,7 +69,7 @@ function doPost(e) {
 const API = {
   'khoiDong': khoiDong_, 'docNhieu': docNhieu_, 'ghi': function (u, r) { return ghiAPI_(u, r); }, 'ghiNhieu': ghiNhieu_, 'sua': sua_, 'xoa': xoa_,
   'diemDanh.gui': function (u, r) { if (u.nhom === 'Quản lý nhà thầu') throw new Error('Anh Pháp chỉ tự điểm danh cho mình'); return ghiDD_(u, r); },
-  'diemDanh.tuDiem': ddTuDiem_, 'diemDanh.duyet': ddDuyet_,
+  'diemDanh.tuDiem': ddTuDiem_, 'diemDanh.huyTuDiem': ddHuyTuDiem_, 'diemDanh.duyet': ddDuyet_,
   'dinhKy.luu': dkLuu_, 'phieu.tao': phieuTao_, 'phieu.chuyen': phieuChuyen_,
   'congNhan.duyet': cnDuyet_, 'congNhan.sua': cnSua_, 'vanChuyen.gui': vcGui_, 'hoanTac': hoanTac_, 'thoiTiet': function () { return thoiTiet_(); },
   'ai.cay': aiCay_, 'ai.trieuChung': aiTrieuChung_, 'ai.troLy': aiTroLy_,
@@ -292,6 +292,8 @@ function xoa_(u, r) {
 
 /* ================= Điểm danh ================= */
 function ghiDD_(u, r) {
+  const sc = vh_().getSheetByName('ChotNam'); // 0.4.7: năm đã chốt kỳ công thì khóa điểm danh
+  if (sc && bang_(vh_(), 'ChotNam').some(function (x) { return x['Năm'] === String(r.ngay || ngay_()).slice(0, 4) && x['Trạng thái'] === 'Đã chốt'; })) throw new Error('Năm đã chốt kỳ công, Trưởng bộ phận mở lại ở Chốt năm nếu cần sửa.');
   can_(u, 'diemdanh', 2);
   const anhTT = (r.anh || []).map(function (x) { return /^data:/.test(x) ? luuAnh_(x, 'diemdanh') : x; });
   return voiKhoa_(function () {
@@ -339,7 +341,22 @@ function ddTuDiem_(u, r) {
   can_(u, 'diemdanh', 2);
   const cn = bang_(nen_(), 'CongNhan').filter(function (x) { return x['Họ và tên'] === u.ten; })[0];
   if (!cn) throw new Error('Không tìm thấy tên ' + u.ten + ' trong danh sách công nhân');
+  if (r.buoi === 'Chiều' && Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'HH:mm') < '13:00') throw new Error('Điểm danh buổi chiều mở từ 13:00.');
   return ghiDD_(u, { ngay: ngay_(), buoi: r.buoi, doi: 'Quản lý nhà thầu', ds: [{ ma: cn['Mã'], tt: 'Có mặt' }] });
+}
+/* 0.4.7 mục 135: anh Pháp hủy tự điểm danh khi bấm nhầm, chỉ khi Trưởng bộ phận chưa duyệt */
+function ddHuyTuDiem_(u, r) {
+  can_(u, 'diemdanh', 2);
+  const hn = ngay_(); const vh = vh_();
+  const cn = bang_(nen_(), 'CongNhan').filter(function (x) { return x['Họ và tên'] === u.ten; })[0];
+  if (!cn) throw new Error('Không tìm thấy tên ' + u.ten + ' trong danh sách công nhân');
+  return voiKhoa_(function () {
+    const khoa = bang_(vh, 'DuyetCong').some(function (x) { return x['Ngày'] === hn && x['Buổi'] === r.buoi && x['Đội'] === 'Quản lý nhà thầu' && x['Khóa'] === 'Có'; });
+    if (khoa) throw new Error('Trưởng bộ phận đã duyệt buổi này, không hủy được.');
+    const n = xoaDong_(vh.getSheetByName('DiemDanh'), function (x) { return x['Ngày'] === hn && x['Buổi'] === r.buoi && x['Mã CN'] === cn['Mã']; });
+    xoaDong_(vh.getSheetByName('DuyetCong'), function (x) { return x['Ngày'] === hn && x['Buổi'] === r.buoi && x['Đội'] === 'Quản lý nhà thầu'; });
+    return { n: n };
+  });
 }
 function ddDuyet_(u, r) {
   can_(u, 'diemdanh', 3);
@@ -591,6 +608,18 @@ function aiTroLy_(u, r) {
   const p = PropertiesService.getScriptProperties(); const k = 'TROLY_' + ngay_() + '_' + u.ten; const dung = +(p.getProperty(k) || 0); const toiDa = +(prop_('TROLY_TOI_DA', true) || 30);
   if (dung >= toiDa) throw new Error('Đã hết ' + toiDa + ' lượt hôm nay');
   const yd = (r.yDinh || []).join(', ');
+  /* 0.4.7: Mầm hỏi Gemini câu NGOÀI app (kiến thức cây trồng, sâu bệnh, cách xử lý, dịch). Chỉ gửi câu hỏi, không gửi dữ liệu app. */
+  if (r.cheDo === 'traLoi') {
+    const pr = 'Bạn là Mầm, trợ lý của bộ phận Cảnh quan một resort 5 sao ở Phú Quốc (khí hậu nhiệt đới, gió biển, đất cát). Trả lời bằng tiếng ' + (r.en ? 'Anh' : 'Việt') + ', ngắn gọn (tối đa 8 câu hoặc 6 gạch đầu dòng), dễ hiểu cho nhân viên lớn tuổi, thực tế, an toàn. '
+      + 'Nếu là thuốc bảo vệ thực vật thì nhắc đọc nhãn, đồ bảo hộ, thời gian cách ly. Không bịa số liệu của resort. Câu hỏi: "' + String(r.cau || '').slice(0, 500) + '"';
+    const mdl = prop_('GEMINI_MODEL', true) || 'gemini-2.5-flash';
+    const rs = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + mdl + ':generateContent?key=' + key, { method: 'post', contentType: 'application/json', payload: JSON.stringify({ contents: [{ parts: [{ text: pr }] }] }), muteHttpExceptions: true });
+    if (rs.getResponseCode() === 429) throw new Error('Gemini hết lượt (429)');
+    if (rs.getResponseCode() >= 400) throw new Error('Gemini lỗi ' + rs.getResponseCode());
+    p.setProperty(k, String(dung + 1));
+    const tx = ((((JSON.parse(rs.getContentText()).candidates || [])[0] || {}).content || {}).parts || []).map(function (x) { return x.text || ''; }).join('').trim();
+    return { tra: tx, conLai: toiDa - dung - 1 };
+  }
   const prompt = 'Bạn là bộ phân loại câu hỏi cho app GreenLog (quản lý cảnh quan resort). Chỉ trả về JSON một dòng {"y":"<ý định>","cauLai":"<câu hỏi viết lại rõ, không dấu cũng được>"}. '
     + 'Ý định hợp lệ: ' + yd + ', ngoai. Dùng "ngoai" nếu câu hỏi không liên quan đến công việc, số liệu, kho, máy, phiếu, cây, cách dùng app GreenLog. Câu hỏi: "' + String(r.cau || '').slice(0, 300) + '"';
   const model = prop_('GEMINI_MODEL', true) || 'gemini-2.5-flash';

@@ -70,7 +70,7 @@
     for (const g of gv) {
       const nguon = String(g['Mã nguồn'] || ''); const nguoi = String(g['Người'] || '').split(', ').filter(Boolean).length;
       let link = ''; let tien = ''; let suy = ''; let thuCong = false; let ma = '';
-      if (/^HN:/.test(nguon)) { ma = nguon.split(':')[1]; link = LINK_HN[ma] || ''; const x = tt[link];
+      if (/^HN:/.test(nguon) && LINK_HN[nguon.split(':')[1]]) { ma = nguon.split(':')[1]; link = LINK_HN[ma] || ''; const x = tt[link];
         if (x) { const ds = x.ds || [];
           if (ma === 'DV10' || ma === 'DV11') { const n = new Set(ds.map((r) => r['Cụm'])).size; tien = `${n}/${cumAll.size} cụm`; suy = n >= cumAll.size ? 'xong' : 'dang'; }
           else if (ma === 'DV09') { const n = new Set(ds.map((r) => r['Mã vị trí'])).size; tien = `${n}/${vtAll} vị trí`; suy = n >= vtAll ? 'xong' : 'dang'; }

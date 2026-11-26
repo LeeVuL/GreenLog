@@ -11,7 +11,7 @@
 
   /* việc hằng ngày theo đội: [mã, tên hiển thị (rỗng = theo danh mục), chức danh làm] */
   const HANG_NGAY = {
-    'Đội cơ động': [['CN04', 'Vận chuyển rác cắt tỉa, vật tư', ['Vận chuyển']]],
+    'Đội cơ động': [['CD01', 'Hỗ trợ vệ sinh bãi biển đầu ca sáng', [], true], ['CN04', 'Vận chuyển rác cắt tỉa, vật tư', ['Vận chuyển']]], // 0.4.7 mục 124
     'Đội khu vực': [['DV10', '', ['Nhân viên khu vực']], ['DV11', '', ['Nhân viên khu vực']], ['DV09', '', ['Nhân viên khu vực']],
       ['DV17', 'Vườn ươm cây bụi: tưới, vệ sinh', ['vườn ươm']], ['DV12', '', ['Tổ trưởng']]],
   };
@@ -41,7 +41,7 @@
   G.goiYNgay = async (doi, ngay) => {
     const khac = (await goiYGoc(doi, ngay)).map((x) => Object.assign(x, { nhom: 2 }));
     const out = [];
-    (HANG_NGAY[doi] || []).forEach(([ma, ten, cd]) => { if (G.qv(ma) >= 2) out.push({ nhom: 0, nguon: 'Hằng ngày', nd: ten || G.dvTen(ma), ma: 'HN:' + ma + ':' + (ngay || hn()), cd }); });
+    (HANG_NGAY[doi] || []).forEach(([ma, ten, cd, tatCa]) => { if (G.qv(ma) >= 2 || /^CD/.test(ma)) out.push({ nhom: 0, nguon: 'Hằng ngày', nd: ten || G.dvTen(ma), ma: 'HN:' + ma + ':' + (ngay || hn()), cd, tatCa }); });
     const dk = DINH_KY[doi] || {}; const maDK = Object.keys(dk).filter((ma) => G.qv(ma) >= 2 && S.dm.dauviec.some((v) => v.ma === ma));
     if (maDK.length) {
       const k = (S.dm.ky || {}).ten; let ticks = []; let dangTat = [];
@@ -61,6 +61,7 @@
 
   const khopCD = (cn, cd) => { const c = String((cn && cn.cd) || '').toLowerCase(); return cd.some((x) => (/vườn ươm/i.test(x) ? /vườn ươm/.test(c) : c === x.toLowerCase())); };
   const goiYNguoi = (x, cm) => {
+    if (x.tatCa) return cm.map((r) => r['Họ tên']);
     if (!x.cd) return [];
     const cn = S.dm.congnhan || [];
     return cm.filter((r) => { const c = cn.find((n) => n.ma === r['Mã CN']) || cn.find((n) => n.ten === r['Họ tên']); return khopCD(c, x.cd); }).map((r) => r['Họ tên']);
@@ -145,7 +146,7 @@
       if (!gv.length) await API.goi('ghiNhieu', { bang: 'NgayLamViec', thay: ['Ngày', 'Đội', 'Loại'], dong: [{ 'Ngày': hn(), 'Đội': doi, 'Loại': 'Bắt đầu ngày', 'Giờ': gio, 'Đúng hạn': gioNay() <= '07:30' ? 'Có' : 'Trễ', 'Số người': cm.length, 'Trạng thái': 'Đã gửi', 'Người ghi': S.u.ten }] });
       const zalo = `🌅 KẾ HOẠCH ${doi.toUpperCase()} ${G.ngayVN(hn())}\nCó mặt: ${cm.length}\n${chon.map((x, i) => `${i + 1}. ${x.nd}${x.maViec ? ' (' + G.tomVT(st.vt[x.ma], x.ds) + ')' : x.vt ? ' (' + x.vt + ')' : ''} · ${st.chon[x.ma].size} người`).join('\n')}`;
       chon.forEach((x) => { delete st.chon[x.ma]; delete st.vt[x.ma]; delete st.mo[x.ma]; }); st.them = st.them.filter((x) => !chon.includes(x));
-      bao(`Đã gửi kế hoạch · ${chon.length} việc`); await G.guiZalo(zalo, '').catch(() => {});
+      bao(`Đã gửi kế hoạch · ${chon.length} việc`); await (G.guiAnhNgay ? G.guiAnhNgay('dau', doi, zalo) : G.guiZalo(zalo, '')).catch(() => {});
       G.taiLai();
     }, e.target);
   } };

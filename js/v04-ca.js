@@ -5,8 +5,9 @@
   const GIO_CA = '17:30';
   const LY_CHUNG = ['Ưu tiên việc khác', 'Thiếu người', 'Khác'];
   const LY_VIEC = { 'nb/bien': ['Mưa', 'Bãi biển nhiều rác', 'Triều cao'], 'nb/ktbien': ['Mưa', 'Triều cao'], 'nb/may': ['Mưa, cát ướt', 'Máy hỏng', 'Hết nhiên liệu', 'Khách đông trên bãi'],
-    'nb/vuonrau': ['Mưa', 'Thiếu vật tư'], 'nb/noithat': ['Khu vực có khách / sự kiện', 'Thiếu phân, vật tư'], 'nb/vuonuomnt': ['Mưa', 'Thiếu vật tư'], 'nb/rac': ['Bếp, bar không có rác', 'Xe hỏng'] };
-  const LY_DO = (link) => (LY_VIEC[link] || ['Mưa', 'Thiếu vật tư']).concat(LY_CHUNG);
+    'nb/vuonrau': ['Mưa', 'Thiếu vật tư'], 'nb/noithat': ['Khu vực có khách / sự kiện', 'Thiếu phân, vật tư'], 'nb/vuonuomnt': ['Mưa', 'Thiếu vật tư'], 'nb/rac': ['Bếp, bar không có rác', 'Xe hỏng'],
+    'kho/dungcu': ['Chưa kịp kiểm', 'Đồ đang cho mượn', 'Đồ đang đi sửa'], 'kho/may': ['Máy đang dùng', 'Thiếu phụ tùng, nhớt', 'Chờ ENG', 'Mưa'], viec: ['Mưa', 'Thiếu vật tư'] };
+  const LY_DO = (link) => (LY_VIEC[link] || ['Mưa', 'Thiếu vật tư']).concat(LY_CHUNG.filter((x) => !(/^kho\//.test(link) && x === 'Thiếu người')));
   const json = (s, d) => { try { return JSON.parse(s || ''); } catch (e) { return d; } };
   const CO_DINH = [['nb/bien', 'Vệ sinh bãi biển'], ['nb/ktbien', 'Kiểm tra bãi biển'], ['nb/may', 'Vận hành máy sàng cát'], ['nb/vuonrau', 'Chăm sóc Vị Garden'],
     ['nb/noithat', 'Cây nội thất'], ['nb/vuonuomnt', 'Vườn ươm nội thất'], ['nb/rac', 'Thu gom rau củ làm compost']];

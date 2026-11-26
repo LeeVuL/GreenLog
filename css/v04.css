@@ -179,7 +179,8 @@ header.dau .nut-hd { font-weight: 800; font-size: 18px; margin-right: 6px; }
 .vt-o { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; font: inherit; cursor: pointer; margin: 0; border: 1px solid #E1E7E2; }
 .vt-o.vt-do { border-color: var(--do); } .vt-o.vt-cam { border-color: var(--cam2); }
 .vt-so b { font-size: 26px; } .chip.do { background: var(--do-nhat); color: var(--do); }
-.chon-vt .vt-o { min-height: 64px; }
+.vt-chon .vt-o { min-height: 64px; min-width: 0; }
+.hop .luoi-vt { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .o-kt { width: 52px; height: 52px; border-radius: 12px; border: 1px solid #D5DED6; background: #fff; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; padding: 0; }
 .o-kt small { font-size: 10px; font-weight: 400; color: var(--mo); }
 .o-kt.xanh { background: var(--xanh-nhat); border-color: #9CCB9A; } .o-kt.cam { background: var(--cam-nhat); border-color: var(--cam2); } .o-kt.cho { background: #FFF8E1; } .o-kt.trong { color: #A8B3AA; font-weight: 400; }
@@ -212,3 +213,21 @@ header.dau .nut-hd { font-weight: 800; font-size: 18px; margin-right: 6px; }
 .vt-o .gian { display: flex; flex-direction: column; gap: 2px; }
 .vt-o .gian b { line-height: 1.3; }
 .bc-the .gian, .tk-muc .gian, .dc-muc .gian { display: flex; flex-direction: column; }
+/* 0.4.7 */
+.luoi-dd { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; }
+.o-dd { min-height: 64px; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; padding: 10px 14px; font: inherit; }
+button.o-dd { align-items: center; }
+.o-dd small { font-size: 12.5px; opacity: .85; }
+.o-dd.cho { background: #FFF4D6; border: 1px solid #E9C46A; color: #6B4E0E; }
+.o-dd.duyet { background: #E3F1E6; border: 1px solid #9CCBA8; color: #1F5A35; }
+.o-dd.tat { background: #EEF1EE; border: 1px dashed #C5CEC6; color: #7A887D; }
+.o-dd .nut { margin-top: 4px; min-height: 32px; padding: 4px 12px; }
+.nut-gy { font-size: 17px; }
+.pb47 input[list], .pb47 select { width: 100%; }
+.may-dung a { font-weight: 600; }
+.nut-anhngay { border-style: dashed; }
+.tl-loa { background: none; border: 0; font-size: 16px; cursor: pointer; float: right; margin: 4px -4px -4px 0; opacity: .7; }
+.tl-hoi button { background: #fff; }
+.mam-cham { position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 60; background: #B3412F; color: #fff; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.2); cursor: pointer; animation: mamNhay 1.6s infinite; }
+@keyframes mamNhay { 50% { opacity: .65; } }
+#tlMic.dang { background: #B3412F; color: #fff; border-color: #B3412F; }

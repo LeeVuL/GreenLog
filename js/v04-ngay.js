@@ -50,7 +50,7 @@
       await API.goi('ghiNhieu', { bang: 'GiaoViecNgay', dong: chon.map((x) => ({ 'Mã': G.ma('GV'), 'Ngày': hn(), 'Đội': doi, 'Nguồn': x.nguon, 'Mã nguồn': x.ma, 'Nội dung': x.nd, 'Vị trí': x.vt, 'Người': [...st.chon[x.ma]].join(', '), 'Trạng thái': 'Chưa làm', 'Giờ giao': gio, 'Người giao': S.u.ten })) });
       await API.goi('ghiNhieu', { bang: 'NgayLamViec', thay: ['Ngày', 'Đội', 'Loại'], dong: [{ 'Ngày': hn(), 'Đội': doi, 'Loại': 'Bắt đầu ngày', 'Giờ': gio, 'Đúng hạn': gioNay() <= '07:30' ? 'Có' : 'Trễ', 'Số người': cm.length, 'Trạng thái': 'Đã gửi', 'Người ghi': S.u.ten }] });
       st.chon = {}; st.them = [];
-      bao('Đã gửi kế hoạch ngày'); await G.guiZalo(`🌅 KẾ HOẠCH ${doi.toUpperCase()} ${G.ngayVN(hn())}\nCó mặt: ${cm.length}\n${chon.map((x, i) => `${i + 1}. ${x.nd}${x.vt ? ' (' + x.vt + ')' : ''} → ${[...(st.chon[x.ma] || [])].join(', ')}`).join('\n')}`, '').catch(() => {});
+      bao('Đã gửi kế hoạch ngày'); if (G.guiAnhNgay) await G.guiAnhNgay('dau', doi, '').catch(() => {}); else await G.guiZalo(`🌅 KẾ HOẠCH ${doi.toUpperCase()} ${G.ngayVN(hn())}\nCó mặt: ${cm.length}\n${chon.map((x, i) => `${i + 1}. ${x.nd}${x.vt ? ' (' + x.vt + ')' : ''} → ${[...(st.chon[x.ma] || [])].join(', ')}`).join('\n')}`, '').catch(() => {});
       G.taiLai();
     }, e.target);
   } };
@@ -61,7 +61,7 @@
     const [gv, dc, dh, vc, tuoi, nlv] = await Promise.all([G.doc('GiaoViecNgay', { 'Ngày': hn(), 'Đội': doi }), G.doc('DuyetCong', { 'Ngày': hn(), 'Buổi': 'Chiều' }), G.doc('DongHoNuoc', { 'Ngày': hn() }), G.doc('VanChuyen', { 'Ngày': hn(), 'Đội': doi }), G.doc('Tuoi', { 'Ngày': hn() }), G.doc('NgayLamViec', { 'Ngày': hn(), 'Đội': doi })]);
     const chot = nlv.find((x) => x['Loại'] === 'Chốt ngày');
     const thieu = []; if (!dc.some((x) => x['Đội'] === doi)) thieu.push(['Điểm danh chiều', 'diemdanh']); if (!vc.length) thieu.push(['Số chuyến vận chuyển', 'vanchuyen']);
-    if (doi === 'Đội khu vực' && new Set(dh.map((x) => x['Mã đồng hồ'])).size < 2) thieu.push(['Chỉ số 2 đồng hồ nước', 'donghonuoc']);
+    /* 0.4.7 mục 129: số nước do khách sạn theo dõi, không bắt nhà thầu ghi khi chốt ngày */
     if (tuoi.length < S.dm.vitri.filter((v) => v.ap === 'Có').length && doi === 'Đội khu vực') thieu.push([`Tưới: còn ${S.dm.vitri.filter((v) => v.ap === 'Có').length - tuoi.length} vị trí chưa ghi`, 'tuoi']);
     const st = {}; gv.forEach((g) => { st[g['Mã']] = g['Trạng thái'] === 'Xong' ? 'Xong' : ''; });
     if (chot) { m.innerHTML = `<div class="the the-xanh"><b>Đã chốt ngày ${esc(String(chot['Giờ']).slice(11, 16))}</b><div class="mo">${esc(chot['Trạng thái'])} · ${esc(chot['Tóm tắt'] || '')}</div></div><a class="nut rong" href="#/nhatky/${hn()}">Xem trang nhật ký thi công hôm nay</a>`; return; }
@@ -88,7 +88,8 @@
       const tt = `${gv.filter((g) => st[g['Mã']] === 'Xong').length}/${gv.length} việc xong`;
       await API.goi('ghiNhieu', { bang: 'NgayLamViec', thay: ['Ngày', 'Đội', 'Loại'], dong: [{ 'Ngày': hn(), 'Đội': doi, 'Loại': 'Chốt ngày', 'Giờ': API.bayGio(), 'Đúng hạn': gioNay() <= '17:30' ? 'Có' : 'Trễ', 'Tóm tắt': tt, 'Ghi chú': v.gc, 'Trạng thái': 'Chờ anh chốt', 'Người ghi': S.u.ten }] });
       bao('Đã chốt ngày · Trưởng bộ phận duyệt lần cuối');
-      await G.guiZalo(`🌇 KẾT QUẢ ${doi.toUpperCase()} ${G.ngayVN(hn())}: ${tt}\n${gv.map((g) => `• ${g['Nội dung']}: ${st[g['Mã']]}${g._ly ? ' (' + g._ly + ')' : ''}`).join('\n')}${v.gc ? '\nGhi chú: ' + v.gc : ''}`, '').catch(() => {});
+      const zc = `🌇 KẾT QUẢ ${doi.toUpperCase()} ${G.ngayVN(hn())}: ${tt}\n${gv.map((g) => `• ${g['Nội dung']}: ${st[g['Mã']]}${g._ly ? ' (' + g._ly + ')' : ''}`).join('\n')}${v.gc ? '\nGhi chú: ' + v.gc : ''}`;
+      await (G.guiAnhNgay ? G.guiAnhNgay('cuoi', doi, zc) : G.guiZalo(zc, '')).catch(() => {});
       G.taiLai();
     }, e.target);
   } };
