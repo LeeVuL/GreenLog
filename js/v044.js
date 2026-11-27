@@ -134,7 +134,7 @@
   API.goi = async (act, r, ...x) => {
     /* 100: bón phân cỏ / cây bụi → hỏi loại phân + số kg một lần cho cả lượt, tự ghi nhật ký bón phân */
     let phan = null;
-    if (act === 'dinhKy.luu' && r && (r.viec === 'DV02' || r.viec === 'DV03') && r.trangThai !== 'Đang làm' && !r.daPhan && r.anh && r.anh.length) { phan = await hoiPhan(r.viec, r.ds.length); if (!phan) throw new Error('Chưa ghi lượng phân'); }
+    if (act === 'dinhKy.luu' && r && (r.viec === 'DV02' || r.viec === 'DV03') && r.trangThai !== 'Đang làm' && !r.daPhan && !r.maNK && !r.maDH && r.anh && r.anh.length) { phan = await hoiPhan(r.viec, r.ds.length); if (!phan) throw new Error('Chưa ghi lượng phân'); }
     const kq = await goi(act, r, ...x);
     try {
       if (phan) { const nk = await goi('ghi', { bang: 'NhatKyPhunBon', dong: { 'Mã NK': '', 'Ngày giờ': API.bayGio().slice(0, 16), 'Loại (Phun thuốc/Phun phân bón lá/Bón gốc)': 'Bón gốc', 'Nhóm cây': r.viec === 'DV02' ? 'Cỏ' : 'Cây bụi',

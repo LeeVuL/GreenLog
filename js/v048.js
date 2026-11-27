@@ -16,7 +16,26 @@
     ['VT268', 'Ký túc xá', 'Ký túc xá', 'KTX khu vực bãi bóng chuyền'], ['VT269', 'Ký túc xá', 'Ký túc xá', 'KTX trước cổng'], ['VT270', 'Ký túc xá', 'Ký túc xá', 'KTX dãy Crowne'],
     ['VT271', 'Ký túc xá', 'Ký túc xá', 'KTX dãy Movenpick'], ['VT272', 'Ký túc xá', 'Ký túc xá', 'KTX sân chính'],
     ['VT273', 'Khu kỹ thuật cây xanh', 'Khu kỹ thuật cây xanh', 'Hầm bơm cây xanh'], ['VT274', 'Vị Garden', 'Vị Garden', 'Vị Garden'],
-    ['VT275', 'Khu kỹ thuật cây xanh', 'Khu kỹ thuật cây xanh', 'Bãi rác cây xanh giai đoạn 2']];
+    ['VT275', 'Khu kỹ thuật cây xanh', 'Khu kỹ thuật cây xanh', 'Bãi rác cây xanh giai đoạn 2'],
+    /* 0.4.9 mục 153 */
+    ['VT276', 'Spa', 'Spa', 'Spa Tầng 1'],
+    ['VT277', 'Spa', 'Spa', 'Spa Sảnh'],
+    ['VT278', 'Spa', 'Spa', 'Spa locker nam'],
+    ['VT279', 'Spa', 'Spa', 'Spa locker nữ'],
+    ['VT280', 'Spa', 'Spa', 'Spa hành lang'],
+    ['VT281', 'Hotel', 'Hotel', 'M Lounge'],
+    ['VT282', 'Hotel', 'Hotel', 'Hành lang Islander'],
+    ['VT283', 'Tầng 8', 'Tầng 8', 'Tầng 8 (nhà hàng)'],
+    ['VT284', 'Tầng 8', 'Tầng 8', 'Tầng 8 (khu bên ngoài)'],
+    ['VT285', 'Hotel', 'Hotel', 'Nhà vệ sinh khách Wing B Hotel'],
+    ['VT286', 'Hotel', 'Hotel', 'Nhà vệ sinh khách Wing A Hotel'],
+    ['VT287', 'Hotel', 'Hotel', 'Máy nước lọc Wing A Hotel'],
+    ['VT288', 'Hotel', 'Hotel', 'Kidclub'],
+    ['VT289', 'Hotel', 'Hotel', 'Hotel Lobby'],
+    ['VT290', 'Hotel', 'Hotel', 'Hotel Waverly'],
+    ['VT291', 'Residences', 'Residences', 'Residences - Làng Chài'],
+    ['VT292', 'Residences', 'Residences', 'Residences - Bên ngoài Làng Chài'],
+    ['VT293', 'Residences', 'Residences', 'Máy nước lọc Residences']];
   G.VT_PHIEU = VT_PHIEU;
 
   /* ---------------------------------------------------------------- 144 · nhóm lỗi theo nhóm thực vật ---------------------------------------------------------------- */

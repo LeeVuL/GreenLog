@@ -499,7 +499,7 @@
     const hAnh = anhDs.length ? (cuoi ? (anhDs.length > 2 ? 2 : 1) * 330 + 20 : 420) : 0;
     const H = 230 + 110 + dongViec.reduce((a, d) => a + d.h, 0) + (viec.length ? 0 : 80) + hAnh + 120;
     cv.width = W; cv.height = H; x.fillStyle = '#F3F5F1'; x.fillRect(0, 0, W, H);
-    x.fillStyle = '#14351F'; x.fillRect(0, 0, W, 220); x.fillStyle = '#C8E05A'; x.font = F(30, true); x.fillText('🌱 GreenLog · Cảnh quan Mövenpick Phú Quốc', P, 64);
+    x.fillStyle = '#14351F'; x.fillRect(0, 0, W, 220); x.fillStyle = '#C8E05A'; x.font = F(30, true); x.fillText('🌱 GreenLog · Cảnh quan Mövenpick Resort Waverly Phu Quoc', P, 64);
     x.fillStyle = '#FFFFFF'; x.font = F(52, true); x.fillText((cuoi ? 'KẾT QUẢ ' : 'KẾ HOẠCH ') + String(doi).toUpperCase(), P, 140);
     x.font = F(30); x.fillStyle = '#DDE8D8'; x.fillText(`${G.thu(ngay)}, ${G.ngayVN(ngay)} · gửi lúc ${gio()}`, P, 190);
     let y = 250; const xong = viec.filter((v) => v.tt === 'Xong').length;

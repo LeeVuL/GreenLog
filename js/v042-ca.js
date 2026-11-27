@@ -8,6 +8,7 @@
   /* ---------- khối lượng mỗi việc (mục 76) ---------- */
   const KL = {
     'nb/bien': (d) => `${so(cong(d, 'kg rác'))} kg rác`,
+    'nb/hangrao': (d) => `${so(cong(d, 'kg rác'))} kg rác`,
     'nb/ktbien': (d) => `${d.length} lần kiểm tra${d.some((r) => r['Tình trạng'] && r['Tình trạng'] !== 'Sạch') ? ' · có chỗ chưa sạch' : ' · sạch'}`,
     'nb/may': (d) => { const h = cong(d, 'Số giờ') || d.reduce((a, r) => a + phut(r['Giờ bắt đầu'], r['Giờ kết thúc']), 0) / 60; const k = d.filter((r) => r['Loại'] === 'Không sàng'); return k.length && !h ? 'Không sàng: ' + (k[0]['Lý do'] || '') : `${so(h)} giờ chạy máy`; },
     'nb/vuonrau': (d) => `${new Set(d.map((r) => r['Mã vườn'])).size} vườn`,

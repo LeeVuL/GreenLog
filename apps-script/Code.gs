@@ -217,6 +217,8 @@ function dien_(u, bang, dong, vh) {
   const r = {}; Object.keys(dong).forEach(function (k) { r[k] = dong[k]; });
   COT_NGUOI.forEach(function (c) { if (c in r && !r[c]) r[c] = u.ten; });
   COT_GIO.forEach(function (c) { if (c in r && !r[c]) r[c] = bayGio_(); });
+  /* 0.4.9 mục 150: mọi lần lưu đều có giờ lưu do máy chủ ghi */
+  if (!COT_GIO.some(function (c) { return c in r; }) && !('Giờ' in r)) r['Giờ ghi'] = bayGio_();
   if ('Ngày' in r && !r['Ngày']) r['Ngày'] = ngay_();
   Object.keys(r).forEach(function (k) {
     const v = r[k];

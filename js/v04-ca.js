@@ -60,7 +60,8 @@
           'Đã làm': JSON.stringify(daLam.map((x) => ({ viec: x.ten, gio: x.gio, ai: x.ai, kl: x.kl || '', anh: x.na || 0, link: x.link }))), 'Còn sót': JSON.stringify(conSot), 'Làm thêm': JSON.stringify(ps.map((x) => x['Mô tả'] || x['Nội dung'] || '')), 'Ghi chú': m.querySelector('#gc').value, 'Trạng thái': 'Chờ anh xem' } });
         const tiep = conSot.filter((x) => x.xl === 'Làm tiếp ngày mai');
         if (tiep.length) await API.goi('ghiNhieu', { bang: 'HoanViec', dong: tiep.map((x) => ({ 'Mã': G.ma('HV'), 'Ngày': hn(), 'Đội': 'Nội bộ', 'Việc': x.viec, 'Liên kết': x.link, 'Lý do': x.ly, 'Ngày làm bù': mai, 'Người': S.u.ten })) });
-        bao('Đã gửi · Trưởng bộ phận nhận thông báo'); location.hash = '#/';
+        const gcV = m.querySelector('#gc') ? m.querySelector('#gc').value : ''; bao('Đã gửi · Trưởng bộ phận nhận thông báo'); location.hash = '#/';
+        /* 0.4.9 mục 152: ảnh tóm tắt ca để gửi nhóm Zalo */ if (G.guiAnhCa) setTimeout(() => G.guiAnhCa({ daLam, conSot, them: ps.map((x) => x['Mô tả'] || x['Nội dung'] || ''), gc: gcV }).catch((er) => bao(er.message, true)), 600);
       }, e.target);
     };
     ve();

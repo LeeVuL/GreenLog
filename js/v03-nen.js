@@ -163,7 +163,16 @@
       }
       goc.innerHTML = html;
       goc.querySelectorAll('[data-cum]').forEach((b) => { b.onclick = () => { st.cum = b.dataset.cum; ve(); }; });
-      goc.querySelectorAll('[data-mat]').forEach((b) => { b.onclick = () => { st.mat = b.dataset.mat; ve(); }; });
+      /* 0.4.9 mục 161: bấm mặt nhanh là CHỌN LUÔN mặt đó cho các villa chưa làm trong cụm; bấm lại lần nữa để bỏ */
+      goc.querySelectorAll('[data-mat]').forEach((b) => { b.onclick = async () => {
+        const mat = b.dataset.mat; const hop_ = (v) => mat === 'Cả 3' || G.mat(v.ten) === mat;
+        const cua = trong.filter(hop_);
+        if (st.mat === mat && st._matTu === st.cum + '|' + mat && cua.some((v) => st.chon.has(v.ma))) { cua.forEach((v) => st.chon.delete(v.ma)); st._matTu = ''; doi(); return ve(); }
+        st.mat = mat; const daLam = cua.filter((v) => !st.chon.has(v.ma) && opt.trangThai(v.ma).cls === 'xong');
+        const them = cua.filter((v) => !st.chon.has(v.ma) && opt.trangThai(v.ma).cls !== 'xong');
+        if (them.length) { them.forEach((v) => st.chon.add(v.ma)); st._matTu = st.cum + '|' + mat; doi(); }
+        if (daLam.length && G.bao) G.bao(daLam.length > 3 ? `Bỏ qua ${daLam.length} vị trí đã làm` : 'Đã làm: ' + daLam.map((v) => 'V' + G.soVilla(v.kv) + ' ' + G.mat(v.ten).toLowerCase()).join(', '));
+        ve(); }; });
       const hopLe = (v) => !st._mat || !villa || G.mat(v.ten) === st._mat;
       goc.querySelector('#caCum').onclick = async () => { const them = trong.filter(hopLe).filter((v) => !st.chon.has(v.ma)); if (await chonCo(them)) ve(); };
       goc.querySelector('#boCum').onclick = () => { trong.forEach((v) => st.chon.delete(v.ma)); doi(); ve(); };

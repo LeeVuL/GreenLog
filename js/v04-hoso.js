@@ -21,7 +21,7 @@ table{width:100%;border-collapse:collapse}th{background:#E7EFE3;color:${DK};font
 .chip{display:inline-block;padding:1px 6px;border-radius:99px;font-size:8px;font-weight:700;white-space:nowrap}.g{background:#E5F4E4;color:#1F6B35}.o{background:#FCEBDD;color:#B4621E}.rd{background:#FBE3E2;color:#B33A36}.gr{background:#EEF1EC;color:${MU}}
 .grid{display:grid;gap:7px}.box{background:${BG};border-radius:8px;padding:6px 8px}.box .k{font-size:8.3px;color:${MU}}.box .v{font-size:13px;font-weight:800;color:${DK}}
 .ph{border-radius:6px;height:64px;object-fit:cover;width:100%}
-.sig{display:flex;justify-content:space-around;text-align:center;margin-top:8px;font-size:9px}
+.sig{display:flex;justify-content:space-around;text-align:center;margin-top:8px;font-size:9px}.cho-ky{height:40mm}
 .foot{position:absolute;bottom:6mm;left:11mm;right:11mm;display:flex;justify-content:space-between;color:${MU};font-size:8px;border-top:1px solid #E6ECE4;padding-top:3px}
 .ck{display:inline-block;width:9px;height:9px;border:1.3px solid ${DK};border-radius:2px;margin-right:4px;vertical-align:-1px}.ck.x{background:${DK}}
 .tnr{font-family:'Times New Roman',Tinos,serif;color:#000;font-size:13px}`;
@@ -92,7 +92,7 @@ table{width:100%;border-collapse:collapse}th{background:#E7EFE3;color:${DK};font
       <h2>5. Hình ảnh hiện trường<b>${anh.length} ảnh</b></h2><div class="grid" style="grid-template-columns:repeat(6,1fr)">${anh.map((a) => `<img class="ph" src="${esc(API.anhUrl(a))}">`).join('') || '<span class="mu">Chưa có ảnh</span>'}</div>
       <h2>6. Ý kiến giám sát</h2><div class="box" style="background:#fff;border:1px solid #E1E8DE;min-height:26px">${esc(yk)}</div>
       <div class="meta" style="margin-top:5px">Người lập: ${esc(nguoiLap)} – chốt trên app</div>
-      <div class="sig"><div style="width:42%">ĐẠI DIỆN NHÀ THẦU<br>${CT.nt.toUpperCase()}<br><br><br>${KY_NT}</div><div style="width:42%">ĐẠI DIỆN KHÁCH SẠN<br>MÖVENPICK RESORT WAVERLY PHU QUOC<br><br><br>${KY_KS}</div></div>
+      <div class="sig"><div style="width:42%">ĐẠI DIỆN NHÀ THẦU<br>${CT.nt.toUpperCase()}<div class="cho-ky"></div>${KY_NT}</div><div style="width:42%">ĐẠI DIỆN KHÁCH SẠN<br>MÖVENPICK RESORT WAVERLY PHU QUOC<div class="cho-ky"></div>${KY_KS}</div></div>
       <div class="foot"><span>Tự tạo khi Chốt ngày · cuối kỳ xuất gộp thành một quyển</span><span>NK-${ngay.replace(/-/g, '')}</span></div></div>`;
   }
 
@@ -120,8 +120,8 @@ table{width:100%;border-collapse:collapse}th{background:#E7EFE3;color:${DK};font
     <h2>Hồ sơ kèm theo<b>Attached documents · GreenLog</b></h2>
     <table><tr><th>#</th><th>Tài liệu</th><th>Số hiệu</th><th>Ghi chú</th></tr><tr><td>1</td><td>Nhật ký thi công – Quyển ${quyenSo(k)} (bản chính)</td><td>NK-${maKy(k)}</td><td>${s.soTrang} trang · ${G.ngayVN(k.tu)} – ${G.ngayVN(k.den)}</td></tr>
     <tr><td>2</td><td>Bảng công chi tiết kỳ</td><td>BC-${maKy(k)}</td><td>${G.so(s.c.tt)} / ${G.so(s.c.hd + 12)} công</td></tr><tr><td>3</td><td>Phụ lục kết quả dịch vụ kỳ (nếu dùng)</td><td>PL-${maKy(k)}</td><td>Hoàn thành định kỳ ${so1(s.pDK)}%</td></tr><tr><td>4</td><td>Sơ đồ khu vực đánh dấu (nếu có)</td><td>—</td><td class="mu">Attach marked-up drawing</td></tr></table>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><div class="box" style="text-align:center;height:170px;position:relative;background:#fff;border:1px solid #E1E8DE"><b style="color:${DK}">YÊU CẦU BỞI / <i>REQUESTED BY</i></b><br><span class="mu">Đại diện nhà thầu – ${CT.nt}</span><div style="position:absolute;bottom:10px;left:0;right:0">${KY_NT}</div></div>
-    <div class="box" style="text-align:center;height:170px;position:relative;background:#fff;border:1px solid #E1E8DE"><b style="color:${DK}">XÁC NHẬN BỞI / <i>ACKNOWLEDGED BY</i></b><br><span class="mu">Đại diện khách sạn Mövenpick Resort Waverly Phu Quoc</span><div style="position:absolute;bottom:10px;left:0;right:0">${KY_KS}</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><div class="box" style="text-align:center;height:62mm;position:relative;background:#fff;border:1px solid #E1E8DE"><b style="color:${DK}">YÊU CẦU BỞI / <i>REQUESTED BY</i></b><br><span class="mu">Đại diện nhà thầu – ${CT.nt}</span><div style="position:absolute;bottom:10px;left:0;right:0">${KY_NT}</div></div>
+    <div class="box" style="text-align:center;height:62mm;position:relative;background:#fff;border:1px solid #E1E8DE"><b style="color:${DK}">XÁC NHẬN BỞI / <i>ACKNOWLEDGED BY</i></b><br><span class="mu">Đại diện khách sạn Mövenpick Resort Waverly Phu Quoc</span><div style="position:absolute;bottom:10px;left:0;right:0">${KY_KS}</div></div></div>
     <div class="foot"><span>App tự tạo ngày 18 hằng tháng · số hiệu nối với nhật ký, bảng công, biên bản nghiệm thu BBNT/CSCQ-MVP/${soKy(k)}</span><span>YCNT-${maKy(k)}</span></div></div>`; };
 
   /* ---- (4) BIÊN BẢN NGHIỆM THU · BBNT/CSCQ-MVP/MM-YYYY · ngày 19 ---- */
@@ -142,8 +142,8 @@ table{width:100%;border-collapse:collapse}th{background:#E7EFE3;color:${DK};font
     <div style="padding:4px 5px">${esc(nt['Chất lượng'] || 'Đảm bảo chất lượng theo Hợp đồng.')}</div>
     <h2>B) Các ý kiến khác (nếu có)</h2><div style="padding:2px 5px;line-height:1.7">${esc(nt['Ý kiến'] || '').replace(/\n/g, '<br>') || '.......................................................................................................................................................'}</div>
     <h2>5. Kết luận</h2><div class="box" style="background:#fff;border:1px solid #E1E8DE;line-height:1.8">${ck('Đồng ý nghiệm thu')}<b>Đồng ý nghiệm thu</b> công tác chăm sóc cây xanh cảnh quan cho Mövenpick Resort Waverly Phu Quoc tháng ${mth}/${y}<br>${ck('Đồng ý, khắc phục tồn tại')}Đồng ý nghiệm thu, nhà thầu khắc phục tồn tại theo mục B &nbsp;&nbsp; ${ck('Chưa đồng ý')}Chưa đồng ý nghiệm thu</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:9px"><div class="box" style="text-align:center;height:118px;position:relative;background:#fff;border:1px solid #E1E8DE"><b style="color:${DK}">ĐẠI DIỆN KHÁCH SẠN</b><br><span class="mu">Mövenpick Resort Waverly Phu Quoc</span><div style="position:absolute;bottom:8px;left:0;right:0">${KY_KS}</div></div>
-    <div class="box" style="text-align:center;height:118px;position:relative;background:#fff;border:1px solid #E1E8DE"><b style="color:${DK}">ĐẠI DIỆN NHÀ THẦU</b><br><span class="mu">${CT.nt}</span><div style="position:absolute;bottom:8px;left:0;right:0">${KY_NT}</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:9px"><div class="box" style="text-align:center;height:58mm;position:relative;background:#fff;border:1px solid #E1E8DE"><b style="color:${DK}">ĐẠI DIỆN KHÁCH SẠN</b><br><span class="mu">Mövenpick Resort Waverly Phu Quoc</span><div style="position:absolute;bottom:8px;left:0;right:0">${KY_KS}</div></div>
+    <div class="box" style="text-align:center;height:58mm;position:relative;background:#fff;border:1px solid #E1E8DE"><b style="color:${DK}">ĐẠI DIỆN NHÀ THẦU</b><br><span class="mu">${CT.nt}</span><div style="position:absolute;bottom:8px;left:0;right:0">${KY_NT}</div></div></div>
     <div class="foot"><span>App tự lập ngày 19 khi đóng kỳ · nối với YCNT/CSCQ-MVP/${soKy(k)}, NK-${maKy(k)}, BC-${maKy(k)}</span><span>BBNT-${maKy(k)}</span></div></div>`; };
 
   /* ---- (5) PHỤ LỤC KẾT QUẢ DỊCH VỤ KỲ ---- */
@@ -168,7 +168,7 @@ table{width:100%;border-collapse:collapse}th{background:#E7EFE3;color:${DK};font
     <tr><td></td><td class="b">Chênh lệch</td>${c.ngTT.map((v, i) => `<td class="c b" style="${nen(c.ngay[i])};color:${v - c.ngHD[i] < 0 ? '#B33A36' : '#1F6B35'}">${G.so(v - c.ngHD[i])}</td>`).join('')}<td class="r b">${G.so(c.chenh)}</td></tr></table>
     <div class="grid" style="grid-template-columns:1.2fr 1fr 1fr;margin-top:6px;align-items:start"><table><tr><th colspan="2">Tổng hợp kỳ</th></tr><tr><td>I. Công thực tế</td><td class="r b">${G.so(c.tt)} công</td></tr><tr><td>II. Công hợp đồng: ${c.hd} theo ngày + 12 giám sát</td><td class="r b">${c.hd + 12} công</td></tr><tr><td>Chênh lệch (I – II)</td><td class="r b" style="color:${c.chenhThang < 0 ? '#B33A36' : '#1F6B35'}">${G.so(c.chenhThang)} công</td></tr></table>
     <div class="meta" style="font-size:8.3px">Ký hiệu: 1 = cả ngày · ½ = một buổi · · = vắng · cột vàng = Chủ nhật / lễ${c.le.length ? ' (' + c.le.map(([n, t]) => G.ngayVN(n).slice(0, 5) + ' ' + esc(t)).join('; ') + ')' : ''}. Số lấy từ điểm danh sáng/chiều Trưởng bộ phận đã duyệt.</div>
-    <div class="sig" style="margin-top:0"><div style="width:45%">Đại diện nhà thầu<br>&nbsp;<br><br>${KY_NT}</div><div style="width:45%">Đại diện khách sạn<br><span style="white-space:nowrap">Mövenpick Resort Waverly Phu Quoc</span><br><br>${KY_KS}</div></div></div>
+    <div class="sig" style="margin-top:0"><div style="width:45%">Đại diện nhà thầu<br>&nbsp;<div class="cho-ky"></div>${KY_NT}</div><div style="width:45%">Đại diện khách sạn<br><span style="white-space:nowrap">Mövenpick Resort Waverly Phu Quoc</span><div class="cho-ky"></div>${KY_KS}</div></div></div>
     <div class="foot"><span>GreenLog xuất cùng nhật ký và biên bản nghiệm thu khi đóng kỳ</span><span>BC-${maKy(k)}</span></div></div>`; };
 
   const inHoSo = (tieuDe, body) => { const w = window.open('', '_blank'); if (!w) throw new Error('Trình duyệt chặn cửa sổ in. Cho phép cửa sổ bật lên rồi thử lại.');

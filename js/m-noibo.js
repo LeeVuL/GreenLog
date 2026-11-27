@@ -15,11 +15,11 @@
   const hn = () => API.ngay();
   const NB = {
     bien: () => G.manSo({ tieuDe: 'Vệ sinh bãi biển', bang: 'VeSinhBien', lui: '#/viec', loc: { 'Ngày': { tu: G.congNgay(hn(), -6) } }, nutMoi: 'Ghi vệ sinh bãi biển',
-      truong: [{ k: 'Buổi', nhan: 'Buổi', loai: 'chips', ds: BUOI.concat('Bên kia hàng rào'), gt: new Date().getHours() < 12 ? 'Sáng' : 'Chiều', bb: true }, { k: 'kg rác', nhan: 'Số kg rác', loai: 'so', bb: true }, { k: 'Ảnh', nhan: 'Ảnh cân', loai: 'anh', bb: true, toiDa: 3 }],
+      truong: [{ k: 'Buổi', nhan: 'Buổi', loai: 'chips', ds: BUOI.concat('Bên kia hàng rào'), gt: Date.now() - (G._hangRao || 0) < 180000 ? 'Bên kia hàng rào' : new Date().getHours() < 12 ? 'Sáng' : 'Chiều', bb: true }, { k: 'kg rác', nhan: 'Số kg rác', loai: 'so', bb: true }, { k: 'Ảnh', nhan: 'Ảnh cân', loai: 'anh', bb: true, toiDa: 3 }],
       luu: (v) => API.goi('ghi', { bang: 'VeSinhBien', dong: Object.assign({ 'Ngày': '', 'Người ghi': '' }, v) }),
       dong: (r) => `<div class="gian"><b>${G.ngayVN(r['Ngày'])} · ${esc(r['Buổi'])}</b><div class="mo">${esc(r['Người ghi'])}</div></div><b>${G.so(r['kg rác'])} kg</b>` }),
     ktbien: () => G.manSo({ tieuDe: 'Kiểm tra bãi biển', bang: 'KiemTraBien', lui: '#/viec', loc: { 'Ngày': { tu: G.congNgay(hn(), -6) } }, nutMoi: 'Ghi kiểm tra',
-      truong: [{ k: 'Buổi', nhan: 'Buổi', loai: 'chips', ds: BUOI, gt: new Date().getHours() < 12 ? 'Sáng' : 'Chiều', bb: true }, { k: 'Đoạn bãi', nhan: 'Đoạn bãi', loai: 'nhieu', ds: diem('Bãi biển').map((x) => x.ten) },
+      truong: [{ k: 'Buổi', nhan: 'Buổi', loai: 'chips', ds: ['Sáng', 'Trưa', 'Chiều'], gt: (() => { const h = new Date().getHours() * 60 + new Date().getMinutes(); return h < 660 ? 'Sáng' : h <= 810 ? 'Trưa' : 'Chiều'; })(), bb: true }, { k: 'Đoạn bãi', nhan: 'Đoạn bãi', loai: 'nhieu', ds: diem('Bãi biển').map((x) => x.ten) },
         { k: 'Tình trạng', nhan: 'Tình trạng', loai: 'chips', ds: ['Sạch', 'Có rác trôi dạt', 'Có rong, tảo', 'Cần sàng cát', 'Khác'], bb: true }, { k: 'Ảnh', nhan: 'Ảnh', loai: 'anh', toiDa: 3 }, { k: 'Ghi chú', nhan: 'Ghi chú', loai: 'mota' }],
       luu: (v) => API.goi('ghi', { bang: 'KiemTraBien', dong: Object.assign({ 'Ngày': '', 'Người ghi': '' }, v) }),
       dong: (r) => `<div class="gian"><b>${G.ngayVN(r['Ngày'])} · ${esc(r['Buổi'])}</b><div class="mo">${esc(r['Đoạn bãi'])} ${esc(r['Ghi chú'])}</div></div><span class="chip ${r['Tình trạng'] === 'Sạch' ? 'xanh' : 'cam'}">${esc(r['Tình trạng'])}</span>` }),
@@ -47,7 +47,7 @@
         { k: 'Nhiên liệu (lít)', nhan: 'Nhiên liệu (lít)', loai: 'so' }, { k: 'Ảnh', nhan: 'Ảnh', loai: 'anh', bb: true, toiDa: 3 }, { k: 'Ghi chú', nhan: 'Ghi chú', loai: 'mota' }],
       luu: (v) => API.goi('ghi', { bang: 'MaySangCat', dong: Object.assign({ 'Ngày': '', 'Người ghi': '' }, v) }),
       dong: (r) => `<div class="gian"><b>${esc(r['Máy'])} · ${esc(r['Bảo trì'])}</b><div class="mo">${G.ngayVN(r['Ngày'])} ${esc(r['Giờ bắt đầu'])}–${esc(r['Giờ kết thúc'])} · ${esc(r['Đoạn bãi'])}</div></div>${r['Nhiên liệu (lít)'] ? `<b>${G.so(r['Nhiên liệu (lít)'])} L</b>` : ''}` }),
-    hangrao: () => { location.hash = '#/nb/bien'; },
+    hangrao: () => { G._hangRao = Date.now(); location.hash = '#/nb/bien'; },
     vuonuomnt: () => manVuonUom('Vườn ươm cây nội thất'),
     noithat: manNoiThat,
     vuonrau: manVuonRau,

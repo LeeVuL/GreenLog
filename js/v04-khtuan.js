@@ -4,7 +4,10 @@
   const hn = () => API.ngay();
   const DOI = ['Đội khu vực', 'Đội cơ động'];
   const dvDoi = (v) => (v.doi || (/Cắt cỏ|Bón|Phun|Cắt tỉa cây bóng mát/.test(v.ten) ? 'Đội cơ động' : 'Đội khu vực'));
-  const DV_DK = () => (S.dm.dauviec || []).filter((v) => v.lich === 'Có lịch' && v.nhom === 'Nhà thầu' && !['DV39', 'DV40'].includes(v.ma));
+  /* 0.4.9 mục 155–156: bỏ các việc thủ tục ngày nào cũng làm (điểm danh, kế hoạch ngày, cập nhật cuối ngày) khỏi kế hoạch tuần */
+  const HANG_NGAY_TT = /Điểm danh|Kế hoạch ngày|Cập nhật kết quả|Chốt ngày/i;
+  const DV_DK = () => (S.dm.dauviec || []).filter((v) => v.lich === 'Có lịch' && v.nhom === 'Nhà thầu' && !['DV39', 'DV40', 'DV13', 'DV14', 'DV15', 'DV16'].includes(v.ma) && !HANG_NGAY_TT.test(v.ten || ''));
+  const laUom = (v) => v.ma === 'DV17' || /^Vườn ươm/i.test(v.ten || '');
 
   async function phanDinhKy(st) {
     const k = S.dm.ky; const tuKy = k.tu; const conNgay = Math.max(1, Math.round((new Date(k.den) - new Date(hn())) / 864e5) + 1);
@@ -18,10 +21,31 @@
     return { ds, conNgay };
   }
 
-  const veA = (st, kq) => `<h3 class="tieu-nhom">A. Việc định kỳ · kỳ ${esc(S.dm.ky.ten)} (còn ${kq.conNgay} ngày)</h3><div class="ds">${kq.ds.map((x, i) => `<div class="muc"><div class="gian"><b>${esc(x.v.ten)}</b>
+  const veA = (st, kq) => `<h3 class="tieu-nhom">A. Việc định kỳ · kỳ ${esc(S.dm.ky.ten)} (còn ${kq.conNgay} ngày)</h3><div class="ds">${kq.ds.map((x, i) => laUom(x.v) ? veUom(x, i) : `<div class="muc"><div class="gian"><b>${esc(x.v.ten)}</b>
       <div class="mo">${x.xong}/${x.n} vị trí · <b>còn ${x.con.length}</b> · cần khoảng ${x.tuan} vị trí/tuần · ${esc(x.doi)}</div>
       ${x.dk.length ? `<div class="mo">📅 Đã lên kế hoạch: ${x.dk.map((r) => esc(r['Cụm'] || G.tenVT(r['Mã vị trí']) || '') + (r['Ngày'] ? ' (' + G.thuNgan(r['Ngày']) + ')' : '')).join(', ')}</div>` : ''}</div>
       ${q('kehoach') >= 2 && x.con.length ? `<button class="nut nho" data-lkh="${i}">＋ Lên kế hoạch</button>` : x.con.length ? '' : '<span class="chip xanh">Xong kỳ</span>'}</div>`).join('') || '<div class="muc mo">Không có việc định kỳ cho đội này.</div>'}</div>`;
+
+  /* 0.4.9 mục 154: kế hoạch vườn ươm = ươm cây gì, bao nhiêu, đơn vị gì, tại đâu */
+  const veUom = (x, i) => `<div class="muc"><div class="gian"><b>Vườn ươm · kế hoạch ươm tuần</b>
+      <div class="mo">${x.dk.length ? '🌱 ' + x.dk.map((r) => esc(r['Nội dung'] || '')).join(' · ') : 'Chưa có kế hoạch ươm tuần này'} · ${esc(x.doi)}</div></div>
+      ${q('kehoach') >= 2 ? `<button class="nut nho" data-uom="${i}">＋ Kế hoạch ươm</button>` : ''}</div>`;
+  function moUom(st, x) {
+    const dong0 = () => `<div class="the dong-uom" style="margin:8px 0;padding:10px"><label class="o"><span>Loại cây *</span><input data-u="cay" list="uomCay" placeholder="vd: Huỳnh Anh vàng"></label>
+      <div class="hang" style="gap:8px"><label class="o gian"><span>Số lượng *</span><input data-u="sl" type="number" inputmode="decimal" min="0"></label>
+      <label class="o gian"><span>Đơn vị *</span><select data-u="dv">${['Chậu', 'Bầu', 'Khay', 'Cây', 'Hom'].map((d) => `<option>${d}</option>`).join('')}</select></label></div></div>`;
+    G.hop('Kế hoạch ươm · tuần ' + G.ngayVN(st.tu).slice(0, 5), `<label class="o"><span>Địa điểm</span><input id="uomNoi" value="Vườn ươm cây bụi" list="uomNoiDs"></label>
+      <datalist id="uomNoiDs"><option value="Vườn ươm cây bụi"></datalist><datalist id="uomCay">${[...new Set((S.dm.cay || []).map((c) => c.ten).filter(Boolean))].map((t) => `<option value="${esc(t)}">`).join('')}</datalist>
+      <div id="uomDs">${dong0()}</div><button type="button" class="nut rong" id="uomThem">＋ Thêm loại cây</button><button class="nut chinh rong" id="uomLuu" style="margin-top:10px">Lưu kế hoạch ươm</button>`, (o, dong) => {
+      o.querySelector('#uomThem').onclick = () => o.querySelector('#uomDs').insertAdjacentHTML('beforeend', dong0());
+      o.querySelector('#uomLuu').onclick = (e) => chay(async () => {
+        const noi = o.querySelector('#uomNoi').value.trim() || 'Vườn ươm cây bụi';
+        const ds = [...o.querySelectorAll('.dong-uom')].map((d) => ({ cay: d.querySelector('[data-u="cay"]').value.trim(), sl: d.querySelector('[data-u="sl"]').value, dv: d.querySelector('[data-u="dv"]').value })).filter((r) => r.cay || r.sl);
+        if (!ds.length) throw new Error('Nhập ít nhất 1 loại cây'); if (ds.some((r) => !r.cay || !(+r.sl > 0))) throw new Error('Mỗi dòng cần loại cây và số lượng');
+        await API.goi('ghiNhieu', { bang: 'KeHoachTuan', dong: ds.map((r) => ({ 'Mã KHT': '', 'Tuần': st.tu, 'Mã việc': x.v.ma, 'Cụm': noi, 'Mã vị trí': '', 'Nội dung': `Ươm ${r.cay} · ${r.sl} ${r.dv.toLowerCase()}`, 'Loại cây': r.cay, 'Số lượng': r.sl, 'ĐVT': r.dv, 'Đội/Người': x.doi, 'Ngày': '', 'Từ ngày': st.tu, 'Hạn': G.congNgay(st.tu, 6), 'Trạng thái': 'Đăng ký' })) });
+        dong(); bao('Đã lưu kế hoạch ươm ' + ds.length + ' loại'); G.taiLai(); }, e.target);
+    });
+  }
 
   function moChon(st, x) {
     const stVT = { chon: new Set(), cum: '' }; const xongSet = new Set(G.dsVT(x.v.ma).map((v) => v.ma).filter((ma) => !x.con.some((c) => c.ma === ma)));
@@ -55,5 +79,6 @@
     const kq = await phanDinhKy(st); const box = document.createElement('div'); box.innerHTML = veA(st, kq);
     h.replaceWith(...box.childNodes); if (ds0 && ds0.classList.contains('ds')) ds0.remove();
     m.querySelectorAll('[data-lkh]').forEach((b) => { b.onclick = () => moChon(st, kq.ds[+b.dataset.lkh]); });
+    m.querySelectorAll('[data-uom]').forEach((b) => { b.onclick = () => moUom(st, kq.ds[+b.dataset.uom]); });
   } });
 })();

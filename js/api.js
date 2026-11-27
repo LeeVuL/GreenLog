@@ -145,6 +145,7 @@
     const r = Object.assign({}, dong);
     COT_NGUOI.forEach((c) => { if (c in r && !r[c]) r[c] = u.ten; });
     COT_GIO.forEach((c) => { if (c in r && !r[c]) r[c] = bayGio(); });
+    if (!COT_GIO.some((c) => c in r) && !('Giờ' in r)) r['Giờ ghi'] = bayGio(); // 0.4.9 mục 150
     if ('Ngày' in r && !r['Ngày']) r['Ngày'] = ngay();
     const m = maMoi(bang); if (m && !r[m[0]]) r[m[0]] = m[1];
     Object.keys(r).forEach((k) => { if (r[k] == null) r[k] = ''; else if (Array.isArray(r[k])) r[k] = r[k].join(' | '); else r[k] = String(r[k]); });

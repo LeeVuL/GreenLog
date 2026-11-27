@@ -85,7 +85,7 @@
   /* ================= VIỆC: ô có ✓ giờ, người (mục 14) · bỏ rác hữu cơ · Vị Garden · túi thuốc dừa · Hoa Giấy N2/N4 ================= */
   const NGUON = { // link → [bảng, lọc thêm]
     tuoi: ['Tuoi'], 'cum/DV10': ['ViecHangNgay', { 'Mã việc': 'DV10' }], 'cum/DV11': ['ViecHangNgay', { 'Mã việc': 'DV11' }], vanchuyen: ['VanChuyen'], phatsinh: ['ViecPhatSinh'], donghonuoc: ['DongHoNuoc'],
-    vuonuom: ['VuonUom', { 'Vườn ươm': 'Vườn ươm cây bụi' }], 'nb/bien': ['VeSinhBien'], 'nb/ktbien': ['KiemTraBien'], 'nb/may': ['MaySangCat'], 'nb/vuonrau': ['VuonRau'], 'nb/thuhoach': ['ThuHoach'],
+    vuonuom: ['VuonUom', { 'Vườn ươm': 'Vườn ươm cây bụi' }], 'nb/bien': ['VeSinhBien', (r) => r['Buổi'] !== 'Bên kia hàng rào'], 'nb/hangrao': ['VeSinhBien', { 'Buổi': 'Bên kia hàng rào' }], 'nb/ktbien': ['KiemTraBien'], 'nb/may': ['MaySangCat'], 'nb/vuonrau': ['VuonRau'], 'nb/thuhoach': ['ThuHoach'],
     'nb/noithat': ['CayNoiThat'], 'nb/vuonuomnt': ['VuonUomNoiThat'], 'nb/compost': ['PhanCompost'], 'nb/rac': ['RacHuuCo'], tuithuoc: ['TuiThuocDua'],
   };
   const TILE_QV = { 'nb/rac': 'DV23', tuoi: 'DV09', 'cum/DV10': 'DV10', 'cum/DV11': 'DV11', vanchuyen: 'CN04', phatsinh: 'CN06', donghonuoc: 'DV12', vuonuom: 'DV17', 'nb/bien': 'DV18', 'nb/ktbien': 'DV19', 'nb/may': 'DV30', 'nb/vuonrau': 'DV20', 'nb/thuhoach': 'DV31', 'nb/noithat': 'DV22', 'nb/vuonuomnt': 'DV21', sotrongcay: 'CN09', dichhai: 'CN08', phunbon: 'CN07', tuithuoc: 'DV39' };
@@ -95,7 +95,7 @@
     const ngay = ngayXem || hn();
     const bangs = [...new Set(Object.values(NGUON).map((x) => x[0]))].map((b) => ({ bang: b, loc: { 'Ngày': ngay } }));
     const d = await G.docNhieu(bangs); const out = {};
-    Object.keys(NGUON).forEach((k) => { const [b, loc] = NGUON[k]; const ds = (d[b] || []).filter((r) => !loc || Object.keys(loc).every((c) => r[c] === loc[c])); if (ds.length) { const r = ds[ds.length - 1]; out[k] = { ds, n: ds.length, gio: String(r['Giờ ghi'] || r['Giờ tick'] || r['Giờ'] || r['Bắt đầu'] || r['Giờ bắt đầu'] || '').replace(/^\d{4}-\d{2}-\d{2} /, '').slice(0, 5), ai: (r['Người ghi'] || r['Người đọc'] || r['Người tick'] || '').split(' ').pop() }; } });
+    Object.keys(NGUON).forEach((k) => { const [b, loc] = NGUON[k]; const ds = (d[b] || []).filter((r) => !loc || (typeof loc === 'function' ? loc(r) : Object.keys(loc).every((c) => r[c] === loc[c]))); if (ds.length) { const r = ds[ds.length - 1]; out[k] = { ds, n: ds.length, gio: String(r['Giờ ghi'] || r['Giờ tick'] || r['Giờ'] || r['Bắt đầu'] || r['Giờ bắt đầu'] || '').replace(/^\d{4}-\d{2}-\d{2} /, '').slice(0, 5), ai: (r['Người ghi'] || r['Người đọc'] || r['Người tick'] || '').split(' ').pop() }; } });
     return out;
   };
   G.man.viec = Object.assign(G.man.viec, { fn: async () => {
@@ -177,13 +177,13 @@
     const ghi = q('phunbon') >= 2;
     m.innerHTML = (ghi ? `<div class="luoi-tq" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px">${LOAI3.map((x) => `<a class="nut ${x[0] === t[0] ? 'chinh' : ''}" href="#/phunbon/${x[0]}">${x[2]} ${x[1]}</a>`).join('')}</div>` : '')
       + `<div class="chon">${LOAI3.map((x) => `<a class="${x[0] === t[0] ? 'dang' : ''}" href="#/phunbon/ds-${x[0]}" style="text-decoration:none">${x[1]} (${(d.NhatKyPhunBon || []).filter((r) => laLoai(r, x[0])).length})</a>`).join('')}<a href="#/thuoc" style="text-decoration:none">Danh mục thuốc, phân</a></div>`
-      + `<div class="the"><b>Từ đầu tháng</b><div class="mo">${thang.length} lần · ${G.so(thang.reduce((a, r) => a + (+r['Số bình'] || 0), 0))} bình</div>
+      + `<div class="the"><b>Từ đầu tháng</b><div class="mo">${thang.length} lần${t[0] === 'goc' ? (() => { const kg = thang.reduce((a, r) => a + ct(r['Mã NK']).reduce((b, x) => b + (/bao/i.test(x['ĐVT'] || '') ? 25 : 1) * (+x['Tổng lượng'] || 0), 0), 0); return kg ? ' · ' + G.so(kg, 1) + ' kg' : ''; })() : ' · ' + G.so(thang.reduce((a, r) => a + (+r['Số bình'] || 0), 0)) + ' bình'}</div>
         <div class="mo">${Object.keys(tong).map((k) => { const [sp, dv] = k.split('|'); return `${esc(sp)}: ${G.so(tong[k], 2)} ${esc(dv)}`; }).join(' · ') || 'Chưa có'}</div>
         ${t[0] === 'thuoc' && dangCL.length ? `<div class="mo" style="color:var(--cam)">Đang cách ly: ${dangCL.map((r) => esc(G.tenVT(r['Mã vị trí'], r['Vị trí chi tiết'] || r['Cụm'])) + ' đến ' + G.ngayVN(r['Hết cách ly']).slice(0, 5)).join(' · ')}</div>` : ''}</div>`
       + `<div class="ds">${ds.length ? ds.map((r) => { const cl = r['Hết cách ly'] >= hn && +r['Cách ly dài nhất (ngày)'] > 0;
         return `<div class="muc"><div class="gian"><b>${esc(G.gioVN(r['Ngày giờ']))}</b> · ${esc(r['Số bình'] || '')} ${t[0] === 'goc' ? '' : 'bình'}
           <div class="mo">📍 ${esc(G.tenVT(r['Mã vị trí'], r['Vị trí chi tiết'] || r['Cụm']))} · ${esc(r['Người ghi'] || '')}</div>
-          <div class="mo">${ct(r['Mã NK']).map((x) => `${esc(x['Sản phẩm'])} ${esc(x['Liều / bình'] || '')} ${esc(x['ĐVT'] || '')}${t[0] === 'goc' ? '' : '/bình'} (tổng ${G.so(x['Tổng lượng'], 2)})`).join(' + ')}</div></div>
+          <div class="mo">${ct(r['Mã NK']).map((x) => t[0] === 'goc' ? `${esc(x['Sản phẩm'])}: ${G.so(x['Tổng lượng'], 2)} ${esc(x['ĐVT'] || 'kg')}` : `${esc(x['Sản phẩm'])} ${esc(x['Liều / bình'] || '')} ${esc(x['ĐVT'] || '')}/bình ${t[0] === 'goc' ? '' : `(tổng ${G.so(x['Tổng lượng'], 2)})`}`).join(' + ')}</div></div>
           ${cl ? `<span class="chip cam">Cách ly đến ${G.ngayVN(r['Hết cách ly']).slice(0, 5)}</span>` : ''}</div>`; }).join('') : G.trong('Chưa có nhật ký ' + t[1].toLowerCase())}</div>`;
   }
   function chonLoaiPB() {
@@ -307,14 +307,16 @@
       o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); const n = Math.max(1, +v.sl || 1); await API.goi('ghiNhieu', { bang: 'TuiThuocDua', dong: Array.from({ length: n }, (_, j) => ({ 'Loại dòng': 'Cây', 'Loại cây': v.loai, 'Tên / số cây': (v.ten || v.loai) + (n > 1 ? ' #' + (j + 1) : ''), 'Mã vị trí': v.vt.ma || '', 'Vị trí khác': v.vt.ma ? '' : v.vt.ten, 'Người ghi': '' })) }); dong(); bao('Đã thêm ' + n + ' cây'); G.taiLai(); }, e.target);
     });
     const dt = m.querySelector('#dot'); if (dt) dt.onclick = () => hop('Ghi đợt treo túi', `<p class="mo">Mẻ trộn: 1 kg thuốc hạt = 100 túi (~10 g/túi). Cần ${tongTui} túi ≈ ${G.so(tongTui / 100, 2)} kg.</p><div id="f"></div><button class="nut chinh rong" id="l">Lưu đợt</button>`, (o, dong) => {
-      const thuoc = S.dm.thuoc.filter((t) => /hạt|GR|Vifu|Actara|Gòng/i.test(t.ten + ' ' + (t.nhom || ''))).map((t) => t.tenNgan || t.ten).concat(['Vifu-super 5GR', 'Actara 25WG', 'Siêu Gòng']);
-      const lay = G.form(o.querySelector('#f'), [{ k: 'dot', nhan: 'Đợt', loai: 'chips', ds: ['1', '2', '3', '4'], bb: true, gt: String(dot.length + 1) }, { k: 'thuoc', nhan: 'Thuốc (trong danh mục)', loai: 'chips', ds: [...new Set(thuoc)], bb: true },
+      /* 0.4.9 mục 158: chọn trong toàn bộ danh mục thuốc (có ô tìm), loại dùng lần trước và loại hay dùng lên đầu */
+      const cuTui = API.LS.get('tui_thuoc_cu', ''); const hayDung = ['Vifu-super 5GR', 'Actara 25WG', 'Siêu Gòng'];
+      const thuoc = [cuTui].concat(hayDung, (S.dm.thuoc || []).filter((t) => !/phân|vitamin|humic|kích thích/i.test((t.nhom || '') + ' ' + (t.loai || ''))).map((t) => t.tenNgan || t.ten), (S.dm.thuoc || []).map((t) => t.tenNgan || t.ten)).filter(Boolean);
+      const lay = G.form(o.querySelector('#f'), [{ k: 'dot', nhan: 'Đợt', loai: 'chips', ds: ['1', '2', '3', '4'], bb: true, gt: String(dot.length + 1) }, { k: 'thuoc', nhan: 'Thuốc (chọn trong danh mục thuốc)', loai: 'chonds', ds: [...new Set(thuoc)], bb: true, gt: cuTui || hayDung[0], goiY: 'Bấm để chọn thuốc' },
         { k: 'tui', nhan: 'Số túi đã treo', loai: 'so', bb: true, gt: tongTui }, { k: 'anh', nhan: 'Ảnh', loai: 'anh', toiDa: 4 }, { k: 'gc', nhan: 'Ghi chú', loai: 'mota' }]);
-      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); const kg = Math.round(+v.tui / 100 * 100) / 100;
+      o.querySelector('#l').onclick = (e) => chay(async () => { const v = lay(); v.thuoc = (v.thuoc && v.thuoc.ten) || v.thuoc; const kg = Math.round(+v.tui / 100 * 100) / 100;
         await API.goi('ghi', { bang: 'TuiThuocDua', dong: { 'Loại dòng': 'Đợt', 'Ngày': hn(), 'Đợt': v.dot, 'Thuốc': v.thuoc, 'Số túi': v.tui, 'Kg thuốc': kg, 'Ảnh': v.anh, 'Ghi chú': v.gc, 'Người ghi': '' } });
         await API.goi('ghi', { bang: 'NhatKyPhunBon', dong: { 'Mã NK': '', 'Ngày giờ': API.bayGio().slice(0, 16), 'Loại (Phun thuốc/Phun phân bón lá/Bón gốc)': 'Phun thuốc', 'Mục đích': 'Phòng', 'Nhóm cây': 'Cây bóng mát', 'Đối tượng': 'Bọ cánh cứng, đuông dừa', 'Cụm': 'Họ dừa', 'Vị trí chi tiết': 'Túi thuốc đợt ' + v.dot, 'Ảnh': v.anh, 'Người ghi': '' } })
           .then((nk) => API.goi('ghiNhieu', { bang: 'NhatKyPhunBonChiTiet', dong: [{ 'Mã NK': nk['Mã NK'], 'STT': 1, 'Sản phẩm': v.thuoc, 'ĐVT': 'kg', 'Tổng lượng': kg }] }));
-        dong(); bao(`Đã lưu đợt ${v.dot} · ${kg} kg thuốc cộng vào Thuốc BVTV`); G.taiLai(); }, e.target);
+        API.LS.set('tui_thuoc_cu', v.thuoc); dong(); bao(`Đã lưu đợt ${v.dot} · ${kg} kg thuốc cộng vào Thuốc BVTV`); G.taiLai(); }, e.target);
     });
   } };
 

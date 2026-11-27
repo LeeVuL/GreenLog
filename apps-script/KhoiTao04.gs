@@ -65,7 +65,25 @@ function viTriPhieu048_(log) {
   const DS = [['VT265', 'Vườn ươm', 'Vườn ươm', 'Vườn ươm cây nội thất'], ['VT266', 'Vườn ươm', 'Vườn ươm', 'Vườn ươm cây bụi'], ['VT267', 'Islander', 'Islander', 'Islander'],
     ['VT268', 'Ký túc xá', 'Ký túc xá', 'KTX khu vực bãi bóng chuyền'], ['VT269', 'Ký túc xá', 'Ký túc xá', 'KTX trước cổng'], ['VT270', 'Ký túc xá', 'Ký túc xá', 'KTX dãy Crowne'],
     ['VT271', 'Ký túc xá', 'Ký túc xá', 'KTX dãy Movenpick'], ['VT272', 'Ký túc xá', 'Ký túc xá', 'KTX sân chính'], ['VT273', 'Khu kỹ thuật cây xanh', 'Khu kỹ thuật cây xanh', 'Hầm bơm cây xanh'],
-    ['VT274', 'Vị Garden', 'Vị Garden', 'Vị Garden'], ['VT275', 'Khu kỹ thuật cây xanh', 'Khu kỹ thuật cây xanh', 'Bãi rác cây xanh giai đoạn 2']];
+    ['VT274', 'Vị Garden', 'Vị Garden', 'Vị Garden'], ['VT275', 'Khu kỹ thuật cây xanh', 'Khu kỹ thuật cây xanh', 'Bãi rác cây xanh giai đoạn 2'],
+    ['VT276', 'Spa', 'Spa', 'Spa Tầng 1'],
+    ['VT277', 'Spa', 'Spa', 'Spa Sảnh'],
+    ['VT278', 'Spa', 'Spa', 'Spa locker nam'],
+    ['VT279', 'Spa', 'Spa', 'Spa locker nữ'],
+    ['VT280', 'Spa', 'Spa', 'Spa hành lang'],
+    ['VT281', 'Hotel', 'Hotel', 'M Lounge'],
+    ['VT282', 'Hotel', 'Hotel', 'Hành lang Islander'],
+    ['VT283', 'Tầng 8', 'Tầng 8', 'Tầng 8 (nhà hàng)'],
+    ['VT284', 'Tầng 8', 'Tầng 8', 'Tầng 8 (khu bên ngoài)'],
+    ['VT285', 'Hotel', 'Hotel', 'Nhà vệ sinh khách Wing B Hotel'],
+    ['VT286', 'Hotel', 'Hotel', 'Nhà vệ sinh khách Wing A Hotel'],
+    ['VT287', 'Hotel', 'Hotel', 'Máy nước lọc Wing A Hotel'],
+    ['VT288', 'Hotel', 'Hotel', 'Kidclub'],
+    ['VT289', 'Hotel', 'Hotel', 'Hotel Lobby'],
+    ['VT290', 'Hotel', 'Hotel', 'Hotel Waverly'],
+    ['VT291', 'Residences', 'Residences', 'Residences - Làng Chài'],
+    ['VT292', 'Residences', 'Residences', 'Residences - Bên ngoài Làng Chài'],
+    ['VT293', 'Residences', 'Residences', 'Máy nước lọc Residences']];
   const them = DS.filter(function (r) { return ma.indexOf(r[0]) < 0 && ten.indexOf(r[3]) < 0; }).map(function (r) { const x = r.concat(['Không', 'Chỉ dùng cho phiếu giao việc']); while (x.length < v[0].length) x.push(''); return x.slice(0, Math.max(6, v[0].length)); });
   if (them.length) { sh.getRange(sh.getLastRow() + 1, 1, them.length, them[0].length).setValues(them); log.push('Thêm ' + them.length + ' vị trí chỉ dùng cho phiếu'); }
 }
